@@ -82,20 +82,25 @@ public:
     virtual void ready();
     virtual void stow();
 
-protected slots:
+signals:
+    void hoveredOverNoteChanged(int evPitch, bool haveEvent, timeT evTime);
 
+protected slots:
     void slotMatrixScrolled(int x, int y);
 
 protected:
     MatrixMover(MatrixView*);
 
+    timeT getDragTime(QMouseEvent *e, timeT candidate);
+
     MatrixElement* m_currentElement;
     MatrixStaff* m_currentStaff;
 
-    // store MatrixElement's size
-    int m_oldWidth;
-    double m_oldX;
-    double m_oldY;
+    std::vector<MatrixElement *> m_duplicateElements;
+    bool m_quickCopy;
+
+    int m_lastPlayedPitch;
+    int m_clickX;
 };
 
 

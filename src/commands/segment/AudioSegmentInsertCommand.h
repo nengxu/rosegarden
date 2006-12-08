@@ -33,8 +33,6 @@
 #include "base/Event.h"
 
 
-
-
 namespace Rosegarden
 {
 
@@ -56,20 +54,21 @@ public:
                               const RealTime &audioEndTime);
     virtual ~AudioSegmentInsertCommand();
 
+    Segment *getNewSegment() { return m_segment; }
+
     virtual void execute();
     virtual void unexecute();
     
 private:
     Composition      *m_composition;
-    Studio           *m_studio;
     AudioFileManager *m_audioFileManager;
     Segment          *m_segment;
-    int                           m_track;
+    int               m_track;
     timeT             m_startTime;
     AudioFileId       m_audioFileId;
     RealTime          m_audioStartTime;
     RealTime          m_audioEndTime;
-    bool                          m_detached;
+    bool              m_detached;
 };
 
 

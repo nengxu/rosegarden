@@ -42,7 +42,7 @@
         <Action name="cut_range"/>
         <Action name="copy_range"/>
         <Action name="paste_range"/>
-<!--        <Action name="delete_range"/>  -->
+        <Action name="insert_range"/>
         <Separator/>
         <Action name="select_all"/>
   </Menu>
@@ -377,7 +377,7 @@
         <Action name="edit_event_list"/>
         <Action name="quantize_selection"/>
         <Action name="repeat_quantize"/>
-        <Action name="rescale"/>
+<!--        <Action name="rescale"/> -->
         <Action name="split_by_pitch"/>
         <Action name="split_by_recording"/>
         <Action name="join_segments"/>
@@ -429,7 +429,6 @@
     <enable>
 	 <Action name="cut_range"/>
 	 <Action name="copy_range"/>
-<!-- 	 <Action name="delete_range"/> -->
     </enable>
 </State>
 

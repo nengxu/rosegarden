@@ -24,7 +24,8 @@
 #include "Segment.h"
 #include "FastVector.h"
 #include "BaseProperties.h"
-#include "Quantizer.h"
+#include "BasicQuantizer.h"
+#include "NotationQuantizer.h"
 
 #include <iostream>
 #include <iomanip>
@@ -210,6 +211,7 @@ Composition::~Composition()
 	for (ObserverSet::const_iterator i = m_observers.begin();
 	     i != m_observers.end(); ++i) {
 	    cerr << " " << (void *)(*i);
+	    cerr << " [" << typeid(**i).name() << "]";
 	}
 	cerr << endl;
     }

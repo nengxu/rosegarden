@@ -58,11 +58,13 @@
 #include "commands/segment/AddTimeSignatureAndNormalizeCommand.h"
 #include "commands/segment/AddTimeSignatureCommand.h"
 #include "commands/segment/AudioSegmentAutoSplitCommand.h"
+#include "commands/segment/AudioSegmentRescaleCommand.h"
 #include "commands/segment/AudioSegmentSplitCommand.h"
 #include "commands/segment/ChangeCompositionLengthCommand.h"
 #include "commands/segment/CreateTempoMapFromSegmentCommand.h"
 #include "commands/segment/CutRangeCommand.h"
 #include "commands/segment/DeleteRangeCommand.h"
+#include "commands/segment/InsertRangeCommand.h"
 #include "commands/segment/ModifyDefaultTempoCommand.h"
 #include "commands/segment/MoveTracksCommand.h"
 #include "commands/segment/PasteRangeCommand.h"
@@ -124,6 +126,7 @@
 #include "gui/editors/segment/SegmentResizer.h"
 #include "gui/editors/segment/SegmentSelector.h"
 #include "gui/editors/segment/SegmentSplitter.h"
+#include "gui/editors/segment/SegmentToolBox.h"
 #include "gui/editors/segment/TrackLabel.h"
 #include "gui/editors/segment/TriggerSegmentManager.h"
 #include "gui/editors/tempo/TempoView.h"
@@ -807,10 +810,14 @@ void RosegardenGUIApp::setupActions()
     new KAction(i18n("Paste Range"), Key_V + CTRL + SHIFT, this,
                 SLOT(slotPasteRange()), actionCollection(),
                 "paste_range");
-
+/*
     new KAction(i18n("Delete Range"), Key_Delete + SHIFT, this,
                 SLOT(slotDeleteRange()), actionCollection(),
                 "delete_range");
+*/
+    new KAction(i18n("Insert Range..."), Key_Insert + SHIFT, this,
+                SLOT(slotInsertRange()), actionCollection(),
+                "insert_range");
 
     new KAction(i18n("De&lete"), Key_Delete, this,
                 SLOT(slotDeleteSelectedSegments()), actionCollection(),
@@ -1419,6 +1426,11 @@ void RosegardenGUIApp::initView()
     }
 
     m_view->show();
+
+    connect(m_view->getTrackEditor()->getSegmentCanvas()->getToolBox(),
+            SIGNAL(showContextHelp(const QString &)),
+            this,
+            SLOT(slotShowToolHelp(const QString &)));
 
     // We have to do this to make sure that the 2nd call ("select")
     // actually has any effect. Activating the same radio action
@@ -2470,6 +2482,19 @@ void RosegardenGUIApp::slotDeleteRange()
     m_doc->setLoop(0, 0);
 }
 
+void RosegardenGUIApp::slotInsertRange()
+{
+    timeT t0 = m_doc->getComposition().getPosition();
+    std::pair<timeT, timeT> r = m_doc->getComposition().getBarRangeForTime(t0);
+    TimeDialog dialog(m_view, i18n("Duration of empty range to insert"),
+                      &m_doc->getComposition(), t0, r.second - r.first, false);
+    if (dialog.exec() == QDialog::Accepted) {
+        m_doc->getCommandHistory()->addCommand
+            (new InsertRangeCommand(&m_doc->getComposition(), t0, dialog.getTime()));
+        m_doc->setLoop(0, 0);
+    }
+}
+
 void RosegardenGUIApp::slotSelectAll()
 {
     m_view->slotSelectAllSegments();
@@ -2591,21 +2616,74 @@ void RosegardenGUIApp::slotRescaleSelection()
 
     RescaleDialog dialog(m_view, &m_doc->getComposition(),
                          startTime, endTime - startTime,
-                         false);
+                         false, false);
     if (dialog.exec() != QDialog::Accepted)
         return ;
+
+    std::vector<AudioSegmentRescaleCommand *> asrcs;
+
+    int mult = dialog.getNewDuration();
+    int div = endTime - startTime;
+    float ratio = float(mult) / float(div);
+
+    std::cerr << "slotRescaleSelection: mult = " << mult << ", div = " << div << ", ratio = " << ratio << std::endl;
 
     KMacroCommand *command = new KMacroCommand
                              (SegmentRescaleCommand::getGlobalName());
 
     for (SegmentSelection::iterator i = selection.begin();
             i != selection.end(); ++i) {
-        command->addCommand(new SegmentRescaleCommand(*i,
-                            dialog.getNewDuration(),
-                            endTime - startTime));
+        if ((*i)->getType() == Segment::Audio) {
+            //!!! this command should take an extra arg for intended
+            // end time so it can set that afterwards to avoid rounding error
+            AudioSegmentRescaleCommand *asrc = new AudioSegmentRescaleCommand
+                (m_doc, *i, ratio);
+            command->addCommand(asrc);
+            asrcs.push_back(asrc);
+        } else {
+            command->addCommand(new SegmentRescaleCommand
+                                (*i, mult, div));
+        }
+    }
+
+    ProgressDialog *progressDlg = 0;
+
+    if (!asrcs.empty()) {
+        progressDlg = new ProgressDialog
+            (i18n("Rescaling audio file..."), 100, this);
+        progressDlg->setAutoClose(false);
+        progressDlg->setAutoReset(false);
+        progressDlg->show();
+        for (size_t i = 0; i < asrcs.size(); ++i) {
+            asrcs[i]->connectProgressDialog(progressDlg);
+        }
     }
 
     m_view->slotAddCommandToHistory(command);
+
+    if (!asrcs.empty()) {
+
+        progressDlg->setLabel(i18n("Generating audio preview..."));
+
+        for (size_t i = 0; i < asrcs.size(); ++i) {
+            asrcs[i]->disconnectProgressDialog(progressDlg);
+        }
+
+        connect(&m_doc->getAudioFileManager(), SIGNAL(setProgress(int)),
+                progressDlg->progressBar(), SLOT(setValue(int)));
+        connect(progressDlg, SIGNAL(cancelClicked()),
+                &m_doc->getAudioFileManager(), SLOT(slotStopPreview()));
+
+        for (size_t i = 0; i < asrcs.size(); ++i) {
+            int fid = asrcs[i]->getNewAudioFileId();
+            if (fid >= 0) {
+                slotAddAudioFile(fid);
+                m_doc->getAudioFileManager().generatePreview(fid);
+            }
+        }
+    }
+
+    if (progressDlg) delete progressDlg;
 }
 
 void RosegardenGUIApp::slotAutoSplitSelection()
@@ -2705,6 +2783,8 @@ void RosegardenGUIApp::createAndSetupTransport()
     connect(m_transport, SIGNAL(editTimeSignature(QWidget*)),
             SLOT(slotEditTimeSignature(QWidget*)));
 
+    connect(m_transport, SIGNAL(editTransportTime(QWidget*)),
+            SLOT(slotEditTransportTime(QWidget*)));
 
     // Handle set loop start/stop time buttons.
     //
@@ -2807,7 +2887,7 @@ RosegardenGUIApp::slotSplitSelectionAtTime()
 
     TimeDialog dialog(m_view, title,
                       &m_doc->getComposition(),
-                      now);
+                      now, true);
 
     KMacroCommand *command = new KMacroCommand( title );
 
@@ -2839,7 +2919,7 @@ RosegardenGUIApp::slotSetSegmentStartTimes()
 
     TimeDialog dialog(m_view, i18n("Segment Start Time"),
                       &m_doc->getComposition(),
-                      someTime);
+                      someTime, false);
 
     if (dialog.exec() == QDialog::Accepted) {
 
@@ -2883,7 +2963,8 @@ RosegardenGUIApp::slotSetSegmentDurations()
     TimeDialog dialog(m_view, i18n("Segment Duration"),
                       &m_doc->getComposition(),
                       someTime,
-                      someDuration);
+                      someDuration,
+                      false);
 
     if (dialog.exec() == QDialog::Accepted) {
 
@@ -5450,6 +5531,22 @@ void RosegardenGUIApp::slotEditTimeSignature(QWidget *parent,
     }
 }
 
+void RosegardenGUIApp::slotEditTransportTime()
+{
+    slotEditTransportTime(this);
+}
+
+void RosegardenGUIApp::slotEditTransportTime(QWidget *parent)
+{
+    TimeDialog dialog(parent, i18n("Move playback pointer to time"),
+                      &m_doc->getComposition(),
+                      m_doc->getComposition().getPosition(),
+                      true);
+    if (dialog.exec() == QDialog::Accepted) {
+        m_doc->slotSetPointerPosition(dialog.getTime());
+    }
+}
+
 void RosegardenGUIApp::slotChangeZoom(int)
 {
     double duration44 = TimeSignature(4, 4).getBarDuration();
@@ -7568,6 +7665,14 @@ RosegardenGUIApp::slotShowTip()
 {
     RG_DEBUG << "RosegardenGUIApp::slotShowTip" << endl;
     KTipDialog::showTip(this, locate("data", "rosegarden/tips"), true);
+}
+
+void RosegardenGUIApp::slotShowToolHelp(const QString &s)
+{
+    QString msg = s;
+    if (msg == "") msg = i18n("  Ready.");
+    KTmpStatusMsg::setDefaultMsg(msg);
+    slotStatusMsg(msg);
 }
 
 void

@@ -42,6 +42,7 @@
 #include "base/Track.h"
 #include "document/MultiViewCommandHistory.h"
 #include "document/RosegardenGUIDoc.h"
+#include "document/ConfigGroups.h"
 #include "gui/application/RosegardenGUIView.h"
 #include "gui/application/RosegardenApplication.h"
 #include "gui/widgets/AudioListItem.h"
@@ -166,13 +167,13 @@ AudioManagerDialog::AudioManagerDialog(QWidget *parent,
     new KAction(i18n("&Export Audio File..."), "fileexport", 0, this,
                 SLOT(slotExportAudio()),
                 actionCollection(), "export_audio");
-
+/*
     new KAction(i18n("Distribute Audio on &MIDI"),
                 0, 0, this,
                 SLOT(slotDistributeOnMidiSegment()),
                 actionCollection(),
                 "distribute_audio");
-
+*/
     // Set the column names
     //
     m_fileList->addColumn(i18n("Name"));           // 0
@@ -622,9 +623,7 @@ AudioManagerDialog::slotRemove()
     }
     emit deleteSegments(selection);
 
-    if (m_doc->getAudioFileManager().wasAudioFileRecentlyRecorded(audioFile->getId())) {
-        m_doc->addOrphanedAudioFile(strtoqstr(audioFile->getFilename()));
-    }
+    m_doc->notifyAudioFileRemoval(id);
 
     m_doc->getAudioFileManager().removeFile(id);
 
@@ -773,9 +772,7 @@ AudioManagerDialog::slotRemoveAll()
     for (std::vector<AudioFile*>::const_iterator
             aIt = m_doc->getAudioFileManager().begin();
             aIt != m_doc->getAudioFileManager().end(); ++aIt) {
-        if (m_doc->getAudioFileManager().wasAudioFileRecentlyRecorded((*aIt)->getId())) {
-            m_doc->addOrphanedAudioFile(strtoqstr((*aIt)->getFilename()));
-        }
+        m_doc->notifyAudioFileRemoval((*aIt)->getId());
     }
 
     m_doc->getAudioFileManager().clear();
@@ -820,14 +817,8 @@ AudioManagerDialog::slotRemoveAllUnused()
     //
     for (std::vector<AudioFileId>::iterator dIt = toDelete.begin();
             dIt != toDelete.end(); ++dIt) {
-
-        if (m_doc->getAudioFileManager().wasAudioFileRecentlyRecorded(*dIt)) {
-            AudioFile *file = m_doc->getAudioFileManager().getAudioFile(*dIt);
-            if (file) {
-                m_doc->addOrphanedAudioFile(strtoqstr(file->getFilename()));
-            }
-        }
-
+        
+        m_doc->notifyAudioFileRemoval(*dIt);
         m_doc->getAudioFileManager().removeFile(*dIt);
         emit deleteAudioFile(*dIt);
     }
@@ -1083,10 +1074,9 @@ AudioManagerDialog::addFile(const KURL& kurl)
                                100,
                                this);
     connect(&progressDlg, SIGNAL(cancelClicked()),
-            this, SLOT(slotAddCancel()));
+            &m_doc->getAudioFileManager(), SLOT(slotStopPreview()));
 
-    CurrentProgressDialog::set
-        (&progressDlg);
+    CurrentProgressDialog::set(&progressDlg);
 
     QString newFilePath;
 
@@ -1138,7 +1128,7 @@ AudioManagerDialog::addFile(const KURL& kurl)
     }
 
     disconnect(&progressDlg, SIGNAL(cancelClicked()),
-               this, SLOT(slotAddCancel()));
+               &m_doc->getAudioFileManager(), SLOT(slotStopPreview()));
 
     slotPopulateFileList();
 
@@ -1146,14 +1136,6 @@ AudioManagerDialog::addFile(const KURL& kurl)
     emit addAudioFile(id);
 
     return true;
-}
-
-void
-AudioManagerDialog::slotAddCancel()
-{
-    RG_DEBUG << "AudioManagerDialog::slotAddCancel" << endl;
-    m_doc->getAudioFileManager().stopPreview();
-    CurrentProgressDialog::freeze();
 }
 
 void

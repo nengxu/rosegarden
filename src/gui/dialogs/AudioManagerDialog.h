@@ -100,7 +100,6 @@ public:
 
 public slots:
     void slotAdd();
-    void slotAddCancel();
     void slotPlayPreview();
     void slotRename();
     void slotInsert();
@@ -198,8 +197,6 @@ protected:
 
     bool                     m_audiblePreview;
     int                      m_sampleRate;
-    
-    static const char* const AudioManagerDialogConfigGroup;
 };
 
 

@@ -38,7 +38,8 @@
 #include "base/NotationTypes.h"
 #include "base/Profiler.h"
 #include "base/PropertyName.h"
-#include "base/Quantizer.h"
+#include "base/BasicQuantizer.h"
+#include "base/LegatoQuantizer.h"
 #include "base/RealTime.h"
 #include "base/RulerScale.h"
 #include "base/Segment.h"
@@ -71,7 +72,7 @@
 #include "gui/editors/notation/NotationStrings.h"
 #include "gui/editors/notation/NotePixmapFactory.h"
 #include "gui/editors/parameters/InstrumentParameterBox.h"
-#include "gui/editors/segment/BarButtons.h"
+#include "gui/rulers/StandardRuler.h"
 #include "gui/general/ActiveItem.h"
 #include "gui/general/EditViewBase.h"
 #include "gui/general/EditView.h"
@@ -188,8 +189,8 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
 
     QCanvas *tCanvas = new QCanvas(this);
 
-    m_config->setGroup(GeneralOptionsConfigGroup);
-    if (m_config->readBoolEntry("backgroundtextures", true)) {
+    m_config->setGroup(MatrixViewConfigGroup);
+    if (m_config->readBoolEntry("backgroundtextures", false)) {
         QPixmap background;
         QString pixmapDir =
             KGlobal::dirs()->findResource("appdata", "pixmaps/");
@@ -198,8 +199,6 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
             tCanvas->setBackgroundPixmap(background);
         }
     }
-
-    m_config->setGroup(MatrixViewConfigGroup);
 
     MATRIX_DEBUG << "MatrixView : creating staff\n";
 
@@ -315,10 +314,15 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
 
     MATRIX_DEBUG << "MatrixView : Snap Grid Size = " << snapGridSize << endl;
 
-    if (snapGridSize != -1)
+    if (snapGridSize != -1) {
         m_snapGrid->setSnapTime(snapGridSize);
-    else
-        m_snapGrid->setSnapTime(SnapGrid::SnapToBeat);
+    } else {
+        m_config->setGroup(MatrixViewConfigGroup);
+        snapGridSize = m_config->readNumEntry
+            ("Snap Grid Size", SnapGrid::SnapToBeat);
+        m_snapGrid->setSnapTime(snapGridSize);
+        m_staffs[0]->getSegment().setSnapGridSize(snapGridSize);
+    }
 
     m_canvasView = new MatrixCanvasView(*m_staffs[0],
                                         m_snapGrid,
@@ -426,49 +430,49 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
         }
     }
 
-    BarButtons *topBarButtons = new BarButtons(getDocument(),
+    StandardRuler *topStandardRuler = new StandardRuler(getDocument(),
                                 &m_hlayout, int(xorigin), 25,
                                 false, getCentralWidget());
-    setTopBarButtons(topBarButtons);
+    setTopStandardRuler(topStandardRuler);
 
-    BarButtons *bottomBarButtons = new BarButtons(getDocument(),
+    StandardRuler *bottomStandardRuler = new StandardRuler(getDocument(),
                                    &m_hlayout, 0, 25,
                                    true, getBottomWidget());
-    setBottomBarButtons(bottomBarButtons);
+    setBottomStandardRuler(bottomStandardRuler);
 
-    topBarButtons->connectRulerToDocPointer(doc);
-    bottomBarButtons->connectRulerToDocPointer(doc);
+    topStandardRuler->connectRulerToDocPointer(doc);
+    bottomStandardRuler->connectRulerToDocPointer(doc);
 
     // Disconnect the default connections for this signal from the
     // top ruler, and connect our own instead
 
     QObject::disconnect
-    (topBarButtons->getLoopRuler(),
+    (topStandardRuler->getLoopRuler(),
      SIGNAL(setPointerPosition(timeT)), 0, 0);
 
     QObject::connect
-    (topBarButtons->getLoopRuler(),
+    (topStandardRuler->getLoopRuler(),
      SIGNAL(setPointerPosition(timeT)),
      this, SLOT(slotSetInsertCursorPosition(timeT)));
 
     QObject::connect
-    (topBarButtons,
+    (topStandardRuler,
      SIGNAL(dragPointerToPosition(timeT)),
      this, SLOT(slotSetInsertCursorPosition(timeT)));
 
-    topBarButtons->getLoopRuler()->setBackgroundColor
+    topStandardRuler->getLoopRuler()->setBackgroundColor
     (GUIPalette::getColour(GUIPalette::InsertCursorRuler));
 
-    connect(topBarButtons->getLoopRuler(), SIGNAL(startMouseMove(int)),
+    connect(topStandardRuler->getLoopRuler(), SIGNAL(startMouseMove(int)),
             m_canvasView, SLOT(startAutoScroll(int)));
-    connect(topBarButtons->getLoopRuler(), SIGNAL(stopMouseMove()),
+    connect(topStandardRuler->getLoopRuler(), SIGNAL(stopMouseMove()),
             m_canvasView, SLOT(stopAutoScroll()));
 
-    connect(bottomBarButtons->getLoopRuler(), SIGNAL(startMouseMove(int)),
+    connect(bottomStandardRuler->getLoopRuler(), SIGNAL(startMouseMove(int)),
             m_canvasView, SLOT(startAutoScroll(int)));
-    connect(bottomBarButtons->getLoopRuler(), SIGNAL(stopMouseMove()),
+    connect(bottomStandardRuler->getLoopRuler(), SIGNAL(stopMouseMove()),
             m_canvasView, SLOT(stopAutoScroll()));
-    connect(m_bottomBarButtons, SIGNAL(dragPointerToPosition(timeT)),
+    connect(m_bottomStandardRuler, SIGNAL(dragPointerToPosition(timeT)),
             this, SLOT(slotSetPointerPosition(timeT)));
 
     // Force height for the moment
@@ -492,19 +496,13 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
     static_cast<TempoRuler *>(m_tempoRuler)->connectSignals();
     addRuler(m_tempoRuler);
 
-    // Scroll view to centre middle-C and warp to pointer position
-    //
-    m_canvasView->scrollBy(0, m_staffs[0]->getCanvasYForHeight(60) / 2);
-
-    slotSetPointerPosition(comp.getPosition());
-
     stateChanged("have_selection", KXMLGUIClient::StateReverse);
     slotTestClipboard();
 
     timeT start = doc->getComposition().getLoopStart();
     timeT end = doc->getComposition().getLoopEnd();
-    m_topBarButtons->getLoopRuler()->slotSetLoopMarker(start, end);
-    m_bottomBarButtons->getLoopRuler()->slotSetLoopMarker(start, end);
+    m_topStandardRuler->getLoopRuler()->slotSetLoopMarker(start, end);
+    m_bottomStandardRuler->getLoopRuler()->slotSetLoopMarker(start, end);
 
     setCurrentSelection(0, false);
 
@@ -513,7 +511,16 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
     setConfigDialogPageIndex(2);
 
     // default zoom
-    slotChangeHorizontalZoom( -1);
+    m_config->setGroup(MatrixViewConfigGroup);
+    double zoom = m_config->readDoubleNumEntry("Zoom Level",
+                                               m_hZoomSlider->getCurrentSize());
+    m_hZoomSlider->setSize(zoom);
+
+    // Scroll view to centre middle-C and warp to pointer position
+    //
+    m_canvasView->scrollBy(0, m_staffs[0]->getCanvasYForHeight(60) / 2);
+
+    slotSetPointerPosition(comp.getPosition());
 
     // All toolbars should be created before this is called
     setAutoSaveSettings("MatrixView", true);
@@ -680,6 +687,10 @@ void MatrixView::setupActions()
                 SLOT(slotVelocityDown()), actionCollection(),
                 "velocity_down");
 
+    new KAction(i18n("Set to Current Velocity"), 0, this,
+                SLOT(slotSetVelocitiesToCurrent()), actionCollection(),
+                "set_to_current_velocity");
+
     new KAction(i18n("Set Event &Velocities..."), 0, this,
                 SLOT(slotSetVelocities()), actionCollection(),
                 "set_velocities");
@@ -822,35 +833,61 @@ void MatrixView::setupActions()
                 SLOT(slotFilterSelection()), actionCollection(),
                 "filter_selection");
 
-    //!!! should be using NotationStrings::makeNoteMenuLabel for these
-    new KAction(i18n("Snap to 1/64"), Key_0, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_64");
-    new KAction(i18n("Snap to 1/48"), 0, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_48");
-    new KAction(i18n("Snap to 1/32"), Key_3, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_32");
-    new KAction(i18n("Snap to 1/24"), 0, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_24");
-    new KAction(i18n("Snap to 1/16"), Key_6, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_16");
-    new KAction(i18n("Snap to 1/12"), 0, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_12");
-    new KAction(i18n("Snap to 1/8"), Key_8, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_8");
-    new KAction(i18n("Snap to 1/6"), 0, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_6");
-    new KAction(i18n("Snap to 1/4"), Key_4, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_4");
-    new KAction(i18n("Snap to 1/2"), Key_2, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_2");
-    new KAction(i18n("Snap to &Unit"), 0, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_unit");
-    new KAction(i18n("Snap to Bea&t"), Key_1, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_beat");
-    new KAction(i18n("Snap to &Bar"), Key_5, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_bar");
-    new KAction(i18n("&No Snap"), 0, this,
-                SLOT(slotSetSnapFromAction()), actionCollection(), "snap_none");
+    timeT crotchetDuration = Note(Note::Crotchet).getDuration();
+    m_snapValues.push_back(SnapGrid::NoSnap);
+    m_snapValues.push_back(SnapGrid::SnapToUnit);
+    m_snapValues.push_back(crotchetDuration / 16);
+    m_snapValues.push_back(crotchetDuration / 12);
+    m_snapValues.push_back(crotchetDuration / 8);
+    m_snapValues.push_back(crotchetDuration / 6);
+    m_snapValues.push_back(crotchetDuration / 4);
+    m_snapValues.push_back(crotchetDuration / 3);
+    m_snapValues.push_back(crotchetDuration / 2);
+    m_snapValues.push_back(crotchetDuration);
+    m_snapValues.push_back((crotchetDuration * 3) / 2);
+    m_snapValues.push_back(crotchetDuration * 2);
+    m_snapValues.push_back(SnapGrid::SnapToBeat);
+    m_snapValues.push_back(SnapGrid::SnapToBar);
+
+    for (unsigned int i = 0; i < m_snapValues.size(); i++) {
+
+        timeT d = m_snapValues[i];
+
+        if (d == SnapGrid::NoSnap) {
+            new KAction(i18n("&No Snap"), 0, this,
+                        SLOT(slotSetSnapFromAction()),
+                        actionCollection(), "snap_none");
+        } else if (d == SnapGrid::SnapToUnit) {
+        } else if (d == SnapGrid::SnapToBeat) {
+            new KAction(i18n("Snap to Bea&t"), Key_1, this,
+                        SLOT(slotSetSnapFromAction()),
+                        actionCollection(), "snap_beat");
+        } else if (d == SnapGrid::SnapToBar) {
+            new KAction(i18n("Snap to &Bar"), Key_5, this,
+                        SLOT(slotSetSnapFromAction()),
+                        actionCollection(), "snap_bar");
+        } else {
+
+            timeT err = 0;
+            QString label = NotationStrings::makeNoteMenuLabel(d, true, err);
+            QPixmap pixmap = NotePixmapFactory::toQPixmap
+                (NotePixmapFactory::makeNoteMenuPixmap(d, err));
+
+            KShortcut cut = 0;
+            if (d == crotchetDuration / 16) cut = Key_0;
+            else if (d == crotchetDuration / 8) cut = Key_3;
+            else if (d == crotchetDuration / 4) cut = Key_6;
+            else if (d == crotchetDuration / 2) cut = Key_8;
+            else if (d == crotchetDuration) cut = Key_4;
+            else if (d == crotchetDuration * 2) cut = Key_2;
+
+            QString actionName = QString("snap_%1").arg(int((crotchetDuration * 4) / d));
+            if (d == (crotchetDuration * 3) / 2) actionName = "snap_3";
+            new KAction(i18n("Snap to %1").arg(label), pixmap, cut, this,
+                        SLOT(slotSetSnapFromAction()), actionCollection(),
+                        actionName);
+        }
+    }
 
     //
     // Settings menu
@@ -1078,17 +1115,11 @@ void MatrixView::setCurrentSelection(EventSelection* s, bool preview,
 
             if (preview) {
                 long pitch;
-                if ((*i)->get
-                        <Int>
-                        (BaseProperties::PITCH, pitch)) {
+                if ((*i)->get<Int>(BaseProperties::PITCH, pitch)) {
                     long velocity = -1;
-                    (void)((*i)->get
-                           <Int>
-                           (BaseProperties::VELOCITY, velocity));
+                    (void)((*i)->get<Int>(BaseProperties::VELOCITY, velocity));
                     if (!((*i)->has(BaseProperties::TIED_BACKWARD) &&
-                            (*i)->get
-                            <Bool>
-                            (BaseProperties::TIED_BACKWARD)))
+                          (*i)->get<Bool>(BaseProperties::TIED_BACKWARD)))
                         playNote(s->getSegment(), pitch, velocity);
                 }
             }
@@ -1150,16 +1181,21 @@ void MatrixView::setCurrentSelection(EventSelection* s, bool preview,
     }
 
     delete oldSelection;
+
     if (s) {
+
         int eventsSelected = s->getSegmentEvents().size();
         m_selectionCounter->setText
         (i18n("  1 event selected ",
               "  %n events selected ", eventsSelected));
+
     } else {
         m_selectionCounter->setText(i18n("  No selection "));
     }
+
     m_selectionCounter->update();
 
+    slotSetCurrentVelocityFromSelection();
 
     // Clear states first, then enter only those ones that apply
     // (so as to avoid ever clearing one after entering another, in
@@ -1863,7 +1899,7 @@ void MatrixView::playNote(const Segment &segment, int pitch,
         return ;
 
     if (velocity < 0)
-        velocity = MidiMaxValue;
+        velocity = getCurrentVelocity();
 
     MappedEvent mE(ins->getId(),
                    MappedEvent::MidiNoteOneShot,
@@ -1937,9 +1973,7 @@ MatrixView::slotSetSnapFromAction()
     if (name.left(5) == "snap_") {
         int snap = name.right(name.length() - 5).toInt();
         if (snap > 0) {
-            slotSetSnap
-            (Note(Note::Semibreve).getDuration() /
-             snap);
+            slotSetSnap(Note(Note::Semibreve).getDuration() / snap);
         } else if (name == "snap_none") {
             slotSetSnap(SnapGrid::NoSnap);
         } else if (name == "snap_beat") {
@@ -1971,6 +2005,9 @@ MatrixView::slotSetSnap(timeT t)
         m_staffs[i]->sizeStaff(m_hlayout);
 
     m_segments[0]->setSnapGridSize(t);
+
+    m_config->setGroup(MatrixViewConfigGroup);
+    m_config->writeEntry("Snap Grid Size", t);
 
     updateView();
 }
@@ -2028,7 +2065,7 @@ MatrixView::initActionsToolbar()
         return ;
     }
 
-    // The SnapGrid combo
+    // The SnapGrid combo and Snap To... menu items
     //
     QLabel *sLabel = new QLabel(i18n(" Grid: "), actionsToolbar, "kde toolbar widget");
     sLabel->setIndent(10);
@@ -2037,46 +2074,46 @@ MatrixView::initActionsToolbar()
 
     m_snapGridCombo = new KComboBox(actionsToolbar);
 
-    timeT crotchetDuration = Note(Note::Crotchet).getDuration();
-    m_snapValues.push_back(SnapGrid::NoSnap);
-    m_snapValues.push_back(SnapGrid::SnapToUnit);
-    m_snapValues.push_back(crotchetDuration / 16);
-    m_snapValues.push_back(crotchetDuration / 12);
-    m_snapValues.push_back(crotchetDuration / 8);
-    m_snapValues.push_back(crotchetDuration / 6);
-    m_snapValues.push_back(crotchetDuration / 4);
-    m_snapValues.push_back(crotchetDuration / 3);
-    m_snapValues.push_back(crotchetDuration / 2);
-    m_snapValues.push_back(crotchetDuration * 3 / 2);
-    m_snapValues.push_back(crotchetDuration);
-    m_snapValues.push_back(crotchetDuration * 2);
-    m_snapValues.push_back(SnapGrid::SnapToBeat);
-    m_snapValues.push_back(SnapGrid::SnapToBar);
-
     for (unsigned int i = 0; i < m_snapValues.size(); i++) {
-        if (m_snapValues[i] == SnapGrid::NoSnap) {
+
+        timeT d = m_snapValues[i];
+
+        if (d == SnapGrid::NoSnap) {
             m_snapGridCombo->insertItem(i18n("None"));
-        } else if (m_snapValues[i] == SnapGrid::SnapToUnit) {
+        } else if (d == SnapGrid::SnapToUnit) {
             m_snapGridCombo->insertItem(i18n("Unit"));
-        } else if (m_snapValues[i] == SnapGrid::SnapToBeat) {
+        } else if (d == SnapGrid::SnapToBeat) {
             m_snapGridCombo->insertItem(i18n("Beat"));
-        } else if (m_snapValues[i] == SnapGrid::SnapToBar) {
+        } else if (d == SnapGrid::SnapToBar) {
             m_snapGridCombo->insertItem(i18n("Bar"));
         } else {
-
             timeT err = 0;
-            QString label = NotationStrings::makeNoteMenuLabel(m_snapValues[i], true, err);
-            QPixmap pixmap = NotePixmapFactory::toQPixmap(NotePixmapFactory::makeNoteMenuPixmap(m_snapValues[i], err));
+            QString label = NotationStrings::makeNoteMenuLabel(d, true, err);
+            QPixmap pixmap = NotePixmapFactory::toQPixmap
+                (NotePixmapFactory::makeNoteMenuPixmap(d, err));
             m_snapGridCombo->insertItem((err ? noMap : pixmap), label);
         }
 
-        if (m_snapValues[i] == m_snapGrid->getSnapSetting()) {
+        if (d == m_snapGrid->getSnapSetting()) {
             m_snapGridCombo->setCurrentItem(m_snapGridCombo->count() - 1);
         }
     }
 
     connect(m_snapGridCombo, SIGNAL(activated(int)),
             this, SLOT(slotSetSnapFromIndex(int)));
+
+    // Velocity combo.  Not a spin box, because the spin box is too
+    // slow to use unless we make it typeable into, and then it takes
+    // focus away from our more important widgets
+
+    QLabel *vlabel = new QLabel(i18n(" Velocity: "), actionsToolbar, "kde toolbar widget");
+    vlabel->setIndent(10);
+    
+    m_velocityCombo = new KComboBox(actionsToolbar);
+    for (int i = 0; i <= 127; ++i) {
+        m_velocityCombo->insertItem(QString("%1").arg(i));
+    }
+    m_velocityCombo->setCurrentItem(100); //!!! associate with segment
 
     // Quantize combo
     //
@@ -2165,20 +2202,23 @@ MatrixView::slotChangeHorizontalZoom(int)
     //
     setControlRulersZoom(zoomMatrix);
 
-    if (m_topBarButtons)
-        m_topBarButtons->setHScaleFactor(zoomValue);
-    if (m_bottomBarButtons)
-        m_bottomBarButtons->setHScaleFactor(zoomValue);
+    if (m_topStandardRuler)
+        m_topStandardRuler->setHScaleFactor(zoomValue);
+    if (m_bottomStandardRuler)
+        m_bottomStandardRuler->setHScaleFactor(zoomValue);
 
     for (unsigned int i = 0; i < m_propertyViewRulers.size(); ++i) {
         m_propertyViewRulers[i].first->setHScaleFactor(zoomValue);
         m_propertyViewRulers[i].first->repaint();
     }
 
-    if (m_topBarButtons)
-        m_topBarButtons->update();
-    if (m_bottomBarButtons)
-        m_bottomBarButtons->update();
+    if (m_topStandardRuler)
+        m_topStandardRuler->update();
+    if (m_bottomStandardRuler)
+        m_bottomStandardRuler->update();
+
+    m_config->setGroup(MatrixViewConfigGroup);
+    m_config->writeEntry("Zoom Level", zoomValue);
 
     // If you do adjust the viewsize then please remember to
     // either re-center() or remember old scrollbar position
@@ -2197,6 +2237,9 @@ MatrixView::slotChangeHorizontalZoom(int)
     // hasn't changed
     //
     getCanvasView()->polish();
+
+    getCanvasView()->slotScrollHoriz
+        (getXbyWorldMatrix(m_staffs[0]->getLayoutXOfInsertCursor()));
 }
 
 void
@@ -2216,6 +2259,42 @@ MatrixView::scrollToTime(timeT t)
 {
     double layoutCoord = m_hlayout.getXForTime(t);
     getCanvasView()->slotScrollHoriz(int(layoutCoord));
+}
+
+int
+MatrixView::getCurrentVelocity() const
+{
+    return m_velocityCombo->currentItem();
+}
+
+void
+MatrixView::slotSetCurrentVelocity(int value)
+{
+    m_velocityCombo->setCurrentItem(value);
+}
+
+
+void
+MatrixView::slotSetCurrentVelocityFromSelection()
+{
+    if (!m_currentEventSelection) return;
+
+    float totalVelocity = 0;
+    int count = 0;
+
+    for (EventSelection::eventcontainer::iterator i =
+             m_currentEventSelection->getSegmentEvents().begin();
+         i != m_currentEventSelection->getSegmentEvents().end(); ++i) {
+
+        if ((*i)->has(BaseProperties::VELOCITY)) {
+            totalVelocity += (*i)->get<Int>(BaseProperties::VELOCITY);
+            ++count;
+        }
+    }
+
+    if (count > 0) {
+        slotSetCurrentVelocity((totalVelocity / count) + 0.5);
+    }
 }
 
 unsigned int
@@ -2450,6 +2529,8 @@ void MatrixView::slotVelocityUp()
 
     addCommandToHistory
     (new ChangeVelocityCommand(10, *m_currentEventSelection));
+
+    slotSetCurrentVelocityFromSelection();
 }
 
 void MatrixView::slotVelocityDown()
@@ -2460,6 +2541,8 @@ void MatrixView::slotVelocityDown()
 
     addCommandToHistory
     (new ChangeVelocityCommand( -10, *m_currentEventSelection));
+
+    slotSetCurrentVelocityFromSelection();
 }
 
 void
@@ -2468,30 +2551,10 @@ MatrixView::slotSetVelocities()
     if (!m_currentEventSelection)
         return ;
 
-    int avVely = 0;
-    int count = 0;
-
-    for (EventSelection::eventcontainer::iterator i =
-                m_currentEventSelection->getSegmentEvents().begin();
-            i != m_currentEventSelection->getSegmentEvents().end(); ++i) {
-
-        if ((*i)->has(BaseProperties::VELOCITY)) {
-            avVely += (*i)->
-                      get
-                          <Int>(BaseProperties::VELOCITY);
-            count++;
-        }
-    }
-
-    if (count > 0)
-        avVely = int(double(avVely) / double(count));
-    else
-        avVely = 100;
-
     EventParameterDialog dialog(this,
                                 i18n("Set Event Velocities"),
                                 BaseProperties::VELOCITY,
-                                avVely);
+                                getCurrentVelocity());
 
     if (dialog.exec() == QDialog::Accepted) {
         KTmpStatusMsg msg(i18n("Setting Velocities..."), this);
@@ -2502,6 +2565,19 @@ MatrixView::slotSetVelocities()
                              dialog.getValue1(),
                              dialog.getValue2()));
     }
+}
+
+void
+MatrixView::slotSetVelocitiesToCurrent()
+{
+    if (!m_currentEventSelection) return;
+
+    addCommandToHistory(new SelectionPropertyCommand
+                        (m_currentEventSelection,
+                         BaseProperties::VELOCITY,
+                         FlatPattern,
+                         getCurrentVelocity(),
+                         getCurrentVelocity()));
 }
 
 void

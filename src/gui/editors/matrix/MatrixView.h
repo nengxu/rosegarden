@@ -171,7 +171,7 @@ public:
     /**
      * Get the SnapGrid
      */
-    SnapGrid getSnapGrid() { return *m_snapGrid; }
+    const SnapGrid &getSnapGrid() const { return *m_snapGrid; }
 
     /**
      * Add a ruler that allows control of a single property -
@@ -217,6 +217,11 @@ public:
      * Get the local keyMapping (when in drum mode)
      */
     MidiKeyMapping *getKeyMapping() { return m_localMapping; }
+
+    /**
+     * Get the velocity currently set in the velocity menu.
+     */
+    int getCurrentVelocity() const;
 
 signals:
     /**
@@ -422,6 +427,11 @@ public slots:
     void slotSetVelocities();
 
     /**
+     * Set selected event velocities to whatever's in the velocity widget
+     */
+    void slotSetVelocitiesToCurrent();
+
+    /**
      * Pop-up the select trigger segment dialog
      */
     void slotTriggerSegment();
@@ -463,6 +473,10 @@ public slots:
 
     void slotInstrumentLevelsChanged(InstrumentId,
                                      const LevelInfo &);
+
+    /// Set the velocity menu to the given value
+    void slotSetCurrentVelocity(int);
+    void slotSetCurrentVelocityFromSelection();
 
 protected slots:
     void slotCanvasBottomWidgetHeightChanged(int newHeight);
@@ -618,6 +632,7 @@ protected:
 
     // Toolbar flora
     //
+    KComboBox          *m_velocityCombo;
     KComboBox          *m_quantizeCombo;
     KComboBox          *m_snapGridCombo;
     ZoomSlider<double> *m_hZoomSlider;

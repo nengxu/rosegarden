@@ -11,14 +11,17 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4.2)
 # but it can be enabled anyway with "make VERBOSE=1"
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 
-# Seems that relative paths break the link scripts. Don't set it ON
+# Seems that relative paths break some scripts. Don't set it ON
 SET(CMAKE_USE_RELATIVE_PATHS OFF)
+
+# Rebuild the object files if the rules have changed, but not the actual source 
+# files or headers (e.g. if you changed the some compiler switches)
+SET(CMAKE_SKIP_RULE_DEPENDENCY OFF)
 
 # Misc settings
 SET(CMAKE_COLOR_MAKEFILE ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-SET(CMAKE_SKIP_RULE_DEPENDENCY ON)
 
 # Additional CMake modules for 3rd party library checks reside here
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_admin")
@@ -58,6 +61,7 @@ ELSE(QT_FOUND)
 ENDIF(QT_FOUND)
 IF(KDE3_FOUND)
     ADD_DEFINITIONS(${KDE3_DEFINITIONS})
+    #MESSAGE("KDE3PREFIX: ${KDE3PREFIX}")
     KDE3_PRINT_RESULTS()
     #MESSAGE("QT_AND_KDECORE_LIBS: ${QT_AND_KDECORE_LIBS}")
 ELSE(KDE3_FOUND)    
@@ -67,8 +71,11 @@ ENDIF(KDE3_FOUND)
 # Clear the flags set by FindKDE3 
 SET(CMAKE_CXX_FLAGS "")
 
-# It would be great to provide KDE prefix as a default but overridable prefix...
-# INCLUDE(KDE3Prefix)
+# Provide the KDE3 prefix as a default prefix (if the user has CMake 2.4.4)
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(CMAKE_INSTALL_PREFIX ${KDE3PREFIX} CACHE PATH
+        "Install path prefix, prepended onto install directories." FORCE)
+ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 
 # Check for PKG-CONFIG
 FIND_PACKAGE(PkgConfig REQUIRED)
@@ -164,22 +171,33 @@ IF(WANT_SOUND)
         #MESSAGE("LRDF_INC_DIR: ${LRDF_INC_DIR}")
     ENDIF(LRDF_FOUND)
 
-    FIND_PACKAGE(LADSPA)
+    FIND_PACKAGE(LADSPA QUIET)
     IF(LADSPA_FOUND)
         SET(HAVE_LADSPA TRUE)
         ADD_DEFINITIONS(-DHAVE_LADSPA)
-        MESSAGE(STATUS "Found LADSPA")
-        #MESSAGE("LADSPA_INC_DIR: ${LADSPA_INC_DIR}")    
+        MESSAGE(STATUS "Found LADSPA (${LADSPA_INC_DIR})")
     ENDIF(LADSPA_FOUND)
     
+    PKG_CHECK_MODULES(FFTW3F fftw3f>=3.0.0)
+    IF(FFTW3F_FOUND)
+        ADD_DEFINITIONS(-DHAVE_FFTW3F)
+        SET(HAVE_FFTW3F TRUE)
+        SET(FFTW3F_LIBS ${FFTW3F_LIBRARIES})
+        #MESSAGE("FFTW3F_LIBS: ${FFTW3F_LIBS}")
+        LIST(APPEND FFTW3F_LIB_DIR ${FFTW3F_LIBDIR} ${FFTW3F_LIBRARY_DIRS})
+        #MESSAGE("FFTW3F_LIB_DIR: ${FFTW3F_LIB_DIR}")
+        LIST(APPEND FFTW3F_INC_DIR ${FFTW3F_INCLUDEDIR} ${FFTW3F_INCLUDE_DIRS})
+        #MESSAGE("FFTW3F_INC_DIR: ${FFTW3F_INC_DIR}")
+    ENDIF(FFTW3F_FOUND)
+
 ENDIF(WANT_SOUND)
 
 IF(WANT_LIRC)
-    FIND_PACKAGE(LIRC)
+    FIND_PACKAGE(LIRC QUIET)
     IF(LIRC_FOUND)
         SET(HAVE_LIRC TRUE)
         ADD_DEFINITIONS(-DHAVE_LIRC)
-        MESSAGE(STATUS "Found LIRC")
+        MESSAGE(STATUS "Found LIRC (${LIRC_LIBRARY})")
         #MESSAGE("LIRC_LIBS: ${LIRC_LIBS}")
         #MESSAGE("LIRC_LIB_DIR: ${LIRC_LIB_DIR}")
         #MESSAGE("LIRC_INC_DIR: ${LIRC_INC_DIR}")    
@@ -196,6 +214,16 @@ IF(MEINPROC_FOUND)
     MESSAGE(STATUS "Program meinproc found (${MEINPROC_EXECUTABLE})")
 ENDIF(MEINPROC_FOUND)
 
+# Check GCC for PCH support
+SET(USE_PCH FALSE)
+IF(WANT_PCH)
+    FIND_PACKAGE(PCHSupport)
+    IF(PCHSupport_FOUND)
+        SET(USE_PCH TRUE)
+        MESSAGE(STATUS "Enabling precompiled headers for GCC ${gcc_compiler_version}") 
+    ENDIF(PCHSupport_FOUND)
+ENDIF(WANT_PCH)
+
 SET(CMAKE_CXX_FLAGS_RELEASE         "-O2 -w -fexceptions -DNDEBUG")
 SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO  "-O2 -g -Wall -fexceptions -DDEBUG")
 SET(CMAKE_CXX_FLAGS_DEBUG           "-O0 -g3 -Wall -fexceptions -DDEBUG")
@@ -203,14 +231,14 @@ SET(CMAKE_CXX_FLAGS_DEBUG           "-O0 -g3 -Wall -fexceptions -DDEBUG")
 MESSAGE(STATUS "Rosegarden ${VERSION} will be built for install into ${CMAKE_INSTALL_PREFIX}")
 
 IF(WANT_DEBUG)
-	IF(WANT_FULLDBG)
-	    MESSAGE(STATUS "Configured to compile including full debug information in the executables")
-	    SET(CMAKE_BUILD_TYPE Debug CACHE STRING
-	        "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
-	ELSE(WANT_FULLDBG)
-	    MESSAGE(STATUS "Configured to compile including debug information in the executables")
-	    SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
-	        "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
+    IF(WANT_FULLDBG)
+        MESSAGE(STATUS "Configured to compile including full debug information in the executables")
+        SET(CMAKE_BUILD_TYPE Debug CACHE STRING
+            "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
+    ELSE(WANT_FULLDBG)
+        MESSAGE(STATUS "Configured to compile including debug information in the executables")
+        SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+            "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
     ENDIF(WANT_FULLDBG)
 ELSE(WANT_DEBUG)
     MESSAGE(STATUS "Configured to compile for release without debug information")
@@ -218,32 +246,8 @@ ELSE(WANT_DEBUG)
         "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
 ENDIF(WANT_DEBUG)
 
-# Check GCC version, use PCH only for GCC 4.x
-SET(USE_PCH FALSE)
-IF(WANT_PCH)
-	EXEC_PROGRAM(gcc ARGS --version OUTPUT_VARIABLE GCC_VERSION)
-	IF(GCC_VERSION MATCHES ".*4\\.[0-9]\\.[0-9].*")
-        SET(USE_PCH TRUE)
-    ENDIF(GCC_VERSION MATCHES ".*4\\.[0-9]\\.[0-9].*")
-ENDIF(WANT_PCH)
-
 # Warn the user if important libraries are missing
 INCLUDE(UserWarnings)
-
-# Custom target trying to clean the CMake generated files
-ADD_CUSTOM_TARGET(distclean
-    COMMAND sh scripts/distclean.sh
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-ADD_DEPENDENCIES(distclean clean)
-
-# uninstall custom target
-CONFIGURE_FILE(
-    "${CMAKE_SOURCE_DIR}/cmake_admin/cmake_uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-    IMMEDIATE @ONLY)
-ADD_CUSTOM_TARGET(uninstall
-    "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
 # Recurse into the "src" subdirectory. This does not actually
 # cause another cmake executable to run. The same process will walk through
@@ -261,10 +265,57 @@ ADD_SUBDIRECTORY(docs RGbuild/docs)
 ADD_SUBDIRECTORY(data RGbuild/data)
 
 # install some documents...
-INSTALL( FILES AUTHORS COPYING README TRANSLATORS INSTALL
-         DESTINATION share/doc/rosegarden-${VERSION} )
-         
+# INSTALL( FILES AUTHORS COPYING README TRANSLATORS INSTALL rosegarden.lsm
+#         DESTINATION share/doc/rosegarden-${VERSION} )
+
 # create and install the version file
 FILE(WRITE version.txt "${VERSION}\n")
 INSTALL( FILES version.txt
          DESTINATION share/apps/rosegarden )
+
+# uninstall custom target
+CONFIGURE_FILE(
+    "${CMAKE_SOURCE_DIR}/cmake_admin/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+ADD_CUSTOM_TARGET(uninstall
+    "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+
+# Custom target trying to clean the CMake generated files
+ADD_CUSTOM_TARGET ( distclean
+    COMMAND rm -f  {,src/,po/,docs/,data/}CMakeCache.txt
+    COMMAND rm -f  {,src/,po/,docs/,data/}cmake_install.cmake
+    COMMAND rm -f  {,src/,po/,docs/,data/}cmake_uninstall.cmake
+    COMMAND rm -f  {,src/,po/,docs/,data/}CPackConfig.cmake
+    COMMAND rm -f  {,src/,po/,docs/,data/}CPackSourceConfig.cmake
+    COMMAND rm -f  {,src/,po/,docs/,data/}install_manifest.txt
+    COMMAND rm -f  {,src/,po/,docs/,data/}progress.make
+    COMMAND rm -f  {,src/,po/,docs/,data/}rosegarden.spec
+    COMMAND rm -f  {,src/,po/,docs/,data/}Makefile
+    COMMAND rm -rf {,src/,po/,docs/,data/}CMakeFiles
+    COMMAND rm -rf {,src/,po/,docs/,data/}_CPack_Packages
+    COMMAND rm -rf RGbuild/*
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+ADD_DEPENDENCIES(distclean clean)
+
+# configure the RPM spec
+CONFIGURE_FILE(
+    "${CMAKE_SOURCE_DIR}/rosegarden.spec.in"
+    "${CMAKE_SOURCE_DIR}/rosegarden.spec"
+    IMMEDIATE @ONLY)
+
+# tarball target
+ADD_CUSTOM_TARGET ( tarball
+    COMMAND mkdir -p rosegarden-${VERSION}
+    COMMAND cp -r cmake_admin rosegarden-${VERSION}
+    COMMAND cp -r data rosegarden-${VERSION}
+    COMMAND cp -r docs rosegarden-${VERSION}
+    COMMAND cp -r po rosegarden-${VERSION}
+    COMMAND cp -r src rosegarden-${VERSION}
+    COMMAND cp CMakeLists.txt AUTHORS COPYING Doxyfile INSTALL README rosegarden.* TRANSLATORS rosegarden-${VERSION}
+    COMMAND tar -cj --exclude .svn --exclude gettext-0.10.35-kde -f rosegarden-${VERSION}.tar.bz2 rosegarden-${VERSION}
+    COMMAND rm -rf rosegarden-${VERSION}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)

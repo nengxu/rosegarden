@@ -63,7 +63,7 @@ TempoDialog::TempoDialog(QWidget *parent, RosegardenGUIDoc *doc,
     QGroupBox *groupBox = new QGroupBox(1, Horizontal, i18n("Tempo"), vbox);
 
     QFrame *frame = new QFrame(groupBox);
-    QGridLayout *layout = new QGridLayout(frame, 3, 3, 5, 5);
+    QGridLayout *layout = new QGridLayout(frame, 4, 3, 5, 5);
 
     // Set tempo
     layout->addWidget(new QLabel(i18n("New tempo:"), frame), 0, 1);
@@ -72,6 +72,11 @@ TempoDialog::TempoDialog(QWidget *parent, RosegardenGUIDoc *doc,
 
     connect(m_tempoValueSpinBox, SIGNAL(valueChanged(const QString &)),
             SLOT(slotTempoChanged(const QString &)));
+
+    m_tempoTap= new QPushButton(i18n("Tap"), frame);
+    layout->addWidget(m_tempoTap, 0, 4);
+    connect(m_tempoTap, SIGNAL(clicked()), SLOT(slotTapClicked()));
+
 
     m_tempoConstant = new QRadioButton(i18n("Tempo is fixed until the following tempo change"), frame);
     m_tempoRampToNext = new QRadioButton(i18n("Tempo ramps to the following tempo"), frame);
@@ -419,5 +424,36 @@ TempoDialog::slotOk()
     KDialogBase::slotOk();
 }
 
+void
+TempoDialog::slotTapClicked()
+{
+    QTime now = QTime::currentTime();
+
+    if (m_tapMinusOne != QTime()) {
+
+        int ms1 = m_tapMinusOne.msecsTo(now);
+
+        if (ms1 < 10000) {
+
+            int msec = ms1;
+
+            if (m_tapMinusTwo != QTime()) {
+                int ms2 = m_tapMinusTwo.msecsTo(m_tapMinusOne);
+                if (ms2 < 10000) {
+                    msec = (ms1 + ms2) / 2;
+                }
+            }
+
+            int bpm = 60000 / msec;
+            m_tempoValueSpinBox->setValue(bpm * 100000);
+        }
+    }
+
+    m_tapMinusTwo = m_tapMinusOne;
+    m_tapMinusOne = now;
 }
+
+
+}
+
 #include "TempoDialog.moc"

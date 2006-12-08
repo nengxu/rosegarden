@@ -37,9 +37,11 @@
 #include "CompositionView.h"
 #include "document/RosegardenGUIDoc.h"
 #include "gui/general/BaseTool.h"
+#include "gui/general/GUIPalette.h"
 #include "gui/general/RosegardenCanvasView.h"
 #include "SegmentTool.h"
 #include <kcommand.h>
+#include <klocale.h>
 #include <qcursor.h>
 #include <qevent.h>
 #include <qpoint.h>
@@ -65,7 +67,7 @@ void SegmentPencil::ready()
     m_canvas->viewport()->setCursor(Qt::ibeamCursor);
     connect(m_canvas, SIGNAL(contentsMoving (int, int)),
             this, SLOT(slotCanvasScrolled(int, int)));
-
+    setContextHelp(i18n("Click and drag to draw new segments"));
 }
 
 void SegmentPencil::stow()
@@ -124,7 +126,11 @@ void SegmentPencil::handleMouseButtonPress(QMouseEvent *e)
     tmpRect.setHeight(m_canvas->grid().getYSnap());
     tmpRect.setWidth(int(nearbyint(m_canvas->grid().getRulerScale()->getWidthForDuration(time, duration))));
 
-    m_canvas->setTmpRect(tmpRect);
+    m_canvas->setTmpRect(tmpRect,
+                         GUIPalette::convertColour
+                         (m_doc->getComposition().getSegmentColourMap().
+                          getColourByIndex(t->getColor())));
+
     m_newRect = true;
     m_origPos = e->pos();
 
@@ -244,6 +250,13 @@ int SegmentPencil::handleMouseMove(QMouseEvent *e)
 {
     if (!m_newRect)
         return RosegardenCanvasView::NoFollow;
+
+    if (m_canvas->isFineGrain()) {
+        setContextHelp("");
+    } else {
+        std::cerr << "Setting mouse-move context help" << std::endl;
+        setContextHelp(i18n("Hold Shift to avoid snapping to bar lines"));
+    }
 
     QRect tmpRect = m_canvas->getTmpRect();
     QRect oldTmpRect = tmpRect;

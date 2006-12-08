@@ -61,7 +61,6 @@
 #include "gui/editors/parameters/InstrumentParameterBox.h"
 #include "gui/editors/parameters/SegmentParameterBox.h"
 #include "gui/editors/parameters/TrackParameterBox.h"
-#include "gui/editors/segment/BarButtons.h"
 #include "gui/editors/segment/CompositionView.h"
 #include "gui/editors/segment/SegmentSelector.h"
 #include "gui/editors/segment/TrackEditor.h"
@@ -70,6 +69,7 @@
 #include "gui/rulers/ChordNameRuler.h"
 #include "gui/rulers/LoopRuler.h"
 #include "gui/rulers/TempoRuler.h"
+#include "gui/rulers/StandardRuler.h"
 #include "RosegardenGUIApp.h"
 #include "SetWaitCursor.h"
 #include "sound/AudioFile.h"
@@ -881,12 +881,12 @@ void RosegardenGUIView::setZoomSize(double size)
         m_trackEditor->getChordNameRuler()->repaint();
     }
 
-    if (m_trackEditor->getTopBarButtons()) {
-        m_trackEditor->getTopBarButtons()->repaint();
+    if (m_trackEditor->getTopStandardRuler()) {
+        m_trackEditor->getTopStandardRuler()->repaint();
     }
 
-    if (m_trackEditor->getBottomBarButtons()) {
-        m_trackEditor->getBottomBarButtons()->repaint();
+    if (m_trackEditor->getBottomStandardRuler()) {
+        m_trackEditor->getBottomStandardRuler()->repaint();
     }
 }
 
@@ -1263,11 +1263,11 @@ RosegardenGUIView::slotSelectedSegments(const SegmentSelection &segments)
 void RosegardenGUIView::slotShowRulers(bool v)
 {
     if (v) {
-        m_trackEditor->getTopBarButtons()->getLoopRuler()->show();
-        m_trackEditor->getBottomBarButtons()->getLoopRuler()->show();
+        m_trackEditor->getTopStandardRuler()->getLoopRuler()->show();
+        m_trackEditor->getBottomStandardRuler()->getLoopRuler()->show();
     } else {
-        m_trackEditor->getTopBarButtons()->getLoopRuler()->hide();
-        m_trackEditor->getBottomBarButtons()->getLoopRuler()->hide();
+        m_trackEditor->getTopStandardRuler()->getLoopRuler()->hide();
+        m_trackEditor->getBottomStandardRuler()->getLoopRuler()->hide();
     }
 }
 
@@ -1360,6 +1360,14 @@ RosegardenGUIView::slotAddAudioSegment(AudioFileId audioId,
                                       startTime,
                                       endTime);
     slotAddCommandToHistory(command);
+
+    Segment *newSegment = command->getNewSegment();
+    if (newSegment) {
+        SegmentSelection selection;
+        selection.insert(newSegment);
+        slotSetSelectedSegments(selection);
+        emit segmentsSelected(selection);
+    }
 }
 
 void
@@ -1377,6 +1385,14 @@ RosegardenGUIView::slotAddAudioSegmentCurrentPosition(AudioFileId audioFileId,
                                       startTime,
                                       endTime);
     slotAddCommandToHistory(command);
+
+    Segment *newSegment = command->getNewSegment();
+    if (newSegment) {
+        SegmentSelection selection;
+        selection.insert(newSegment);
+        slotSetSelectedSegments(selection);
+        emit segmentsSelected(selection);
+    }
 }
 
 void
@@ -1904,7 +1920,7 @@ RosegardenGUIView::initChordNameRuler()
 }
 
 EventView *
-RosegardenGUIView::createEventView(std::vector<Rosegarden::Segment *> segmentsToEdit)
+RosegardenGUIView::createEventView(std::vector<Segment *> segmentsToEdit)
 {
     EventView *eventView = new EventView(getDocument(),
                                          segmentsToEdit,
@@ -1919,14 +1935,14 @@ RosegardenGUIView::createEventView(std::vector<Rosegarden::Segment *> segmentsTo
     connect(eventView, SIGNAL(saveFile()),
         RosegardenGUIApp::self(), SLOT(slotFileSave()));
 
-    connect(eventView, SIGNAL(openInNotation(std::vector<Rosegarden::Segment *>)),
-        this, SLOT(slotEditSegmentsNotation(std::vector<Rosegarden::Segment *>)));
-    connect(eventView, SIGNAL(openInMatrix(std::vector<Rosegarden::Segment *>)),
-        this, SLOT(slotEditSegmentsMatrix(std::vector<Rosegarden::Segment *>)));
-    connect(eventView, SIGNAL(openInPercussionMatrix(std::vector<Rosegarden::Segment *>)),
-        this, SLOT(slotEditSegmentsPercussionMatrix(std::vector<Rosegarden::Segment *>)));
-    connect(eventView, SIGNAL(openInEventList(std::vector<Rosegarden::Segment *>)),
-        this, SLOT(slotEditSegmentsEventList(std::vector<Rosegarden::Segment *>)));
+    connect(eventView, SIGNAL(openInNotation(std::vector<Segment *>)),
+        this, SLOT(slotEditSegmentsNotation(std::vector<Segment *>)));
+    connect(eventView, SIGNAL(openInMatrix(std::vector<Segment *>)),
+        this, SLOT(slotEditSegmentsMatrix(std::vector<Segment *>)));
+    connect(eventView, SIGNAL(openInPercussionMatrix(std::vector<Segment *>)),
+        this, SLOT(slotEditSegmentsPercussionMatrix(std::vector<Segment *>)));
+    connect(eventView, SIGNAL(openInEventList(std::vector<Segment *>)),
+        this, SLOT(slotEditSegmentsEventList(std::vector<Segment *>)));
     connect(eventView, SIGNAL(editTriggerSegment(int)),
         this, SLOT(slotEditTriggerSegment(int)));
     connect(this, SIGNAL(compositionStateUpdate()),

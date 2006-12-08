@@ -45,6 +45,8 @@ class Composition;
  * Pull all segments, time sigs, tempos etc starting after the end of
  * a given range back by the duration of that range, so as to fill in
  * the (presumably empty) range itself.
+ *
+ * This does not actually split any segments etc, it just moves them.
  */
 class OpenOrCloseRangeCommand : public KNamedCommand
 {

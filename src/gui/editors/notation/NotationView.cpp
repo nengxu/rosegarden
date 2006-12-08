@@ -48,7 +48,7 @@
 #include "base/NotationTypes.h"
 #include "base/Profiler.h"
 #include "base/PropertyName.h"
-#include "base/Quantizer.h"
+#include "base/NotationQuantizer.h"
 #include "base/RealTime.h"
 #include "base/RulerScale.h"
 #include "base/Segment.h"
@@ -114,6 +114,7 @@
 #include "commands/segment/PasteToTriggerSegmentCommand.h"
 #include "commands/segment/RenameTrackCommand.h"
 #include "document/RosegardenGUIDoc.h"
+#include "document/ConfigGroups.h"
 #include "FretboardInserter.h"
 #include "gui/application/SetWaitCursor.h"
 #include "gui/application/RosegardenGUIView.h"
@@ -130,7 +131,7 @@
 #include "gui/dialogs/TupletDialog.h"
 #include "gui/dialogs/UseOrnamentDialog.h"
 #include "gui/editors/guitar/Chord.h"
-#include "gui/editors/segment/BarButtons.h"
+#include "gui/rulers/StandardRuler.h"
 #include "gui/general/ActiveItem.h"
 #include "gui/general/EditViewBase.h"
 #include "gui/general/EditView.h"
@@ -390,7 +391,7 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
     // Initialise the display-related defaults that will be needed
     // by both the actions and the layout toolbar
 
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
 
     m_fontName = qstrtostr(m_config->readEntry
                            ("notefont",
@@ -435,11 +436,11 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
 
     updateViewCaption();
 
-    setTopBarButtons(new BarButtons(getDocument(),
+    setTopStandardRuler(new StandardRuler(getDocument(),
                                     m_hlayout, m_leftGutter, 25,
                                     false, getCentralWidget()));
 
-    m_topBarButtons->getLoopRuler()->setBackgroundColor
+    m_topStandardRuler->getLoopRuler()->setBackgroundColor
         (GUIPalette::getColour(GUIPalette::InsertCursorRuler));
 
     m_chordNameRuler = new ChordNameRuler
@@ -467,7 +468,7 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
     readOptions();
 
 
-    setBottomBarButtons(new BarButtons(getDocument(), m_hlayout, m_leftGutter, 25,
+    setBottomStandardRuler(new StandardRuler(getDocument(), m_hlayout, m_leftGutter, 25,
                                        true, getBottomWidget()));
 
     for (unsigned int i = 0; i < segments.size(); ++i)
@@ -505,7 +506,7 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
     m_currentStaff = 0;
     m_staffs[0]->setCurrent(true);
 
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
     int layoutMode = m_config->readNumEntry("layoutmode", 0);
 
     try
@@ -555,27 +556,27 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
     (getCanvasView(), SIGNAL(renderRequired(double, double)),
      this, SLOT(slotCheckRendered(double, double)));
 
-    m_topBarButtons->connectRulerToDocPointer(doc);
-    m_bottomBarButtons->connectRulerToDocPointer(doc);
+    m_topStandardRuler->connectRulerToDocPointer(doc);
+    m_bottomStandardRuler->connectRulerToDocPointer(doc);
 
     // Disconnect the default connection for this signal from the
     // top ruler, and connect our own instead
 
     QObject::disconnect
-    (m_topBarButtons->getLoopRuler(),
+    (m_topStandardRuler->getLoopRuler(),
      SIGNAL(setPointerPosition(timeT)), 0, 0);
 
     QObject::connect
-    (m_topBarButtons->getLoopRuler(),
+    (m_topStandardRuler->getLoopRuler(),
      SIGNAL(setPointerPosition(timeT)),
      this, SLOT(slotSetInsertCursorPosition(timeT)));
 
     QObject::connect
-    (m_topBarButtons,
+    (m_topStandardRuler,
      SIGNAL(dragPointerToPosition(timeT)),
      this, SLOT(slotSetInsertCursorPosition(timeT)));
 
-    connect(m_bottomBarButtons, SIGNAL(dragPointerToPosition(timeT)),
+    connect(m_bottomStandardRuler, SIGNAL(dragPointerToPosition(timeT)),
             this, SLOT(slotSetPointerPosition(timeT)));
 
     QObject::connect
@@ -655,8 +656,8 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
 
     timeT start = doc->getComposition().getLoopStart();
     timeT end = doc->getComposition().getLoopEnd();
-    m_topBarButtons->getLoopRuler()->slotSetLoopMarker(start, end);
-    m_bottomBarButtons->getLoopRuler()->slotSetLoopMarker(start, end);
+    m_topStandardRuler->getLoopRuler()->slotSetLoopMarker(start, end);
+    m_bottomStandardRuler->getLoopRuler()->slotSetLoopMarker(start, end);
 
     slotSetInsertCursorPosition(0);
     slotSetPointerPosition(doc->getComposition().getPosition());
@@ -754,7 +755,7 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
     // Initialise the display-related defaults that will be needed
     // by both the actions and the layout toolbar
 
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
 
     if (referenceView)
     {
@@ -789,7 +790,7 @@ NotationView::NotationView(RosegardenGUIDoc *doc,
     m_vlayout->setNotePixmapFactory(m_notePixmapFactory);
 
     setBackgroundMode(PaletteBase);
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
 
     QCanvas *tCanvas = new QCanvas(this);
     tCanvas->resize(width() * 2, height() * 2); //!!!
@@ -906,7 +907,7 @@ void NotationView::positionStaffs()
 {
     NOTATION_DEBUG << "NotationView::positionStaffs" << endl;
 
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
     m_printSize = m_config->readUnsignedNumEntry("printingnotesize", 5);
 
     int minTrack = 0, maxTrack = 0;
@@ -949,7 +950,7 @@ void NotationView::positionStaffs()
             getDocument()->getComposition().getMetadata();
 
         QFont defaultFont(NotePixmapFactory::defaultSerifFontFamily);
-        m_config->setGroup(NotationView::ConfigGroup);
+        m_config->setGroup(NotationViewConfigGroup);
         QFont font = m_config->readFontEntry("textfont", &defaultFont);
         font.setPixelSize(m_fontSize * 5);
         QFontMetrics metrics(font);
@@ -1188,7 +1189,7 @@ void NotationView::positionPages()
     QPixmap deskBackground;
     bool haveBackground = false;
 
-    m_config->setGroup(GeneralOptionsConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
     if (m_config->readBoolEntry("backgroundtextures", true)) {
         QString pixmapDir =
             KGlobal::dirs()->findResource("appdata", "pixmaps/");
@@ -1265,7 +1266,7 @@ void NotationView::positionPages()
         updateThumbnails(false);
     }
 
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
 }
 
 void NotationView::slotUpdateStaffName()
@@ -1276,7 +1277,7 @@ void NotationView::slotUpdateStaffName()
 
 void NotationView::slotSaveOptions()
 {
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
 
     m_config->writeEntry("Show Chord Name Ruler", getToggleAction("show_chords_ruler")->isChecked());
     m_config->writeEntry("Show Raw Note Ruler", getToggleAction("show_raw_note_ruler")->isChecked());
@@ -1318,7 +1319,7 @@ void NotationView::readOptions()
     setOneToolbar("show_accidentals_toolbar", "Accidentals Toolbar");
     setOneToolbar("show_meta_toolbar", "Meta Toolbar");
 
-    m_config->setGroup(NotationView::ConfigGroup);
+    m_config->setGroup(NotationViewConfigGroup);
 
     bool opt;
 
@@ -2057,7 +2058,14 @@ void NotationView::setupActions()
                     SLOT(slotAddSlashes()), actionCollection(),
                     QString("slashes_%1").arg(i));
     }
-
+/*
+    new KAction(i18n("Add Fretboard"),
+                0,
+                this,
+                SLOT(slotAddFretboard()),
+                actionCollection(),
+                "add_fretboard");
+*/
     new KAction(ClefInsertionCommand::getGlobalName(), 0, this,
                 SLOT(slotEditAddClef()), actionCollection(),
                 "add_clef");
@@ -2507,10 +2515,10 @@ NotationView::setPageMode(LinedStaff::PageMode pageMode)
     m_pageMode = pageMode;
 
     if (pageMode != LinedStaff::LinearMode) {
-        if (m_topBarButtons)
-            m_topBarButtons->hide();
-        if (m_bottomBarButtons)
-            m_bottomBarButtons->hide();
+        if (m_topStandardRuler)
+            m_topStandardRuler->hide();
+        if (m_bottomStandardRuler)
+            m_bottomStandardRuler->hide();
         if (m_chordNameRuler)
             m_chordNameRuler->hide();
         if (m_rawNoteRuler)
@@ -2518,10 +2526,10 @@ NotationView::setPageMode(LinedStaff::PageMode pageMode)
         if (m_tempoRuler)
             m_tempoRuler->hide();
     } else {
-        if (m_topBarButtons)
-            m_topBarButtons->show();
-        if (m_bottomBarButtons)
-            m_bottomBarButtons->show();
+        if (m_topStandardRuler)
+            m_topStandardRuler->show();
+        if (m_bottomStandardRuler)
+            m_bottomStandardRuler->show();
         if (m_chordNameRuler && getToggleAction("show_chords_ruler")->isChecked())
             m_chordNameRuler->show();
         if (m_rawNoteRuler && getToggleAction("show_raw_note_ruler")->isChecked())
@@ -2797,11 +2805,11 @@ bool NotationView::applyLayout(int staffNo, timeT startTime, timeT endTime)
     }
 
     readjustCanvasSize();
-    if (m_topBarButtons) {
-        m_topBarButtons->update();
+    if (m_topStandardRuler) {
+        m_topStandardRuler->update();
     }
-    if (m_bottomBarButtons) {
-        m_bottomBarButtons->update();
+    if (m_bottomStandardRuler) {
+        m_bottomStandardRuler->update();
     }
     if (m_rawNoteRuler && m_rawNoteRuler->isVisible()) {
         m_rawNoteRuler->update();
@@ -3276,7 +3284,7 @@ void NotationView::print(bool previewOnly)
         // mishandling of pixmap masks?) in qt-3.0.  Let's permit
         // it as a "hidden" option.
 
-        m_config->setGroup(NotationView::ConfigGroup);
+        m_config->setGroup(NotationViewConfigGroup);
 
         NOTATION_DEBUG << "NotationView::print: calling QCanvas::drawArea" << endl;
 
@@ -3899,7 +3907,6 @@ NotationView::NoteActionDataMap* NotationView::m_noteActionDataMap = 0;
 NotationView::NoteChangeActionDataMap* NotationView::m_noteChangeActionDataMap = 0;
 
 NotationView::MarkActionDataMap* NotationView::m_markActionDataMap = 0;
-const char* const NotationView::ConfigGroup = NotationViewConfigGroup;
 
 
 /// SLOTS
@@ -4393,7 +4400,7 @@ void NotationView::slotEditPaste()
          clipboard->getSingleSegment()->getStartTime());
 
     KConfig *config = kapp->config();
-    config->setGroup(NotationView::ConfigGroup);
+    config->setGroup(NotationViewConfigGroup);
     PasteEventsCommand::PasteType defaultType = (PasteEventsCommand::PasteType)
         config->readUnsignedNumEntry("pastetype",
                                      PasteEventsCommand::Restricted);
@@ -4430,7 +4437,7 @@ void NotationView::slotEditGeneralPaste()
     Segment &segment = staff->getSegment();
 
     KConfig *config = kapp->config();
-    config->setGroup(NotationView::ConfigGroup);
+    config->setGroup(NotationViewConfigGroup);
     PasteEventsCommand::PasteType defaultType = (PasteEventsCommand::PasteType)
         config->readUnsignedNumEntry("pastetype",
                                      PasteEventsCommand::Restricted);
@@ -4441,7 +4448,7 @@ void NotationView::slotEditGeneralPaste()
 
         PasteEventsCommand::PasteType type = dialog.getPasteType();
         if (dialog.setAsDefault()) {
-            config->setGroup(NotationView::ConfigGroup);
+            config->setGroup(NotationViewConfigGroup);
             config->writeEntry("pastetype", type);
         }
 

@@ -158,6 +158,8 @@ void MatrixSelector::handleLeftButtonPress(timeT time,
                              getToolBox()->getTool(MatrixMover::ToolName);
         }
 
+        m_dispatchTool->ready();
+
         m_dispatchTool->handleLeftButtonPress(time,
                                               height,
                                               staffNo,
@@ -220,6 +222,8 @@ void MatrixSelector::handleMidButtonPress(timeT time,
 
     m_dispatchTool = m_parentView->
                      getToolBox()->getTool(MatrixPainter::ToolName);
+
+    m_dispatchTool->ready();
 
     m_dispatchTool->handleLeftButtonPress(time, height, staffNo, e, element);
 }
@@ -387,6 +391,9 @@ void MatrixSelector::handleMouseRelease(timeT time, int height, QMouseEvent *e)
     if (m_dispatchTool) {
         m_dispatchTool->handleMouseRelease(time, height, e);
 
+        m_dispatchTool->stow();
+        ready();
+
         // don't delete the tool as it's still part of the toolbox
         m_dispatchTool = 0;
 
@@ -417,7 +424,7 @@ void MatrixSelector::ready()
     if (m_mParentView) {
         m_selectionRect = new QCanvasRectangle(m_mParentView->canvas());
         m_selectionRect->hide();
-        m_selectionRect->setPen(GUIPalette::getColour(GUIPalette::SelectionRectangle));
+        m_selectionRect->setPen(QPen(GUIPalette::getColour(GUIPalette::SelectionRectangle), 2));
 
         m_mParentView->setCanvasCursor(Qt::arrowCursor);
         //m_mParentView->setPositionTracking(false);
@@ -480,8 +487,8 @@ void MatrixSelector::setViewCurrentSelection()
     EventSelection* selection = getSelection();
 
     if (m_selectionToMerge && selection &&
-            m_selectionToMerge->getSegment() == selection->getSegment()) {
-
+        m_selectionToMerge->getSegment() == selection->getSegment()) {
+        
         selection->addFromSelection(m_selectionToMerge);
         m_mParentView->setCurrentSelection(selection, true, true);
 
@@ -519,7 +526,12 @@ EventSelection* MatrixSelector::getSelection()
         }
     }
 
-    return (selection->getAddedEvents() > 0) ? selection : 0;
+    if (selection->getAddedEvents() > 0) {
+        return selection;
+    } else {
+        delete selection;
+        return 0;
+    }
 }
 
 const QString MatrixSelector::ToolName  = "selector";

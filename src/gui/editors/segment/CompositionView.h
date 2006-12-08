@@ -84,16 +84,12 @@ public:
 
     CompositionItem getFirstItemAt(QPoint pos);
 
-    /**
-     * Add the given Segment to the selection, if we know anything about it
-     */
-    void addToSelection(Segment *);
-
     SegmentToolBox* getToolBox() { return m_toolBox; }
 
     CompositionModel* getModel() { return m_model; }
 
     void setTmpRect(const QRect& r);
+    void setTmpRect(const QRect& r, const QColor &c);
     const QRect& getTmpRect() const { return m_tmpRect; }
 
     /**
@@ -106,6 +102,15 @@ public:
      * taken into account.
      */
     void setSnapGrain(bool fine);
+
+    /**
+     * Find out whether the user is requesting extra-fine resolution
+     * (e.g. by holding Shift key).  This is seldom necessary -- most
+     * client code will only need to query the snap grid that is
+     * adjusted appropriately by the view when interactions take
+     * place.
+     */
+    bool isFineGrain() const { return m_fineGrain; }
 
     /**
      * Set whether the segment items contain previews or not
@@ -304,6 +309,7 @@ protected:
     QPen         m_pointerPen;
 
     QRect        m_tmpRect;
+    QColor       m_tmpRectFill;
     QPoint       m_splitLinePos;
 
     bool         m_drawGuides;

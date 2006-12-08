@@ -28,6 +28,7 @@
 
 #include "base/BaseProperties.h"
 #include <klocale.h>
+#include <kconfig.h>
 #include "misc/Debug.h"
 #include "misc/Strings.h"
 #include "ActiveItem.h"
@@ -65,11 +66,12 @@
 #include "commands/segment/AddTimeSignatureCommand.h"
 #include "document/MultiViewCommandHistory.h"
 #include "document/RosegardenGUIDoc.h"
+#include "document/ConfigGroups.h"
 #include "EditViewBase.h"
 #include "gui/dialogs/RescaleDialog.h"
 #include "gui/dialogs/TempoDialog.h"
 #include "gui/dialogs/TimeSignatureDialog.h"
-#include "gui/editors/segment/BarButtons.h"
+#include "gui/rulers/StandardRuler.h"
 #include "gui/kdeext/KTmpStatusMsg.h"
 #include "gui/kdeext/QCanvasGroupableItem.h"
 #include "gui/rulers/ControllerEventsRuler.h"
@@ -122,8 +124,8 @@ EditView::EditView(RosegardenGUIDoc *doc,
         m_rulerBox(new QVBoxLayout),  // top ruler box - added to grid later on
         m_controlBox(new QVBoxLayout),  // top control ruler box - added to grid later on
         m_bottomBox(new QVBox(this, "bottomframe")),  // bottom box - added to bottom of canvas view by setCanvasView()
-        m_topBarButtons(0),
-        m_bottomBarButtons(0),
+        m_topStandardRuler(0),
+        m_bottomStandardRuler(0),
         m_controlRuler(0),
         m_controlRulers(new KTabWidget(getBottomWidget(), "controlrulers"))
 {
@@ -248,32 +250,32 @@ void EditView::setControlRulersCurrentSegment()
     */
 }
 
-void EditView::setTopBarButtons(BarButtons* w)
+void EditView::setTopStandardRuler(StandardRuler* w)
 {
-    delete m_topBarButtons;
-    m_topBarButtons = w;
+    delete m_topStandardRuler;
+    m_topStandardRuler = w;
     m_grid->addWidget(w, TOPBARBUTTONS_ROW, m_mainCol);
 
     if (m_canvasView) {
         connect(m_canvasView->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-                m_topBarButtons, SLOT(slotScrollHoriz(int)));
+                m_topStandardRuler, SLOT(slotScrollHoriz(int)));
         connect(m_canvasView->horizontalScrollBar(), SIGNAL(sliderMoved(int)),
-                m_topBarButtons, SLOT(slotScrollHoriz(int)));
+                m_topStandardRuler, SLOT(slotScrollHoriz(int)));
     }
 }
 
-void EditView::setBottomBarButtons(BarButtons* w)
+void EditView::setBottomStandardRuler(StandardRuler* w)
 {
-    delete m_bottomBarButtons;
-    m_bottomBarButtons = w;
+    delete m_bottomStandardRuler;
+    m_bottomStandardRuler = w;
 
     //     m_bottomBox->insertWidget(0, w);
 
     if (m_canvasView) {
         connect(m_canvasView->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-                m_bottomBarButtons, SLOT(slotScrollHoriz(int)));
+                m_bottomStandardRuler, SLOT(slotScrollHoriz(int)));
         connect(m_canvasView->horizontalScrollBar(), SIGNAL(sliderMoved(int)),
-                m_bottomBarButtons, SLOT(slotScrollHoriz(int)));
+                m_bottomStandardRuler, SLOT(slotScrollHoriz(int)));
     }
 }
 
@@ -1420,6 +1422,7 @@ EditView::slotRescale()
      m_currentEventSelection->getStartTime(),
      m_currentEventSelection->getEndTime() -
      m_currentEventSelection->getStartTime(),
+     true,
      true);
 
     if (dialog.exec() == QDialog::Accepted) {
@@ -1436,13 +1439,18 @@ void EditView::slotTranspose()
     if (!m_currentEventSelection)
         return ;
 
+    m_config->setGroup(EditViewConfigGroup);
+    int dialogDefault = m_config->readNumEntry("lasttransposition", 0);
+
     bool ok = false;
     int semitones = QInputDialog::getInteger
                     (i18n("Transpose"),
                      i18n("Enter the number of semitones to transpose by:"),
-                     0, -127, 127, 1, &ok, this);
-    if (!ok || semitones == 0)
-        return ;
+                     dialogDefault, -127, 127, 1, &ok, this);
+    if (!ok || semitones == 0) return;
+
+    m_config->setGroup(EditViewConfigGroup);
+    m_config->writeEntry("lasttransposition", semitones);
 
     KTmpStatusMsg msg(i18n("Transposing..."), this);
     addCommandToHistory(new TransposeCommand
