@@ -161,7 +161,7 @@ NoteSymbols::drawFretNumber ( QPainter* p,
 }
 
 void
-NoteSymbols::drawFretHorizontalLines ( QPainter* p,
+NoteSymbols::drawFrets ( QPainter* p,
                                        unsigned int fretsDisplayed,
                                        unsigned int maxStringNum )
 {
@@ -174,23 +174,38 @@ NoteSymbols::drawFretHorizontalLines ( QPainter* p,
 
     QRect v = p->viewport();
     unsigned int imgWidth = v.width();
+    unsigned int imgHeight = v.height();
     //unsigned int endXPos = getFretboardWidth(imgWidth) + getLeftBorder(imgWidth);
     posPair endXPos = getX ( imgWidth, maxStringNum - 1, maxStringNum );
 
+    unsigned int yFretboard = getFretboardHeight( imgHeight );
+    unsigned int rowHeight = yFretboard / fretsDisplayed;
+
+    QPen pen;
+    pen.setWidth(FRET_PEN_WIDTH);  
+    p->save();
+    p->setPen(pen);
+    unsigned int y_pos = (getY ( imgHeight, 0, fretsDisplayed )).first + TOP_FRETBOARD_MARGIN;
+    
     // Horizontal lines
     for ( unsigned int i = 0; i <= fretsDisplayed; ++i ) {
-        posPair y_pos = getY ( imgWidth, i, fretsDisplayed );
 
         /* This code borrowed from KGuitar 0.5 */
         p->drawLine( getLeftBorder( imgWidth ),
-                     y_pos.first,
+                     y_pos,
                      endXPos.first,
-                     y_pos.first );
+                     y_pos);
+                     
+
+       y_pos += rowHeight;
     }
+
+    p->restore();
+
 }
 
 void
-NoteSymbols::drawFretVerticalLines ( QPainter* p,
+NoteSymbols::drawStrings ( QPainter* p,
                                      unsigned int fretsDisplayed,
                                      unsigned int maxStringNum )
 {
@@ -199,18 +214,32 @@ NoteSymbols::drawFretVerticalLines ( QPainter* p,
     int imgHeight = v.height();
     int imgWidth = v.width();
 
-    unsigned int startPos = getTopBorder( imgHeight );
-    posPair endPos = getY ( imgHeight, fretsDisplayed, fretsDisplayed );
+    unsigned int startPos = getTopBorder( imgHeight ) + TOP_FRETBOARD_MARGIN;
+    unsigned int endPos = (getY ( imgHeight, fretsDisplayed, fretsDisplayed )).first + TOP_FRETBOARD_MARGIN;
+
+    unsigned int fretboard = getFretboardWidth( imgWidth );
+    unsigned int columnWidth = fretboard / maxStringNum;
+
+    unsigned int x_pos = (getX ( imgWidth, 0, maxStringNum )).first;
+
+    QPen pen;
+    pen.setWidth(STRING_PEN_WIDTH);  
+    p->save();
+    p->setPen(pen);
 
     for ( unsigned int i = 0; i < maxStringNum; ++i ) {
-        posPair x_pos = getX ( imgWidth, i, maxStringNum );
 
         /* This code borrowed from KGuitar 0.5 */
-        p->drawLine( x_pos.first,
+        p->drawLine( x_pos,
                      startPos,
-                     x_pos.first,
-                     endPos.first );
+                     x_pos,
+                     endPos );
+                     
+       x_pos += columnWidth;
     }
+
+    p->restore();
+    
 }
 
 unsigned int
@@ -349,7 +378,9 @@ float const NoteSymbols::FRETBOARD_WIDTH_PERCENTAGE = 0.8;
 float const NoteSymbols::TOP_BORDER_PERCENTAGE = 0.1;
 float const NoteSymbols::BOTTOM_BORDER_PERCENTAGE = 0.1;
 float const NoteSymbols::FRETBOARD_HEIGHT_PERCENTAGE = 0.8;
-
+int   const NoteSymbols::TOP_FRETBOARD_MARGIN = 5;
+int   const NoteSymbols::FRET_PEN_WIDTH = 2;
+int   const NoteSymbols::STRING_PEN_WIDTH = 2;
 
 } /* namespace Guitar */
 

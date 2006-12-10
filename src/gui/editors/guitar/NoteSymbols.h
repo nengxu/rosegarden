@@ -73,7 +73,10 @@ private:
     static float const TOP_BORDER_PERCENTAGE;
     static float const BOTTOM_BORDER_PERCENTAGE;
     static float const FRETBOARD_HEIGHT_PERCENTAGE;
-
+    static int   const TOP_FRETBOARD_MARGIN;
+    static int   const FRET_PEN_WIDTH;
+    static int   const STRING_PEN_WIDTH;
+    
 public:
 
     //! Display a mute symbol in the QPainter object
@@ -115,11 +118,11 @@ public:
                           unsigned int fret_num,
                           unsigned int fretsDisplayed );
 
-    void drawFretHorizontalLines ( QPainter* p,
+    void drawFrets ( QPainter* p,
                                    unsigned int fretsDisplayed,
                                    unsigned int maxStringNum );
 
-    void drawFretVerticalLines ( QPainter* p,
+    void drawStrings ( QPainter* p,
                                  unsigned int maxFretsDisplayed,
                                  unsigned int string_num );
 

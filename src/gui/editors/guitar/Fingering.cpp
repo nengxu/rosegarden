@@ -256,8 +256,8 @@ void Fingering::drawContents ( QPainter* p, unsigned int frets_displayed ) const
     NoteSymbols ns;
 
     ns.drawFretNumber ( p, m_startFret, frets_displayed );
-    ns.drawFretHorizontalLines ( p, frets_displayed, m_guitar->getStringNumber() );
-    ns.drawFretVerticalLines ( p, frets_displayed, m_guitar->getStringNumber() );
+    ns.drawFrets ( p, frets_displayed, m_guitar->getStringNumber() );
+    ns.drawStrings ( p, frets_displayed, m_guitar->getStringNumber() );
 
     for ( GuitarNeck::GuitarStringMap::const_iterator pos = m_guitar->begin();
             pos != m_guitar->end();
