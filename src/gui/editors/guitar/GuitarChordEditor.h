@@ -55,12 +55,10 @@ public:
 public slots:
     virtual void saveChord();
     virtual void newAliasTab();
-    virtual void toggleMode();
 
 protected:
     Guitar::FingeringConstructor* fingerConstPtr;
     QTabWidget* tabWidget;
-    KStatusBar* m_status;
 
 protected slots:
 

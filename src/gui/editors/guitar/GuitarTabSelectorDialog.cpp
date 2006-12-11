@@ -308,7 +308,7 @@ void GuitarTabSelectorDialog::populate ()
     m_fingering =
         new Guitar::FingeringConstructor( m_guitar,
                                           chordFrame,
-                                          Guitar::FingeringConstructor::DISPLAY_ONLY );
+                                          false );
 
     chordFrameLayout->addMultiCellWidget( m_fingering, 2, 6, 0, 0 );
     connect( this, SIGNAL( displayChord( Guitar::Fingering* ) ),

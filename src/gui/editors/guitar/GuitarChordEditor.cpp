@@ -92,22 +92,14 @@ GuitarChordEditor::GuitarChordEditor( Guitar::GuitarNeck* g_ptr,
     chordFrameLayout->addWidget( okPushButton, 4, 3 );
     connect( okPushButton, SIGNAL( pressed() ), this, SLOT( saveChord() ) );
 
-    KPushButton* modePushButton = new KPushButton( i18n ( "Toggle &Mode" ), chordFrame );
-    modePushButton->setAccel( QKeySequence( tr( "Alt+M" ) ) );
-    chordFrameLayout->addWidget( modePushButton, 5, 0 );
-    connect( modePushButton, SIGNAL( pressed() ), this, SLOT( toggleMode() ) );
-
     fingerConstPtr =
         new Guitar::FingeringConstructor ( g_ptr,
                                            chordFrame,
-                                           Guitar::FingeringConstructor::EDITABLE,
+                                           true,
                                            "fingerConstPtr" );
 
     chordFrameLayout->addMultiCellWidget( fingerConstPtr, 0, 3, 0, 1 );
 
-    m_status = new KStatusBar ( mainWidget );
-    m_status->setSizeGripEnabled ( false );
-    m_status->message ( "MODE: Insert" );
 }
 
 void GuitarChordEditor::saveChord()
@@ -312,15 +304,6 @@ GuitarChordEditor::getChordName ( void )
     }
 
     return main;
-}
-
-void GuitarChordEditor::toggleMode()
-{
-    if ( fingerConstPtr->toggleState() ) {
-        m_status->message( "MODE: Insert" );
-    } else {
-        m_status->message( "MODE: Delete" );
-    }
 }
 
 }

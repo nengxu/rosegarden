@@ -103,7 +103,7 @@ NoteSymbols::drawNoteSymbol ( QPainter* p,
 
     p->setBrush( Qt::SolidPattern );
     p->drawEllipse( x_pos.first - ( radius / 2 ),
-                    y_pos.first + ( y_pos.second / 4 ),
+                    y_pos.first + ( y_pos.second / 4 ) + TOP_FRETBOARD_MARGIN,
                     radius,
                     radius );
 }
@@ -130,7 +130,7 @@ NoteSymbols::drawBarreSymbol ( QPainter* p,
         unsigned int thickness = static_cast<unsigned int>( columnWidth * 0.7 );
 
         p->drawRect( startXPos.first,
-                     y_pos.first + ( y_pos.second / 4 ),
+                     y_pos.first + ( y_pos.second / 4 ) + TOP_FRETBOARD_MARGIN,
                      endXPos.first - startXPos.first,
                      thickness );
     }

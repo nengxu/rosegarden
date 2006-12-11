@@ -1,5 +1,6 @@
 #include "Fingering.h"
 #include "NoteSymbols.h"
+#include "misc/Debug.h"
 
 #include <qpainter.h>
 #include <qdrawutil.h>
@@ -24,24 +25,22 @@ namespace Guitar
 FingeringConstructor::FingeringConstructor
 ( GuitarNeck *instr,
   QWidget *parent,
-  Mode state,
+  bool editable,
   const char *name )
         : QFrame( parent, name ),
         m_instr ( instr ),
-        m_mode ( state ),
+        m_editable ( editable ),
         m_chord_arrangement ( new Fingering ( instr ) ),
         m_frets_displayed ( MAX_FRET_DISPLAYED ),
         m_press_string_num ( 0 ),
-        m_press_fret_num ( 0 ),
-        INSERT ( new FC_InsertMode( this ) ),
-        DELETE ( new FC_DeleteMode( this ) ),
-        m_presentMode ( INSERT )
+        m_press_fret_num ( 0 )
 {
     setFixedSize( IMG_WIDTH, IMG_HEIGHT );
     setFrameStyle( Panel | Sunken );
     setBackgroundMode( PaletteBase );
+    setMouseTracking( true );
 
-    if ( m_mode == EDITABLE ) {
+    if ( m_editable ) {
         m_fret_spinbox =
             new QSpinBox ( 1,
                            m_instr->getFretNumber() - m_frets_displayed + 1,
@@ -92,7 +91,7 @@ void FingeringConstructor::drawContents( QPainter *p )
             ns.drawFretVerticalLines (p, SCALE, m_frets_displayed, m_instr->getStringNumber());
     */
 
-    if ( m_mode == EDITABLE ) {
+    if ( m_editable ) {
         // Set beginning fret number and scroll bar
         m_fret_spinbox->setValue ( m_chord_arrangement->getFirstFret() );
     }
@@ -149,7 +148,7 @@ FingeringConstructor::getFretNumber ( QMouseEvent const* event )
 
 void FingeringConstructor::mousePressEvent( QMouseEvent *event )
 {
-    if ( ( event->button() == LeftButton ) && ( m_mode == EDITABLE ) ) {
+    if ( ( event->button() == LeftButton ) && ( m_editable ) ) {
 
         // Find string position
         m_press_string_num = this->getStringNumber ( event );
@@ -162,44 +161,25 @@ void FingeringConstructor::mousePressEvent( QMouseEvent *event )
 void FingeringConstructor::mouseReleaseEvent( QMouseEvent *event )
 {
     // If we are display only then we will not updated on a mouse event
-    if ( m_mode == DISPLAY_ONLY ) {
+    if ( !m_editable ) {
         return ;
     }
 
     unsigned int release_string_num = this->getStringNumber( event );
     unsigned int release_fret_num = this->getFretNumber( event );
 
-    m_presentMode->mouseRelease ( release_string_num, release_fret_num );
+    processMouseRelease ( release_string_num, release_fret_num );
 }
 
-bool FingeringConstructor::toggleState ( void )
+void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
+                                                unsigned int release_fret_num )
 {
-    return m_presentMode->change();
-}
-
-/*------------------------------------------
-     Default FC_Mode
--------------------------------------------*/
-FC_Mode::FC_Mode ( FingeringConstructor* finger )
-        : m_finger ( finger )
-{}
-
-/*------------------------------------------
-     State: Insert
--------------------------------------------*/
-FC_InsertMode::FC_InsertMode ( FingeringConstructor* finger )
-        : FC_Mode ( finger )
-{}
-
-void FC_InsertMode::mouseRelease ( unsigned int release_string_num,
-                                   unsigned int release_fret_num )
-{
-    unsigned int press_string_num = m_finger->m_press_string_num;
-    unsigned int press_fret_num = m_finger->m_press_fret_num;
-    unsigned int frets_displayed = m_finger->m_frets_displayed;
-    Fingering* arrangement = m_finger->m_chord_arrangement;
-    GuitarNeck* instr = m_finger->m_instr;
-    QSpinBox* fret_spinbox = m_finger->m_fret_spinbox;
+    unsigned int press_string_num = m_press_string_num;
+    unsigned int press_fret_num = m_press_fret_num;
+    unsigned int frets_displayed = m_frets_displayed;
+    Fingering* arrangement = m_chord_arrangement;
+    GuitarNeck* instr = m_instr;
+    QSpinBox* fret_spinbox = m_fret_spinbox;
 
     if ( press_fret_num == release_fret_num ) {
         // If press string & fret pos == release string & fret position, display chord
@@ -212,14 +192,14 @@ void FC_InsertMode::mouseRelease ( unsigned int release_string_num,
                ) {
                 /**
                 IF m_press_fret_num == 0
-                	Get fretStatus
-                	    status | new status
-                	    MUTED  | OPEN
-                	    OPEN   | MUTED
+                    Get fretStatus
+                        status | new status
+                        MUTED  | OPEN
+                        OPEN   | MUTED
                 ELSE m_press_fret_num > 0
-                	status  | new status
-                	MUTED   | PRESSED
-                	OPEN    | PRESSED
+                    status  | new status
+                    MUTED   | PRESSED
+                    OPEN    | PRESSED
                         PRESSED | PRESSED
                 */
                 GuitarString::Action aVal = GuitarString::PRESSED;
@@ -235,18 +215,27 @@ void FC_InsertMode::mouseRelease ( unsigned int release_string_num,
                             break;
                         }
                     }
-                }
-
-                if ( arrangement->hasNote ( press_string_num ) ) {
-                    Note * note_ptr = arrangement->getNote ( press_string_num );
-                    note_ptr->setNote ( press_string_num, press_fret_num );
-                    arrangement->setStringStatus( press_string_num, aVal );
                 } else {
-                    Note* note_ptr = new Note ( press_string_num, press_fret_num );
-                    arrangement->addNote( note_ptr );
-                    arrangement->setStringStatus( press_string_num, aVal );
+
+                    if ( arrangement->hasNote ( press_string_num ) ) {
+                        
+                        Note * note_ptr = arrangement->getNote ( press_string_num );
+                        
+                        if ( ( note_ptr->getFret() == press_fret_num ) &&
+                                ( note_ptr->getStringNumber() == press_string_num ) ) {
+                            // Remove note if there was one already at this place
+                            arrangement->removeNote ( press_string_num );
+                        } else { // there was a note on this string, but not at this fret, so move it to the new fret                                                
+                            note_ptr->setNote ( press_string_num, press_fret_num );
+                            arrangement->setStringStatus( press_string_num, aVal );
+                        }
+                    } else {
+                        Note* note_ptr = new Note ( press_string_num, press_fret_num );
+                        arrangement->addNote( note_ptr );
+                        arrangement->setStringStatus( press_string_num, aVal );
+                    }
                 }
-                m_finger->update();
+                update();
             }
         }
         // else if press fret pos == release fret pos & press string pos != release string pos, display bar
@@ -264,74 +253,27 @@ void FC_InsertMode::mouseRelease ( unsigned int release_string_num,
 
                 if ( arrangement->hasBarre ( press_fret_num ) ) {
                     Barre * b_ptr = arrangement->getBarre( press_fret_num );
-                    b_ptr->setBarre( press_fret_num, press_string_num, release_string_num );
+                    if (b_ptr->getFret() == press_fret_num) {
+                        arrangement->removeBarre ( press_fret_num );
+                    } else {
+                        b_ptr->setBarre( press_fret_num, press_string_num, release_string_num );
+                    }
                 } else {
                     Barre* b_ptr = new Barre ( press_fret_num,
                                                press_string_num,
                                                release_string_num );
                     arrangement->addBarre( b_ptr );
                 }
-                m_finger->update();
+                update();
             }
         }
     }
 }
 
 
-bool FC_InsertMode::change ( void )
+void FingeringConstructor::mouseMoveEvent( QMouseEvent *event )
 {
-    m_finger->m_presentMode = m_finger->DELETE;
-    m_finger->setCursor( KCursor::crossCursor() );
-    return false;
-}
-
-/*------------------------------------------
-     State: Delete
--------------------------------------------*/
-FC_DeleteMode::FC_DeleteMode ( FingeringConstructor* finger )
-        : FC_Mode ( finger )
-{}
-
-void FC_DeleteMode::mouseRelease ( unsigned int release_string_num,
-                                   unsigned int release_fret_num )
-{
-
-    unsigned int press_string_num = m_finger->m_press_string_num;
-    unsigned int press_fret_num = m_finger->m_press_fret_num;
-    Guitar::Fingering* arrangement = m_finger->m_chord_arrangement;
-
-    if ( ( press_fret_num == release_fret_num ) &&
-            ( press_string_num == release_string_num ) ) {
-        // We have two cases here:
-        //   #1: Clicked above in the string status area
-        //   #2: Clicked on the fret area
-
-        // So if we are not in the string status area
-        if ( press_fret_num != 0 ) {
-            // Detect object at position.
-            // If note, delete note
-            if ( arrangement->hasNote ( press_string_num ) ) {
-                Note * note_ptr = arrangement->getNote ( press_string_num );
-                if ( ( note_ptr->getFret() == press_fret_num ) &&
-                        ( note_ptr->getStringNumber() == press_string_num ) ) {
-                    // Remove note
-                    arrangement->removeNote ( press_string_num );
-                }
-            }
-
-            if ( arrangement->hasBarre ( press_fret_num ) ) {
-                arrangement->removeBarre ( press_fret_num );
-            }
-            m_finger->update();
-        }
-    }
-}
-
-bool FC_DeleteMode::change ( void )
-{
-    m_finger->m_presentMode = m_finger->INSERT;
-    m_finger->setCursor( KCursor::arrowCursor() );
-    return true;
+    
 }
 
 } /* namespace Guitar */

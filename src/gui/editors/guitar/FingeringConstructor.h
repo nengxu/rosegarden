@@ -28,28 +28,20 @@ class FingeringConstructor : public QFrame
 {
     Q_OBJECT
 
-    friend class FC_InsertMode;
-    friend class FC_DeleteMode;
-
 public:
 
     static const unsigned int MAX_FRET_DISPLAYED = 5;
 
-    enum Mode {
-        EDITABLE,
-        DISPLAY_ONLY
-    };
-
     //! Constant values obtained from KGuitar project
-    enum { IMG_WIDTH = 200,
-           IMG_HEIGHT = 200,
-           SCROLL = 15,
-         };
+    static const unsigned int IMG_WIDTH = 200;
+    static const unsigned int IMG_HEIGHT = 200;
+    static const unsigned int SCROLL = 15;
+
 
     //! Constructor
     FingeringConstructor ( GuitarNeck *instr,
                            QWidget *parent = 0,
-                           Mode state = EDITABLE,
+                           bool editable = true,
                            const char *name = 0 );
 
     virtual ~FingeringConstructor() {}
@@ -71,17 +63,6 @@ public slots:
     //! Set the base fret for fingering
     void setFirstFret( int );
 
-    //! Overriding method to draw fingering to QPainter object
-    virtual void drawContents ( QPainter * );
-
-    //! Capture mouse press event
-    virtual void mousePressEvent ( QMouseEvent * );
-
-    //! Capture mouse release event
-    virtual void mouseReleaseEvent ( QMouseEvent * );
-
-    //! Change state
-    bool toggleState ( void );
 
 signals:
 
@@ -89,6 +70,16 @@ signals:
     void chordChange();
 
 protected:
+
+    virtual void drawContents ( QPainter * );
+
+    virtual void mousePressEvent ( QMouseEvent * );
+
+    virtual void mouseReleaseEvent ( QMouseEvent * );
+
+    virtual void mouseMoveEvent ( QMouseEvent * );
+
+    void processMouseRelease( unsigned int release_string_num, unsigned int release_fret_num );
 
     typedef std::pair<bool, unsigned int> PositionPair;
 
@@ -103,7 +94,7 @@ protected:
     GuitarNeck *m_instr;
 
     //! Present mode
-    Mode m_mode;
+    bool m_editable;
 
     //! Handle to the present fingering
     Fingering* m_chord_arrangement;
@@ -117,55 +108,6 @@ protected:
     //! Fret number where a mouse press event was located
     unsigned int m_press_fret_num;
 
-    // Modes
-    FC_Mode* INSERT;
-    FC_Mode* DELETE;
-    FC_Mode* m_presentMode;
-};
-
-class FC_Mode
-{
-protected:
-    FingeringConstructor* m_finger;
-
-public:
-    FC_Mode ( FingeringConstructor* finger );
-
-    virtual ~FC_Mode () {}
-
-    virtual void mouseRelease ( unsigned int string_num, unsigned int fret_num ) = 0;
-
-    // To mark the states we will use boolean values since there are only two.
-    // TRUE = insert
-    // FALSE = delete
-    virtual bool change ( void ) = 0;
-};
-
-class FC_InsertMode : public FC_Mode
-{
-public:
-    FC_InsertMode ( FingeringConstructor* finger );
-
-    virtual ~FC_InsertMode () {}
-
-    //! Capture mouse release event
-    virtual void mouseRelease ( unsigned int string_num, unsigned int fret_num );
-
-    virtual bool change ( void );
-};
-
-class FC_DeleteMode : public FC_Mode
-{
-public:
-
-    FC_DeleteMode ( FingeringConstructor* finger );
-
-    virtual ~FC_DeleteMode () {}
-
-    //! Capture mouse release event
-    virtual void mouseRelease ( unsigned int string_num, unsigned int fret_num );
-
-    virtual bool change ( void );
 };
 
 } /* namespace */
