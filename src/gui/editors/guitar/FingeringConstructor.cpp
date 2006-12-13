@@ -38,7 +38,6 @@ FingeringConstructor::FingeringConstructor
     setFixedSize( IMG_WIDTH, IMG_HEIGHT );
     setFrameStyle( Panel | Sunken );
     setBackgroundMode( PaletteBase );
-    setMouseTracking( true );
 
     if ( m_editable ) {
         m_fret_spinbox =
@@ -51,17 +50,20 @@ FingeringConstructor::FingeringConstructor
         connect( m_fret_spinbox,
                  SIGNAL( valueChanged( int ) ),
                  SLOT( setFirstFret( int ) ) );
+
+        setMouseTracking( true );
+        
+    } else {
+        setEnabled(false); // no need of events if widget is not editable
     }
 
-    clear();
+//    clear();
 }
 
 void FingeringConstructor::clear()
 {
     m_instr->clear();
-    if ( m_chord_arrangement != 0 ) {
-        delete m_chord_arrangement;
-    }
+    delete m_chord_arrangement;
     m_chord_arrangement = new Fingering ( m_instr );
     update();
     emit chordChange();
@@ -69,6 +71,7 @@ void FingeringConstructor::clear()
 
 void FingeringConstructor::setFingering ( Fingering* arrange )
 {
+    delete m_chord_arrangement;
     m_chord_arrangement = new Fingering( *arrange );
     update();
     emit chordChange();
@@ -151,10 +154,10 @@ void FingeringConstructor::mousePressEvent( QMouseEvent *event )
     if ( ( event->button() == LeftButton ) && ( m_editable ) ) {
 
         // Find string position
-        m_press_string_num = this->getStringNumber ( event );
+        m_press_string_num = getStringNumber ( event );
 
         // Find fret position
-        m_press_fret_num = this->getFretNumber ( event );
+        m_press_fret_num = getFretNumber ( event );
     }
 }
 
@@ -165,8 +168,8 @@ void FingeringConstructor::mouseReleaseEvent( QMouseEvent *event )
         return ;
     }
 
-    unsigned int release_string_num = this->getStringNumber( event );
-    unsigned int release_fret_num = this->getFretNumber( event );
+    unsigned int release_string_num = getStringNumber( event );
+    unsigned int release_fret_num = getFretNumber( event );
 
     processMouseRelease ( release_string_num, release_fret_num );
 }
@@ -273,6 +276,12 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
 
 void FingeringConstructor::mouseMoveEvent( QMouseEvent *event )
 {
+    if (m_chord_arrangement) {
+        m_chord_arrangement->setTransientStringNb(getStringNumber(event));
+        m_chord_arrangement->setTransientFretNb(getFretNumber(event));
+    }
+    
+    update();
     
 }
 

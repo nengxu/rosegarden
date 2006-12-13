@@ -18,7 +18,9 @@ const short Fingering::EventSubOrdering = -60;
 ---------------------------------------------------------------*/
 Fingering::Fingering ()
         : m_guitar ( new GuitarNeck() ),
-        m_startFret ( 1 )
+        m_startFret ( 1 ),
+        m_transientStringNb( 0 ),
+        m_transientFretNb( 0 )
 {}
 
 Fingering::Fingering( GuitarNeck* gPtr )
@@ -177,7 +179,7 @@ Fingering::Fingering ( Event const& e_ref )
     }
 }
 
-void Fingering::setFirstFret ( unsigned int const& fret )
+void Fingering::setFirstFret ( unsigned int fret )
 {
     int fret_change = fret - m_startFret;
     /*
@@ -215,7 +217,7 @@ void Fingering::setFirstFret ( unsigned int const& fret )
 }
 
 Note*
-Fingering::getNote ( unsigned int const& string_num )
+Fingering::getNote ( unsigned int string_num )
 {
     if ( ( string_num > 0 ) && ( string_num <= m_guitar->getStringNumber() ) ) {
         return m_notes[ string_num ];
@@ -230,7 +232,7 @@ Fingering::getNote ( unsigned int const& string_num )
 }
 
 Barre*
-Fingering::getBarre ( unsigned int const& fret_num )
+Fingering::getBarre ( unsigned int fret_num )
 {
     if ( ( fret_num > 0 ) && ( fret_num <= m_guitar->getFretNumber() ) ) {
         return m_barreFretMap[ fret_num ];
@@ -278,7 +280,6 @@ void Fingering::drawContents ( QPainter* p, unsigned int frets_displayed ) const
             }
         case GuitarString::OPEN: {
                 //std::cout << "Fingering::drawContents - drawing Open symbol" << std::endl;
-                NoteSymbols ns;
                 ns.drawOpenSymbol( p,
                                    m_guitar->getStringNumber() - ( *pos ).first,
                                    frets_displayed,
@@ -288,7 +289,6 @@ void Fingering::drawContents ( QPainter* p, unsigned int frets_displayed ) const
             }
         case GuitarString::MUTED: {
                 //std::cout << "Fingering::drawContents - drawing Mute symbol" << std::endl;
-                NoteSymbols ns;
                 ns.drawMuteSymbol( p,
                                    m_guitar->getStringNumber() - ( *pos ).first,
                                    frets_displayed,
@@ -309,6 +309,12 @@ void Fingering::drawContents ( QPainter* p, unsigned int frets_displayed ) const
                              m_guitar->getStringNumber(),
                              frets_displayed );
     }
+    
+    if (m_transientFretNb > 0 && m_transientFretNb <= frets_displayed &&
+        m_transientStringNb > 0 && m_transientStringNb <= m_guitar->getStringNumber()) {
+        ns.drawNoteSymbol(p, m_guitar->getStringNumber() - m_transientStringNb, m_transientFretNb - m_startFret, m_guitar->getStringNumber(), frets_displayed, true);
+    }
+    
 }
 
 bool
@@ -414,7 +420,7 @@ void Fingering::addBarre ( Barre* barrePtr )
 }
 
 bool
-Fingering::hasBarre ( unsigned int const& fret_num )
+Fingering::hasBarre ( unsigned int fret_num )
 {
     bool result = false;
     if ( ( fret_num > 0 ) && ( fret_num <= m_guitar->getFretNumber() ) ) {
@@ -451,11 +457,6 @@ Fingering::toString ( void ) const
     }
 
     return output.str();
-}
-
-unsigned int const& Fingering::getFirstFret ( void ) const
-{
-    return m_startFret;
 }
 
 void Fingering::setStringStatus ( unsigned int stringPos, GuitarString::Action action )

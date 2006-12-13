@@ -74,16 +74,20 @@ public:
     GuitarString::Action const& getStringStatus ( unsigned int stringPos ) const;
 
     //! Set the base fret for Fingering object
-    void setFirstFret ( unsigned int const& fret );
+    void setFirstFret ( unsigned int fret );
 
     //! Return the base fret
-    unsigned int const& getFirstFret ( void ) const;
+    unsigned int getFirstFret () const { return m_startFret; }
 
     //! Retrieve a Note object for a given string
-    Note* getNote ( unsigned int const& string_num );
+    Note* getNote ( unsigned int string_num );
 
     //! Retrieve a Barre object for a given fret
-    Barre* getBarre ( unsigned int const& fret_num );
+    Barre* getBarre ( unsigned int fret_num );
+
+    void setTransientStringNb(unsigned int stringNb) { m_transientStringNb = stringNb; }
+
+    void setTransientFretNb(unsigned int fretNb) { m_transientFretNb = fretNb; }
 
     //! Display Fingering object using QPainter object
     //  frets_displayed: The maximum number of frets to be displayed
@@ -92,7 +96,7 @@ public:
                         unsigned int frets_displayed ) const;
 
     //! Display Fingering object data as a text string
-    std::string toString ( void ) const;
+    std::string toString () const;
 
     //! Load Barre and Note objects from a XML file
     void load ( QDomNode const& obj );
@@ -108,7 +112,7 @@ public:
     bool hasNote ( unsigned int stringPos );
 
     //! Determine if a Barre object exists for a particular fret
-    bool hasBarre ( unsigned int const& fret_num );
+    bool hasBarre ( unsigned int fret_num );
 
 private:
 
@@ -135,6 +139,10 @@ private:
     typedef std::map<unsigned int, Note*> NoteMap;
     typedef std::pair<unsigned int, Note*> NoteMapPair;
     NoteMap m_notes;
+    
+    unsigned int m_transientStringNb;
+    unsigned int m_transientFretNb;
+    
 };
 
 }

@@ -96,10 +96,11 @@ public:
     /* This code borrowed from KGuitar 0.5 */
     //! Display a note symbol in the QPainter object (KGuitar)
     void drawNoteSymbol ( QPainter* p,
-                          unsigned int position,
-                          int fret,
-                          unsigned int string_num,
-                          unsigned int fretDisplayed );
+                          unsigned int stringNb,
+                          int fretNb,
+                          unsigned int nbOfStrings,
+                          unsigned int nbOfFrets,
+                          bool transient = false );
 
     /* This code borrowed from KGuitar 0.5 */
     /**
@@ -108,11 +109,11 @@ public:
      * available in that project
      */
     void drawBarreSymbol ( QPainter* p,
-                           int fret,
+                           int fretNb,
                            unsigned int start,
                            unsigned int end,
-                           unsigned int string_num,
-                           unsigned int fretDisplayed );
+                           unsigned int nbOfStrings,
+                           unsigned int nbOfFrets );
 
     void drawFretNumber ( QPainter* p,
                           unsigned int fret_num,
@@ -151,10 +152,10 @@ public:
 private:
 
     posPair
-    getX ( int imgWidth, unsigned int position, unsigned int string_num );
+    getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfStrings );
 
     posPair
-    getY ( int imgHeight, unsigned int position, unsigned int fret_num );
+    getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets );
 
 
 
