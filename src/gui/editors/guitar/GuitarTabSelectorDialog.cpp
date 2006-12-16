@@ -63,7 +63,7 @@ GuitarTabSelectorDialog::GuitarTabSelectorDialog( QWidget *parent )
                        true ),
         m_chordMap ( new Guitar::ChordMap () ),
         m_guitar ( new Guitar::GuitarNeck() ),
-        m_arrangement ( new Guitar::Fingering( m_guitar ) )
+        m_arrangement ( new Guitar::Fingering( m_guitar, 0 ) )
 {}
 
 GuitarTabSelectorDialog::~ GuitarTabSelectorDialog()
@@ -385,10 +385,8 @@ void GuitarTabSelectorDialog::slotSaveChords ()
 void GuitarTabSelectorDialog::clearChord()
 {
     setupNameList();
-    if ( m_arrangement != 0 ) {
-        delete m_arrangement;
-    }
-    m_arrangement = new Guitar::Fingering ( m_guitar );
+    delete m_arrangement;
+    m_arrangement = new Guitar::Fingering ( m_guitar, 0 );
     m_guitar->clear();
     m_aliases->clear();
     emit displayChord ( m_arrangement );

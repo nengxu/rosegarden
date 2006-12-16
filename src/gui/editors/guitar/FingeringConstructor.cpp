@@ -30,8 +30,8 @@ FingeringConstructor::FingeringConstructor
         : QFrame( parent, name ),
         m_instr ( instr ),
         m_editable ( editable ),
-        m_chord_arrangement ( new Fingering ( instr ) ),
         m_frets_displayed ( MAX_FRET_DISPLAYED ),
+        m_fingering ( new Fingering ( instr, m_frets_displayed ) ),
         m_press_string_num ( 0 ),
         m_press_fret_num ( 0 )
 {
@@ -63,23 +63,23 @@ FingeringConstructor::FingeringConstructor
 void FingeringConstructor::clear()
 {
     m_instr->clear();
-    delete m_chord_arrangement;
-    m_chord_arrangement = new Fingering ( m_instr );
+    delete m_fingering;
+    m_fingering = new Fingering ( m_instr, m_frets_displayed );
     update();
     emit chordChange();
 }
 
 void FingeringConstructor::setFingering ( Fingering* arrange )
 {
-    delete m_chord_arrangement;
-    m_chord_arrangement = new Fingering( *arrange );
+    delete m_fingering;
+    m_fingering = new Fingering( *arrange );
     update();
     emit chordChange();
 }
 
 void FingeringConstructor::setFirstFret( int fret )
 {
-    m_chord_arrangement->setFirstFret ( fret );
+    m_fingering->setFirstFret ( fret );
     update();
     emit chordChange();
 }
@@ -96,18 +96,18 @@ void FingeringConstructor::drawContents( QPainter *p )
 
     if ( m_editable ) {
         // Set beginning fret number and scroll bar
-        m_fret_spinbox->setValue ( m_chord_arrangement->getFirstFret() );
+        m_fret_spinbox->setValue ( m_fingering->getFirstFret() );
     }
 
     // Draw Fingering
-    m_chord_arrangement->drawContents ( p, m_frets_displayed );
+    m_fingering->drawContents ( p );
 
 }
 
 Fingering*
 FingeringConstructor::getFingering ( void ) const
 {
-    return m_chord_arrangement;
+    return m_fingering;
 }
 
 unsigned int
@@ -177,21 +177,14 @@ void FingeringConstructor::mouseReleaseEvent( QMouseEvent *event )
 void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
                                                 unsigned int release_fret_num )
 {
-    unsigned int press_string_num = m_press_string_num;
-    unsigned int press_fret_num = m_press_fret_num;
-    unsigned int frets_displayed = m_frets_displayed;
-    Fingering* arrangement = m_chord_arrangement;
-    GuitarNeck* instr = m_instr;
-    QSpinBox* fret_spinbox = m_fret_spinbox;
-
-    if ( press_fret_num == release_fret_num ) {
+    if ( m_press_fret_num == release_fret_num ) {
         // If press string & fret pos == release string & fret position, display chord
-        if ( press_string_num == release_string_num ) {
+        if ( m_press_string_num == release_string_num ) {
             // QUESTION: Move check for whether a note pressed is at position 0
             // here or not?
-            if ( ( press_string_num > 0 ) &&
-                    ( press_string_num <= instr->getStringNumber() ) &&
-                    ( press_fret_num < ( fret_spinbox->value() + frets_displayed ) )
+            if ( ( m_press_string_num > 0 ) &&
+                    ( m_press_string_num <= m_instr->getStringNumber() ) &&
+                    ( m_press_fret_num < ( m_fret_spinbox->value() + m_frets_displayed ) )
                ) {
                 /**
                 IF m_press_fret_num == 0
@@ -206,8 +199,8 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
                         PRESSED | PRESSED
                 */
                 GuitarString::Action aVal = GuitarString::PRESSED;
-                if ( press_fret_num == 0 ) {
-                    switch ( arrangement->getStringStatus ( press_string_num ) ) {
+                if ( m_press_fret_num == 0 ) {
+                    switch ( m_fingering->getStringStatus ( m_press_string_num ) ) {
                     case GuitarString::MUTED: {
                             aVal = GuitarString::OPEN;
                             break;
@@ -220,22 +213,22 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
                     }
                 } else {
 
-                    if ( arrangement->hasNote ( press_string_num ) ) {
+                    if ( m_fingering->hasNote ( m_press_string_num ) ) {
                         
-                        Note * note_ptr = arrangement->getNote ( press_string_num );
+                        Note * note_ptr = m_fingering->getNote ( m_press_string_num );
                         
-                        if ( ( note_ptr->getFret() == press_fret_num ) &&
-                                ( note_ptr->getStringNumber() == press_string_num ) ) {
+                        if ( ( note_ptr->getFret() == m_press_fret_num ) &&
+                                ( note_ptr->getStringNumber() == m_press_string_num ) ) {
                             // Remove note if there was one already at this place
-                            arrangement->removeNote ( press_string_num );
+                            m_fingering->removeNote ( m_press_string_num );
                         } else { // there was a note on this string, but not at this fret, so move it to the new fret                                                
-                            note_ptr->setNote ( press_string_num, press_fret_num );
-                            arrangement->setStringStatus( press_string_num, aVal );
+                            note_ptr->setNote ( m_press_string_num, m_press_fret_num );
+                            m_fingering->setStringStatus( m_press_string_num, aVal );
                         }
                     } else {
-                        Note* note_ptr = new Note ( press_string_num, press_fret_num );
-                        arrangement->addNote( note_ptr );
-                        arrangement->setStringStatus( press_string_num, aVal );
+                        Note* note_ptr = new Note ( m_press_string_num, m_press_fret_num );
+                        m_fingering->addNote( note_ptr );
+                        m_fingering->setStringStatus( m_press_string_num, aVal );
                     }
                 }
                 update();
@@ -243,29 +236,29 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
         }
         // else if press fret pos == release fret pos & press string pos != release string pos, display bar
         else {
-            if ( ( ( press_string_num > 0 ) && ( release_string_num > 0 ) ) &&
-                    ( ( press_string_num <= instr->getStringNumber() ) &&
-                      ( release_string_num <= instr->getStringNumber() ) ) &&
-                    ( ( press_fret_num < ( fret_spinbox->value() + frets_displayed ) ) &&
-                      ( release_fret_num < ( fret_spinbox->value () + frets_displayed ) ) ) ) {
+            if ( ( ( m_press_string_num > 0 ) && ( release_string_num > 0 ) ) &&
+                    ( ( m_press_string_num <= m_instr->getStringNumber() ) &&
+                      ( release_string_num <= m_instr->getStringNumber() ) ) &&
+                    ( ( m_press_fret_num < ( m_fret_spinbox->value() + m_frets_displayed ) ) &&
+                      ( release_fret_num < ( m_fret_spinbox->value () + m_frets_displayed ) ) ) ) {
                 /*
                                 std::cout << "FingeringConsturctor::mouseHandle - Adding a bar from string #"
                                 << event->press_string_num << ", fret #" << event->press_fret_num
                                 << " to string #" << release_string_num << ", fret #" << release_fret_num << std::endl;
                 */
 
-                if ( arrangement->hasBarre ( press_fret_num ) ) {
-                    Barre * b_ptr = arrangement->getBarre( press_fret_num );
-                    if (b_ptr->getFret() == press_fret_num) {
-                        arrangement->removeBarre ( press_fret_num );
+                if ( m_fingering->hasBarre ( m_press_fret_num ) ) {
+                    Barre * b_ptr = m_fingering->getBarre( m_press_fret_num );
+                    if (b_ptr->getFret() == m_press_fret_num) {
+                        m_fingering->removeBarre ( m_press_fret_num );
                     } else {
-                        b_ptr->setBarre( press_fret_num, press_string_num, release_string_num );
+                        b_ptr->setBarre( m_press_fret_num, m_press_string_num, release_string_num );
                     }
                 } else {
-                    Barre* b_ptr = new Barre ( press_fret_num,
-                                               press_string_num,
+                    Barre* b_ptr = new Barre ( m_press_fret_num,
+                                               m_press_string_num,
                                                release_string_num );
-                    arrangement->addBarre( b_ptr );
+                    m_fingering->addBarre( b_ptr );
                 }
                 update();
             }
@@ -276,12 +269,20 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
 
 void FingeringConstructor::mouseMoveEvent( QMouseEvent *event )
 {
-    if (m_chord_arrangement) {
-        m_chord_arrangement->setTransientStringNb(getStringNumber(event));
-        m_chord_arrangement->setTransientFretNb(getFretNumber(event));
+    if (m_fingering) {
+        unsigned int transientStringNb = getStringNumber(event);
+        unsigned int transientFretNb = getFretNumber(event);
+        
+        if (transientStringNb != m_fingering->getTransientStringNb() ||
+            transientFretNb != m_fingering->getTransientFretNb()) {
+            
+            QRect updateRect = m_fingering->updateTransientPos(size(), transientStringNb, transientFretNb);
+            
+            update(updateRect);
+            
+        }
     }
     
-    update();
     
 }
 

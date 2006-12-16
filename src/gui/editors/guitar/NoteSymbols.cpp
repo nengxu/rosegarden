@@ -1,4 +1,5 @@
 #include "NoteSymbols.h"
+#include "misc/Debug.h"
 
 namespace Rosegarden
 {
@@ -103,17 +104,27 @@ NoteSymbols::drawNoteSymbol ( QPainter* p,
     unsigned int radius;
 
     if (transient) {
-        radius =  static_cast<unsigned int>( columnWidth * 0.9 );
+        radius =  static_cast<unsigned int>( columnWidth /* * 0.9 */ );
         p->setBrush( Qt::NoBrush );
     } else {
         radius =  static_cast<unsigned int>( columnWidth * 0.7 );
         p->setBrush( Qt::SolidPattern );
     }
 
-    p->drawEllipse( x_pos.first - ( radius / 2 ),
-                    y_pos.first + ( y_pos.second / 4 ) + TOP_FRETBOARD_MARGIN,
+    int x = x_pos.first - ( radius / 2 ),
+        y = y_pos.first + ( (y_pos.second - radius) / 2) + TOP_FRETBOARD_MARGIN; 
+
+//    RG_DEBUG << "NoteSymbols::drawNoteSymbol : rect = " << QRect(x,y, radius, radius) << endl;
+
+    p->drawEllipse( x,
+                    y,
                     radius,
                     radius );
+                    
+//    p->save();
+//    p->setPen(Qt::red);
+//    p->drawRect( x, y, radius, radius );
+//    p->restore();
 }
 
 void
@@ -248,6 +259,23 @@ NoteSymbols::drawStrings ( QPainter* p,
 
     p->restore();
     
+}
+
+QRect NoteSymbols::getTransientNoteSymbolRect(QSize fretboardSize,
+                                              unsigned int stringNb,
+                                              int fretNb,
+                                              unsigned int nbOfStrings,
+                                              unsigned int nbOfFrets)
+{
+    posPair x_pos = getX ( fretboardSize.width(), stringNb, nbOfStrings );
+    posPair y_pos = getY ( fretboardSize.height(), fretNb, nbOfFrets );
+    double columnWidth = x_pos.second;
+    unsigned int radius =  static_cast<unsigned int>( columnWidth /* * 0.9 */ );
+
+    int x = x_pos.first - ( radius / 2 ),
+        y = y_pos.first + ( (y_pos.second - radius) / 2) + TOP_FRETBOARD_MARGIN; 
+
+    return QRect(x, y, radius, radius);
 }
 
 unsigned int

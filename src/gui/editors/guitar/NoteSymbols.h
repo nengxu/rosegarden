@@ -149,6 +149,12 @@ public:
                     unsigned int y_pos,
                     unsigned int maxFretNum );
 
+    QRect getTransientNoteSymbolRect(QSize fretboardSize,
+                                     unsigned int stringNb,
+                                     int fretNb,
+                                     unsigned int nbOfStrings,
+                                     unsigned int nbOfFrets);
+    
 private:
 
     posPair

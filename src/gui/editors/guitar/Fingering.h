@@ -44,7 +44,7 @@ public:
     //! Constructor
     Fingering ();
 
-    Fingering ( GuitarNeck* gPtr );
+    Fingering ( GuitarNeck* gPtr, unsigned int nbFretsDisplayed );
 
     //! Constructor
     virtual ~Fingering ();
@@ -89,11 +89,15 @@ public:
 
     void setTransientFretNb(unsigned int fretNb) { m_transientFretNb = fretNb; }
 
+    unsigned int getTransientStringNb() { return m_transientStringNb; }
+    unsigned int getTransientFretNb() { return m_transientFretNb; }
+    
+    QRect updateTransientPos(QSize fretboardSize, unsigned int stringNb, unsigned int fretNb);
+    
     //! Display Fingering object using QPainter object
     //  frets_displayed: The maximum number of frets to be displayed
     //  p: The QPainter object where the Notes and Barres are displayed
-    void drawContents ( QPainter* p,
-                        unsigned int frets_displayed ) const;
+    void drawContents ( QPainter* p ) const;
 
     //! Display Fingering object data as a text string
     std::string toString () const;
@@ -124,6 +128,9 @@ private:
 
     //! Base fret number for fingering
     unsigned int m_startFret;
+
+    //! Maximum number of frets displayed by FingeringConstructor
+    unsigned int m_frets_displayed;
 
     //! Map of Index (Fret position number) and Data (Barre played)
     typedef std::map<unsigned int, Barre*> BarreMap;

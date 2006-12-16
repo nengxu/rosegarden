@@ -2900,7 +2900,7 @@ NotePixmapFactory::makeFretboardPixmap(const Guitar::Fingering &arrangement,
     // m_generatedPixmap
     m_p->painter().setBrush(Qt::black);
 
-    arrangement.drawContents(&(m_p->painter()), 4);
+    arrangement.drawContents(&(m_p->painter()));
 
     return makeCanvasPixmap( QPoint ( x, y ), true );
 }

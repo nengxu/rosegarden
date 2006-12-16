@@ -96,11 +96,11 @@ protected:
     //! Present mode
     bool m_editable;
 
-    //! Handle to the present fingering
-    Fingering* m_chord_arrangement;
-
     //! Maximum number of frets displayed by FingeringConstructor
     unsigned int m_frets_displayed;
+
+    //! Handle to the present fingering
+    Fingering* m_fingering;
 
     //! String number where a mouse press event was located
     unsigned int m_press_string_num;
