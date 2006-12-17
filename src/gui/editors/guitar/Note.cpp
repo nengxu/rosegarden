@@ -106,14 +106,14 @@ void Note::setNote ( unsigned int str_val, unsigned int fret_val )
 
 void Note::drawContents ( QPainter* p,
                           unsigned int start_fret,
-                          unsigned int string_count,
-                          unsigned int frets_displayed )
+                          unsigned int nbOfStrings,
+                          unsigned int nbOfFrets )
 {
-    unsigned int string_position = string_count - m_string;
+    unsigned int string_position = nbOfStrings - m_string;
     unsigned int fret_position = m_fret - start_fret;
 
-    NoteSymbols ns;
-    ns.drawNoteSymbol( p, string_position, fret_position, string_count, frets_displayed );
+    NoteSymbols ns(nbOfStrings, nbOfFrets);
+    ns.drawNoteSymbol( p, string_position, fret_position );
 }
 
 QString Note::noteName ( void )

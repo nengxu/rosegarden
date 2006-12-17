@@ -99,16 +99,15 @@ void Barre::setBarre ( unsigned int fret, unsigned int start, unsigned int end )
 
 void Barre::drawContents ( QPainter* p,
                            unsigned int startFret,
-                           unsigned int stringCount,
-                           unsigned int fretDisplayed )
+                           unsigned int nbOfStrings,
+                           unsigned int nbOfFrets )
 {
-    NoteSymbols ns;
+    NoteSymbols ns(nbOfStrings, nbOfFrets);
+    
     ns.drawBarreSymbol( p,
                         ( m_fret - startFret ),
-                        ( stringCount - m_start ),
-                        ( stringCount - m_end ),
-                        stringCount,
-                        fretDisplayed );
+                        ( nbOfStrings - m_start ),
+                        ( nbOfStrings - m_end ));
 }
 
 void Barre::setFirstFret ( int const& fretChange )

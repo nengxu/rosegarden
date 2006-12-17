@@ -31,7 +31,7 @@ void test_constructors ( void )
     if ( a.getFret() != 0 ) {
         result = false;
     }
-    if ( a.getStringNumber() != 0 ) {
+    if ( a.getNumberOfStrings() != 0 ) {
         result = false;
     }
     if ( result ) {
@@ -50,7 +50,7 @@ void test_setNote ( void )
     if ( a.getFret() != 0 ) {
         result = false;
     }
-    if ( a.getStringNumber() != 0 ) {
+    if ( a.getNumberOfStrings() != 0 ) {
         result = false;
     }
 
@@ -58,7 +58,7 @@ void test_setNote ( void )
     if ( a.getFret() != UINT_MAX ) {
         result = false;
     }
-    if ( a.getStringNumber() != UINT_MAX ) {
+    if ( a.getNumberOfStrings() != UINT_MAX ) {
         result = false;
     }
 
@@ -83,7 +83,7 @@ void test_load ( void )
     if ( a.getFret() != 1 ) {
         result = false;
     }
-    if ( a.getStringNumber() != 1 ) {
+    if ( a.getNumberOfStrings() != 1 ) {
         result = false;
     }
 
@@ -93,7 +93,7 @@ void test_load ( void )
     if ( a.getFret() != UINT_MAX ) {
         result = false;
     }
-    if ( a.getStringNumber() != UINT_MAX ) {
+    if ( a.getNumberOfStrings() != UINT_MAX ) {
         result = false;
     }
 

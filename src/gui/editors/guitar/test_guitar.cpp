@@ -35,7 +35,7 @@ void test_constructors ( void )
     Guitar::GuitarNeck a;
     bool result = true;
 
-    if ( ( a.getStringNumber() != 6 ) || ( a.getFretNumber() != 21 ) ) {
+    if ( ( a.getNumberOfStrings() != 6 ) || ( a.getNumberOfFrets() != 21 ) ) {
         result = false;
     }
 

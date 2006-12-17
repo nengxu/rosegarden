@@ -86,12 +86,12 @@ GuitarNeck::getStringStatus ( unsigned int const& string_num ) const
 }
 
 unsigned int const&
-GuitarNeck::getStringNumber ( void ) const
+GuitarNeck::getNumberOfStrings ( void ) const
 {
     return m_string_num;
 }
 
-unsigned int const& GuitarNeck::getFretNumber ( void ) const
+unsigned int const& GuitarNeck::getNumberOfFrets ( void ) const
 {
     return m_fret_num;
 }

@@ -79,27 +79,25 @@ private:
     
 public:
 
+    NoteSymbols(unsigned int nbOfStrings, unsigned int nbOfFrets) :
+        m_nbOfStrings(nbOfStrings), 
+        m_nbOfFrets(nbOfFrets) {};
+
     //! Display a mute symbol in the QPainter object
     void
     drawMuteSymbol ( QPainter* p,
-                     unsigned int position,
-                     unsigned int fretDisplayed,
-                     unsigned int string_num );
+                     unsigned int position );
 
     /* This code borrowed from KGuitar 0.5 */
     //! Display a open symbol in the QPainter object (KGuitar)
     void drawOpenSymbol ( QPainter* p,
-                          unsigned int position,
-                          unsigned int fretDisplayed,
-                          unsigned int string_num );
+                          unsigned int position );
 
     /* This code borrowed from KGuitar 0.5 */
     //! Display a note symbol in the QPainter object (KGuitar)
     void drawNoteSymbol ( QPainter* p,
                           unsigned int stringNb,
                           int fretNb,
-                          unsigned int nbOfStrings,
-                          unsigned int nbOfFrets,
                           bool transient = false );
 
     /* This code borrowed from KGuitar 0.5 */
@@ -111,21 +109,14 @@ public:
     void drawBarreSymbol ( QPainter* p,
                            int fretNb,
                            unsigned int start,
-                           unsigned int end,
-                           unsigned int nbOfStrings,
-                           unsigned int nbOfFrets );
+                           unsigned int end );
 
     void drawFretNumber ( QPainter* p,
-                          unsigned int fret_num,
-                          unsigned int fretsDisplayed );
+                          unsigned int fret_num );
 
-    void drawFrets ( QPainter* p,
-                                   unsigned int fretsDisplayed,
-                                   unsigned int maxStringNum );
+    void drawFrets ( QPainter* p );
 
-    void drawStrings ( QPainter* p,
-                                 unsigned int maxFretsDisplayed,
-                                 unsigned int string_num );
+    void drawStrings ( QPainter* p );
 
     unsigned int getTopBorder ( unsigned int imgHeight );
 
@@ -151,9 +142,7 @@ public:
 
     QRect getTransientNoteSymbolRect(QSize fretboardSize,
                                      unsigned int stringNb,
-                                     int fretNb,
-                                     unsigned int nbOfStrings,
-                                     unsigned int nbOfFrets);
+                                     int fretNb);
     
 private:
 
@@ -164,6 +153,8 @@ private:
     getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets );
 
 
+    unsigned int m_nbOfStrings;
+    unsigned int m_nbOfFrets;
 
 };
 

@@ -42,7 +42,7 @@ FingeringConstructor::FingeringConstructor
     if ( m_editable ) {
         m_fret_spinbox =
             new QSpinBox ( 1,
-                           m_instr->getFretNumber() - m_frets_displayed + 1,
+                           m_instr->getNumberOfFrets() - m_frets_displayed + 1,
                            1,
                            this );
         m_fret_spinbox->setGeometry( width() - SCROLL, 0, SCROLL, height() );
@@ -89,9 +89,9 @@ void FingeringConstructor::drawContents( QPainter *p )
     /*
             // Horizontal separator line
             NoteSymbols ns;
-            ns.drawSeperator(p, SCALE, m_instr->getStringNumber());
-            ns.drawFretHorizontalLines (p, SCALE, m_frets_displayed, m_instr->getStringNumber());
-            ns.drawFretVerticalLines (p, SCALE, m_frets_displayed, m_instr->getStringNumber());
+            ns.drawSeperator(p, SCALE, m_instr->getNumberOfStrings());
+            ns.drawFretHorizontalLines (p, SCALE, m_frets_displayed, m_instr->getNumberOfStrings());
+            ns.drawFretVerticalLines (p, SCALE, m_frets_displayed, m_instr->getNumberOfStrings());
     */
 
     if ( m_editable ) {
@@ -114,14 +114,14 @@ unsigned int
 FingeringConstructor::getStringNumber ( QMouseEvent const* event )
 {
     const QPoint pos = event->pos();
-    NoteSymbols ns;
+    NoteSymbols ns(m_instr->getNumberOfStrings(), m_frets_displayed);
     PositionPair result = ns.getStringNumber ( maximumHeight(),
                           pos.x(),
-                          m_instr->getStringNumber() );
+                          m_instr->getNumberOfStrings() );
     unsigned int string_num = 0;
 
     if ( result.first ) {
-        string_num = m_instr->getStringNumber() - result.second;
+        string_num = m_instr->getNumberOfStrings() - result.second;
     }
 
     return string_num;
@@ -130,7 +130,7 @@ FingeringConstructor::getStringNumber ( QMouseEvent const* event )
 unsigned int
 FingeringConstructor::getFretNumber ( QMouseEvent const* event )
 {
-    NoteSymbols ns;
+    NoteSymbols ns(m_instr->getNumberOfStrings(), m_frets_displayed);
     const QPoint pos = event->pos();
     unsigned int y_pos = pos.y();
     unsigned int fret_num = 0;
@@ -183,7 +183,7 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
             // QUESTION: Move check for whether a note pressed is at position 0
             // here or not?
             if ( ( m_press_string_num > 0 ) &&
-                    ( m_press_string_num <= m_instr->getStringNumber() ) &&
+                    ( m_press_string_num <= m_instr->getNumberOfStrings() ) &&
                     ( m_press_fret_num < ( m_fret_spinbox->value() + m_frets_displayed ) )
                ) {
                 /**
@@ -237,8 +237,8 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
         // else if press fret pos == release fret pos & press string pos != release string pos, display bar
         else {
             if ( ( ( m_press_string_num > 0 ) && ( release_string_num > 0 ) ) &&
-                    ( ( m_press_string_num <= m_instr->getStringNumber() ) &&
-                      ( release_string_num <= m_instr->getStringNumber() ) ) &&
+                    ( ( m_press_string_num <= m_instr->getNumberOfStrings() ) &&
+                      ( release_string_num <= m_instr->getNumberOfStrings() ) ) &&
                     ( ( m_press_fret_num < ( m_fret_spinbox->value() + m_frets_displayed ) ) &&
                       ( release_fret_num < ( m_fret_spinbox->value () + m_frets_displayed ) ) ) ) {
                 /*

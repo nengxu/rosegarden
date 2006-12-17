@@ -54,10 +54,10 @@ public:
     GuitarString::Action const& getStringStatus ( unsigned int const& string_num ) const;
 
     //! Return the maximum number of strings for this instruments
-    unsigned int const& getStringNumber ( void ) const;
+    unsigned int const& getNumberOfStrings ( void ) const;
 
     //! Return the maximum number of frets for this instruments
-    unsigned int const& getFretNumber ( void ) const;
+    unsigned int const& getNumberOfFrets ( void ) const;
 
     //! Return the iterator for the beginning of the string list
     GuitarStringMap::const_iterator begin ( void ) const;
