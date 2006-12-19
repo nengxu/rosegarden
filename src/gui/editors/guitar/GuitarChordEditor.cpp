@@ -1,6 +1,6 @@
 
 #include "GuitarChordEditor.h"
-#include "FingeringConstructor.h"
+#include "FingeringBox.h"
 
 #include <qvariant.h>
 #include <qpushbutton.h>
@@ -93,7 +93,7 @@ GuitarChordEditor::GuitarChordEditor( Guitar::GuitarNeck* g_ptr,
     connect( okPushButton, SIGNAL( pressed() ), this, SLOT( saveChord() ) );
 
     fingerConstPtr =
-        new Guitar::FingeringConstructor ( g_ptr,
+        new Guitar::FingeringBox ( g_ptr,
                                            chordFrame,
                                            true,
                                            "fingerConstPtr" );
@@ -229,7 +229,7 @@ void GuitarChordEditor::setChord ( Guitar::Chord* c_ptr )
 {
     m_old_chord_ptr = new Guitar::Chord ( *c_ptr );
 
-    // Setup FingeringConstructor with new arrangement
+    // Setup FingeringBox with new arrangement
     fingerConstPtr->setFingering( c_ptr->getArrangement() );
 
     /**

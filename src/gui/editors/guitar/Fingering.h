@@ -129,7 +129,7 @@ private:
     //! Base fret number for fingering
     unsigned int m_startFret;
 
-    //! Maximum number of frets displayed by FingeringConstructor
+    //! Maximum number of frets displayed by FingeringBox
     unsigned int m_frets_displayed;
 
     //! Map of Index (Fret position number) and Data (Barre played)

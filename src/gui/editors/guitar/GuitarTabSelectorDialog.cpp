@@ -23,7 +23,7 @@
 #include "GuitarTabSelectorDialog.h"
 #include <kapplication.h>
 #include "GuitarChordEditor.h"
-#include "FingeringConstructor.h"
+#include "FingeringBox.h"
 #include "GuitarXmlHandler.h"
 #include "base/Exception.h"
 #include "DuplicateException.h"
@@ -306,7 +306,7 @@ void GuitarTabSelectorDialog::populate ()
 
     // Fingering constructor
     m_fingering =
-        new Guitar::FingeringConstructor( m_guitar,
+        new Guitar::FingeringBox( m_guitar,
                                           chordFrame,
                                           false );
 

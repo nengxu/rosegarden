@@ -29,7 +29,7 @@ namespace Rosegarden
 
 namespace Guitar
 { 
-        class FingeringConstructor;
+        class FingeringBox;
         class ChordInfo;
 }
 
@@ -57,7 +57,7 @@ public slots:
     virtual void newAliasTab();
 
 protected:
-    Guitar::FingeringConstructor* fingerConstPtr;
+    Guitar::FingeringBox* fingerConstPtr;
     QTabWidget* tabWidget;
 
 protected slots:

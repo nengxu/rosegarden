@@ -110,7 +110,7 @@ void GuitarTabEditorWindow::populate ()
                               i18n( "Fingering" ), m_chordBox );
 
     Guitar::Guitar* guitar = new guitar::Guitar();
-    m_fingering = new Guitar::FingeringConstructor ( guitar, fingeringBox );
+    m_fingering = new Guitar::FingeringBox ( guitar, fingeringBox );
     fingeringBox->addSpace( 0 );
     fingeringBox->addSpace( 0 );
 

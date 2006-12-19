@@ -96,7 +96,7 @@ private:
     GuitarTabBase* m_data;
 
     //! Fingering constructor object
-    Guitar::FingeringConstructor* m_fingering;
+    Guitar::FingeringBox* m_fingering;
     QTabWidget* m_chord;
 
 };

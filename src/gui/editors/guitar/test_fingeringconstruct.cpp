@@ -23,7 +23,7 @@
 
 #include "GuitarNeck.h"
 #include "Fingering.h"
-#include "FingeringConstructor.h"
+#include "FingeringBox.h"
 #include <iostream>
 
 using namespace Rosegarden;
@@ -35,7 +35,7 @@ using namespace Rosegarden::Guitar;
 void test_constructors ( void )
 {
     GuitarNeck g_ref;
-    FingeringConstructor a ( &g_ref );
+    FingeringBox a ( &g_ref );
     Fingering* f_ptr = a.getFingering();
 
     if ( f_ptr->getFirstFret() == 1 ) {
@@ -50,7 +50,7 @@ void test_addNote ( void )
 {
     bool result = true;
     GuitarNeck g_ref;
-    FingeringConstructor a ( &g_ref );
+    FingeringBox a ( &g_ref );
  
     // Test #1 - Good note added
  
@@ -378,7 +378,7 @@ void test_save ( void )
 
 int main ( int, char * [] )
 {
-    std::cout << "Running test: FingeringConstructor" << std::endl;
+    std::cout << "Running test: FingeringBox" << std::endl;
     test_constructors();
     /*
     test_addNote ();

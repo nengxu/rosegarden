@@ -7,7 +7,7 @@
 class QScrollBar;
 
 /*
-        KGuitar interface was used as a guideline for design the FingeringConstructor. Where the code
+        KGuitar interface was used as a guideline for design the FingeringBox. Where the code
         from the project was used is defined by comments.
 */
 
@@ -24,7 +24,7 @@ class FC_Mode;
 class FC_InsertMode;
 class FC_DeleteMode;
 
-class FingeringConstructor : public QFrame
+class FingeringBox : public QFrame
 {
     Q_OBJECT
 
@@ -39,12 +39,12 @@ public:
 
 
     //! Constructor
-    FingeringConstructor ( GuitarNeck *instr,
+    FingeringBox ( GuitarNeck *instr,
                            QWidget *parent = 0,
                            bool editable = true,
                            const char *name = 0 );
 
-    virtual ~FingeringConstructor() {}
+    virtual ~FingeringBox() {}
 
 public slots:
 
@@ -96,7 +96,7 @@ protected:
     //! Present mode
     bool m_editable;
 
-    //! Maximum number of frets displayed by FingeringConstructor
+    //! Maximum number of frets displayed by FingeringBox
     unsigned int m_frets_displayed;
 
     //! Handle to the present fingering

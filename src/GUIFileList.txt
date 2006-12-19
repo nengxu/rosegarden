@@ -479,8 +479,8 @@ SET(gui_SRCS
 	gui/editors/guitar/ChordName.h
 	gui/editors/guitar/DuplicateException.cpp
 	gui/editors/guitar/DuplicateException.h
-	gui/editors/guitar/FingeringConstructor.cpp
-	gui/editors/guitar/FingeringConstructor.h
+	gui/editors/guitar/FingeringBox.cpp
+	gui/editors/guitar/FingeringBox.h
 	gui/editors/guitar/Fingering.cpp
 	gui/editors/guitar/Fingering.h
 	gui/editors/guitar/GuitarChordEditor.cpp

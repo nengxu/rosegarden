@@ -8,7 +8,7 @@
 
 #include "GuitarNeck.h"
 #include "Fingering.h"
-#include "FingeringConstructor.h"
+#include "FingeringBox.h"
 
 namespace Rosegarden
 {
@@ -64,7 +64,7 @@ namespace Guitar
 class NoteSymbols
 {
 private:
-    typedef FingeringConstructor FC;
+    typedef FingeringBox FC;
     typedef std::pair<unsigned int, unsigned int> posPair;
 
     static float const LEFT_BORDER_PERCENTAGE;

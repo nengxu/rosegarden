@@ -1,5 +1,5 @@
 #include "Fingering.h"
-#include "FingeringConstructor.h"
+#include "FingeringBox.h"
 #include <iostream>
 #include <sstream>
 #include "NoteSymbols.h"
@@ -21,7 +21,7 @@ const short Fingering::EventSubOrdering = -60;
 Fingering::Fingering ()
         : m_guitar ( new GuitarNeck() ),
         m_startFret ( 1 ),
-        m_frets_displayed( FingeringConstructor::MAX_FRET_DISPLAYED ),
+        m_frets_displayed( FingeringBox::MAX_FRET_DISPLAYED ),
         m_transientStringNb( 0 ),
         m_transientFretNb( 0 )
 {}

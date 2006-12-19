@@ -36,7 +36,7 @@ namespace Rosegarden
 {
 class Event;
 
-namespace Guitar { class Fingering; class ChordMap; class GuitarNeck; class FingeringConstructor; }
+namespace Guitar { class Fingering; class ChordMap; class GuitarNeck; class FingeringBox; }
 
 class GuitarTabSelectorDialog : public KDialogBase
 {
@@ -111,7 +111,7 @@ private:
     Guitar::GuitarNeck* m_guitar;
 
     //! Fingering constructor object
-    Guitar::FingeringConstructor* m_fingering;
+    Guitar::FingeringBox* m_fingering;
 
     //! Presently selected arrangement
     Guitar::Fingering* m_arrangement;

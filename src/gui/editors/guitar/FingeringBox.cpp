@@ -22,7 +22,7 @@ namespace Guitar
 /*------------------------------------------
      Parent: Fingering Constructor
 -------------------------------------------*/
-FingeringConstructor::FingeringConstructor
+FingeringBox::FingeringBox
 ( GuitarNeck *instr,
   QWidget *parent,
   bool editable,
@@ -60,7 +60,7 @@ FingeringConstructor::FingeringConstructor
 //    clear();
 }
 
-void FingeringConstructor::clear()
+void FingeringBox::clear()
 {
     m_instr->clear();
     delete m_fingering;
@@ -69,7 +69,7 @@ void FingeringConstructor::clear()
     emit chordChange();
 }
 
-void FingeringConstructor::setFingering ( Fingering* arrange )
+void FingeringBox::setFingering ( Fingering* arrange )
 {
     delete m_fingering;
     m_fingering = new Fingering( *arrange );
@@ -77,14 +77,14 @@ void FingeringConstructor::setFingering ( Fingering* arrange )
     emit chordChange();
 }
 
-void FingeringConstructor::setFirstFret( int fret )
+void FingeringBox::setFirstFret( int fret )
 {
     m_fingering->setFirstFret ( fret );
     update();
     emit chordChange();
 }
 
-void FingeringConstructor::drawContents( QPainter *p )
+void FingeringBox::drawContents( QPainter *p )
 {
     /*
             // Horizontal separator line
@@ -105,13 +105,13 @@ void FingeringConstructor::drawContents( QPainter *p )
 }
 
 Fingering*
-FingeringConstructor::getFingering ( void ) const
+FingeringBox::getFingering ( void ) const
 {
     return m_fingering;
 }
 
 unsigned int
-FingeringConstructor::getStringNumber ( QMouseEvent const* event )
+FingeringBox::getStringNumber ( QMouseEvent const* event )
 {
     const QPoint pos = event->pos();
     NoteSymbols ns(m_instr->getNumberOfStrings(), m_frets_displayed);
@@ -128,7 +128,7 @@ FingeringConstructor::getStringNumber ( QMouseEvent const* event )
 }
 
 unsigned int
-FingeringConstructor::getFretNumber ( QMouseEvent const* event )
+FingeringBox::getFretNumber ( QMouseEvent const* event )
 {
     NoteSymbols ns(m_instr->getNumberOfStrings(), m_frets_displayed);
     const QPoint pos = event->pos();
@@ -149,7 +149,7 @@ FingeringConstructor::getFretNumber ( QMouseEvent const* event )
     return fret_num;
 }
 
-void FingeringConstructor::mousePressEvent( QMouseEvent *event )
+void FingeringBox::mousePressEvent( QMouseEvent *event )
 {
     if ( ( event->button() == LeftButton ) && ( m_editable ) ) {
 
@@ -161,7 +161,7 @@ void FingeringConstructor::mousePressEvent( QMouseEvent *event )
     }
 }
 
-void FingeringConstructor::mouseReleaseEvent( QMouseEvent *event )
+void FingeringBox::mouseReleaseEvent( QMouseEvent *event )
 {
     // If we are display only then we will not updated on a mouse event
     if ( !m_editable ) {
@@ -174,7 +174,7 @@ void FingeringConstructor::mouseReleaseEvent( QMouseEvent *event )
     processMouseRelease ( release_string_num, release_fret_num );
 }
 
-void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
+void FingeringBox::processMouseRelease( unsigned int release_string_num,
                                                 unsigned int release_fret_num )
 {
     if ( m_press_fret_num == release_fret_num ) {
@@ -267,7 +267,7 @@ void FingeringConstructor::processMouseRelease( unsigned int release_string_num,
 }
 
 
-void FingeringConstructor::mouseMoveEvent( QMouseEvent *event )
+void FingeringBox::mouseMoveEvent( QMouseEvent *event )
 {
     if (m_fingering) {
         unsigned int transientStringNb = getStringNumber(event);
@@ -290,5 +290,5 @@ void FingeringConstructor::mouseMoveEvent( QMouseEvent *event )
 
 }
 
-#include "FingeringConstructor.moc"
+#include "FingeringBox.moc"
 
