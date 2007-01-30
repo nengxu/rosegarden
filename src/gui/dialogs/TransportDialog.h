@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -49,7 +49,7 @@ class RealTime;
 class MappedEvent;
 
 
-class TransportDialog : public KDockMainWindow
+class TransportDialog : public QWidget
 {
 Q_OBJECT
 public:
@@ -99,6 +99,9 @@ public:
     QPushButton* FfwdEndButton()     { return m_transport->FfwdEndButton; }
     QPushButton* TimeDisplayButton() { return m_transport->TimeDisplayButton; }
     QPushButton* ToEndButton()       { return m_transport->ToEndButton; }
+
+    virtual void show();
+    virtual void hide();
 
 protected:
     virtual void closeEvent(QCloseEvent * e);

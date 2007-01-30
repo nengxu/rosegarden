@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -57,6 +57,7 @@
 #include "base/NotationQuantizer.h"
 #include "document/RosegardenGUIDoc.h"
 #include "gui/application/RosegardenApplication.h"
+#include "gui/application/RosegardenGUIView.h"
 #include "gui/editors/guitar/Chord.h"
 #include "gui/editors/notation/NotationProperties.h"
 #include "gui/general/ProgressReporter.h"
@@ -77,7 +78,7 @@ namespace Rosegarden
 
 using namespace BaseProperties;
 
-const Rosegarden::PropertyName LilypondExporter::SKIP_PROPERTY
+const PropertyName LilypondExporter::SKIP_PROPERTY
     = "LilypondExportSkipThisEvent";
 
 LilypondExporter::LilypondExporter(QObject *parent,
@@ -93,22 +94,23 @@ LilypondExporter::LilypondExporter(QObject *parent,
     KConfig *cfg = kapp->config();
     cfg->setGroup(NotationViewConfigGroup);
 
+    m_view = ((RosegardenGUIApp *)parent)->getView();
     m_composition = &m_doc->getComposition();
     m_studio = &m_doc->getStudio();
     m_paperSize = cfg->readUnsignedNumEntry("lilypapersize", 1);
+    m_paperLandscape = cfg->readBoolEntry("lilypaperlandscape", false);
     m_fontSize = cfg->readUnsignedNumEntry("lilyfontsize", 4);
+    m_exportSelection = cfg->readUnsignedNumEntry("lilyexportselection", 1);
     m_exportLyrics = cfg->readBoolEntry("lilyexportlyrics", true);
     m_exportHeaders = cfg->readBoolEntry("lilyexportheaders", true);
     m_exportMidi = cfg->readBoolEntry("lilyexportmidi", false);
     m_exportTempoMarks = cfg->readUnsignedNumEntry("lilyexporttempomarks", 0);
-    m_exportUnmuted = cfg->readBoolEntry("lilyexportunmuted", false);
     m_exportPointAndClick = cfg->readBoolEntry("lilyexportpointandclick", false);
-    m_exportBarChecks = cfg->readBoolEntry("lilyexportbarchecks", false);
     m_exportBeams = cfg->readBoolEntry("lilyexportbeamings", false);
     m_exportStaffGroup = cfg->readBoolEntry("lilyexportstaffgroup", false);
     m_exportStaffMerge = cfg->readBoolEntry("lilyexportstaffmerge", false);
 
-    m_languageLevel = cfg->readUnsignedNumEntry("lilylanguage", 2);
+    m_languageLevel = cfg->readUnsignedNumEntry("lilylanguage", 0);
 
 }
 
@@ -326,25 +328,10 @@ LilypondExporter::protectIllegalChars(std::string inStr)
     tmpStr.replace(QRegExp("\\{"), "");
     tmpStr.replace(QRegExp("\\}"), "");
 
-    // [cc] Convert to latin1, which is what Lilypond expects.
-    // I have no idea whether, or how, non-latin1 characters can be
-    // handled by Lilypond; I just know if you feed it utf8 you get
-    // garbage.
     //
-    // DMM - we should see if this is still true, because current (2.6)
-    // Lilypond docs speak of using utf8 to achieve special results
+    // LilyPond uses utf8 encoding.
     //
-    // [plcl] - I can confirm that 2.6 requires all text encoded as utf8,
-    // I've opened a bug report (1466805) about this issue.
-    // if lilypond version < 2.6, text output is encoded as latin1
-    // as before, but when it is 2.6, text output is encoded as utf8.
-
-    if (m_languageLevel < 2) {
-        static QTextCodec *codec(QTextCodec::codecForName("ISO8859-1"));
-        return codec->fromUnicode(tmpStr).data();
-    } else {
-        return tmpStr.utf8().data();
-    }
+    return tmpStr.utf8().data();
 }
 
 bool
@@ -389,53 +376,37 @@ LilypondExporter::write()
 
     switch (m_languageLevel) {
 
-        // 0 -> Lilypond 2.2
-        // 1 -> Lilypond 2.4
-        // 2 -> Lilypond 2.6
-        // 3 -> Lilypond 2.8
-        // 4 -> Lilypond 2.10
+        // 0 -> Lilypond 2.6
+        // 1 -> Lilypond 2.8
+        // 2 -> Lilypond 2.10
 
     case 0:
-        str << "\\version \"2.2.0\"" << std::endl;
-        break;
-
-    case 1:
-        str << "\\version \"2.4.0\"" << std::endl;
-        break;
-
-    case 2:
         str << "\\version \"2.6.0\"" << std::endl;
         break;
 
-    case 3:
+    case 1:
         str << "\\version \"2.8.0\"" << std::endl;
         break;
 
-    case 4:
+    case 2:
         str << "\\version \"2.10.0\"" << std::endl;
         break;
 
     default:
         // force the default version if there was an error
         std::cerr << "ERROR: Unknown language level " << m_languageLevel
-        << ", using \\version \"2.6.0\" instead" << std::endl;
+	    << ", using \\version \"2.6.0\" instead" << std::endl;
         str << "\\version \"2.6.0\"" << std::endl;
-        m_languageLevel = 2;
+        m_languageLevel = 0;
     }
 
     // enable "point and click" debugging via pdf to make finding the
     // unfortunately inevitable errors easier
     if (m_exportPointAndClick) {
         str << "% point and click debugging is enabled" << std::endl;
-        // in newer versions line-column point-and-click is set by default
-        if (m_languageLevel <= 1) {
-            str << "#(ly:set-point-and-click 'line-column)" << std::endl;
-        }
     } else {
         str << "% point and click debugging is disabled" << std::endl;
-        if (m_languageLevel >= 2) {
-            str << "#(ly:set-option 'point-and-click #f)" << std::endl;
-        }
+        str << "#(ly:set-option 'point-and-click #f)" << std::endl;
     }
 
     // Lilypond \header block
@@ -454,30 +425,30 @@ LilypondExporter::write()
         str << "\\header {" << std::endl;
         col++;  // indent+
 
+        const std::string headerDedication = "dedication";
         const std::string headerTitle = "title";
         const std::string headerSubtitle = "subtitle";
+        const std::string headerSubsubtitle = "subsubtitle";
         const std::string headerPoet = "poet";
         const std::string headerComposer = "composer";
         const std::string headerMeter = "meter";
+        const std::string headerOpus = "opus";
         const std::string headerArranger = "arranger";
         const std::string headerInstrument = "instrument";
-        const std::string headerDedication = "dedication";
         const std::string headerPiece = "piece";
-        const std::string headerHead = "head";
         const std::string headerCopyright = "copyright";
-        const std::string headerFooter = "footer";
         const std::string headerTagline = "tagline";
 
-        bool userTagline = false, userFooter = false;
+        bool userTagline = false;
 
         for (unsigned int index = 0; index < propertyNames.size(); ++index) {
             std::string property = propertyNames [index];
-            if (property == headerTitle || property == headerSubtitle ||
+            if (property == headerDedication || property == headerTitle ||
+                    property == headerSubtitle || property == headerSubsubtitle ||
                     property == headerPoet || property == headerComposer ||
-                    property == headerMeter || property == headerArranger ||
-                    property == headerInstrument || property == headerDedication ||
-                    property == headerPiece || property == headerHead ||
-                    property == headerCopyright || property == headerFooter ||
+                    property == headerMeter || property == headerOpus ||
+                    property == headerArranger || property == headerInstrument ||
+                    property == headerPiece || property == headerCopyright ||
                     property == headerTagline) {
                 std::string header = protectIllegalChars(metadata.get<String>(property));
                 if (header != "") {
@@ -486,22 +457,14 @@ LilypondExporter::write()
                     // defaults if they don't:
                     if (property == headerTagline)
                         userTagline = true;
-                    if (property == headerFooter)
-                        userFooter = true;
                 }
             }
         }
 
-        // default tagline/footer
+        // default tagline
         if (!userTagline) {
             str << indent(col) << "tagline = \""
             << "Created using Rosegarden " << protectIllegalChars(VERSION) << " and LilyPond"
-            << "\"" << std::endl;
-        }
-
-        if (!userFooter) {
-            str << indent(col) << "footer = \"" << "Rosegarden "
-            << protectIllegalChars(VERSION)
             << "\"" << std::endl;
         }
 
@@ -546,20 +509,35 @@ LilypondExporter::write()
     std::string paper = "";
     switch (m_paperSize) {
     case 0 :
-        paper += "letter";
+        paper += "a3";
         break;
     case 1 :
         paper += "a4";
         break;
     case 2 :
-        paper += "legal";
+        paper += "a5";
         break;
     case 3 :
+        paper += "a6";
+        break;
+    case 4 :
+        paper += "legal";
+        break;
+    case 5 :
+        paper += "letter";
+        break;
+    case 6 :
+        paper += "tabloid";
+        break;
+    case 7 :
         paper = "";
         break; // "do not specify"
     }
-    if (paper != "")
-        str << indent(col) << "#(set-default-paper-size \"" << paper << "\")" << std::endl;
+    if (paper != "") {
+        str << indent(col) << "#(set-default-paper-size \"" << paper << "\"" 
+	    << (m_paperLandscape ? " 'landscape" : "") << ")"
+	    << std::endl;
+    }
 
     // Find out the printed length of the composition
     Composition::iterator i = m_composition->begin();
@@ -568,12 +546,8 @@ LilypondExporter::write()
         str << indent(++col) << "% no segments found" << std::endl;
         // bind staffs with or without staff group bracket
         str << indent(col) // indent
-        << (m_languageLevel == 0 ? "\\notes <<" : "<<") << " s4 " << ">>" << std::endl;
-        if (m_languageLevel == 0) {
-            str << indent(col) << "\\paper { }" << std::endl;
-        } else {
-            str << indent(col) << "\\layout { }" << std::endl;
-        }
+	    << "<<" << " s4 " << ">>" << std::endl;
+        str << indent(col) << "\\layout { }" << std::endl;
         str << indent(--col) << "}" << std::endl;
         return true;
     }
@@ -618,7 +592,7 @@ LilypondExporter::write()
             //    this justifies the printed staffs
             str << indent(col);
             timeT leftTime = m_composition->getBarStart(leftBar);
-            timeT rightTime = m_composition->getBarStart(rightBar);
+            timeT rightTime = m_composition->getBarStart(rightBar + 1);
             if (leftTime < compositionStartTime) {
                 leftTime = compositionStartTime;
             }
@@ -710,8 +684,8 @@ LilypondExporter::write()
 
     // bind staffs with or without staff group bracket
     str << indent(++col) // indent+
-    << (m_exportStaffGroup == true ? "\\new StaffGroup " : "")
-    << (m_languageLevel == 0 ? "\\notes <<" : "<<") << std::endl;
+	<< (m_exportStaffGroup == true ? "\\new StaffGroup " : "")
+	<< "<<" << std::endl;
 
     // Make chords offset colliding notes by default
     str << indent(++col) << "% force offset of colliding notes in chords:" << std::endl;
@@ -740,11 +714,28 @@ LilypondExporter::write()
             emit setProgress(int(double(trackPos) /
                                  double(m_composition->getNbTracks()) * 100.0));
             rgapp->refreshGUI(50);
+            
+            bool currentSegmentSelected = false;
+            if ((m_exportSelection == 3) && (m_view->haveSelection())) {
+            	//
+            	// Check whether the current segment is in the list of selected segments.
+            	//
+            	SegmentSelection selection = m_view->getSelection();
+                for (SegmentSelection::iterator it = selection.begin(); it != selection.end(); it++) {
+                    if ((*it) == (*i)) currentSegmentSelected = true;
+                }
+            }
 
-            // do nothing if track is muted...  this provides a crude
-            // but easily implemented method for users to selectively
-            // export tracks...
-            if (!m_exportUnmuted || (!track->isMuted())) {
+    
+    	    // The meaning of exportSelection meaning is to export:
+    	    // 0 -> All tracks
+    	    // 1 -> Non-muted tracks
+    	    // 2 -> Selected track
+    	    // 3 -> Selected segments
+            if ((m_exportSelection == 0) || 
+                ((m_exportSelection == 1) && (!track->isMuted())) ||
+                ((m_exportSelection == 2) && (track->getId() == m_composition->getSelectedTrack())) ||
+                ((m_exportSelection == 3) && (currentSegmentSelected))) {
                 if ((int) (*i)->getTrack() != lastTrackIndex) {
                     if (lastTrackIndex != -1) {
                         // close the old track (Staff context)
@@ -793,6 +784,9 @@ LilypondExporter::write()
                         str << indent(col) << "\\set Staff.midiInstrument = \"" << staffMidiName.str() << "\"" << std::endl;
                     }
 
+		    // multi measure rests are used by default
+                    str << indent(col) << "\\set Score.skipBars = ##t" << std::endl;
+
                     // turn off the stupid accidental cancelling business,
                     // because we don't do that ourselves, and because my 11
                     // year old son pointed out to me that it "Looks really
@@ -822,6 +816,7 @@ LilypondExporter::write()
                 << "\" {"; // indent+
 
                 str << std::endl << indent(col) << "\\override Voice.TextScript #'padding = #2.0";
+                str << indent(col) << "\\override MultiMeasureRest #'expand-limit = 1" << std::endl;
 
                 SegmentNotationHelper helper(**i);
                 helper.setNotationProperties();
@@ -841,7 +836,6 @@ LilypondExporter::write()
                 }
 
                 std::string lilyText = "";      // text events
-                std::string lilyLyrics = "";    // lyric events
                 std::string prevStyle = "";     // track note styles
 
                 Rosegarden::Key key;
@@ -852,6 +846,8 @@ LilypondExporter::write()
                 bool nextBarIsAlt1 = false;
                 bool nextBarIsAlt2 = false;
                 bool prevBarWasAlt2 = false;
+
+                int MultiMeasureRestCount = 0;
 
                 bool nextBarIsDouble = false;
                 bool nextBarIsEnd = false;
@@ -904,8 +900,9 @@ LilypondExporter::write()
 
                     // write out a bar's worth of events
                     writeBar(*i, barNo, barStart, barEnd, col, key,
-                             lilyText, lilyLyrics,
+                             lilyText,
                              prevStyle, eventsInProgress, str,
+                             MultiMeasureRestCount, 
                              nextBarIsAlt1, nextBarIsAlt2, nextBarIsDouble, nextBarIsEnd, nextBarIsDot);
 
                 }
@@ -931,14 +928,77 @@ LilypondExporter::write()
                 // close Voice context
                 str << std::endl << indent(--col) << "} % Voice" << std::endl;  // indent-
 
-                // Write accumulated lyric events to the Lyric context, if user desires.
-                // If no lyrics is found, do not reserve empty vertical space for lyrics.
-                if (m_exportLyrics && lilyLyrics != "") {
-                    str << indent(col) << "\\lyricsto \"" << voiceNumber.str() << "\""
-                    << " \\new Lyrics \\lyricmode { " << std::endl;
-                    str << indent(++col) << lilyLyrics << " " << std::endl;
-                    str << indent(--col) << "} % Lyrics" << std::endl; // close Lyric context
-                }
+		//
+                // Write accumulated lyric events to the Lyric context, if desired.
+                //
+		// Sync the code below with LyricEditDialog::unparse() !!
+		//
+                if (m_exportLyrics) {
+		    QString text;
+		
+		    timeT lastTime = (*i)->getStartTime();
+		    int lastBarNo = m_composition->getBarNumber(lastTime);
+		    bool haveLyric = false;
+		
+		    for (Segment::iterator j = (*i)->begin();
+		            (*i)->isBeforeEndMarker(j); ++j) {
+		
+		        bool isNote = (*j)->isa(Note::EventType);
+		        bool isLyric = false;
+		
+		        if (!isNote) {
+		            if ((*j)->isa(Text::EventType)) {
+		                std::string textType;
+		                if ((*j)->get
+		                        <String>(Text::TextTypePropertyName, textType) &&
+		                        textType == Text::Lyric) {
+		                    isLyric = true;
+		                }
+		            }
+		        } else {
+		            if ((*j)->has(BaseProperties::TIED_BACKWARD) &&
+		                    (*j)->get
+		                    <Bool>(BaseProperties::TIED_BACKWARD))
+		                continue;
+		        }
+		
+		        if (!isNote && !isLyric)
+		            continue;
+		
+		        timeT myTime = (*j)->getNotationAbsoluteTime();
+		        int myBarNo = m_composition->getBarNumber(myTime);
+		
+		        if (myTime > lastTime && isNote) {
+		            if (!haveLyric)
+		                text += " _";
+		            lastTime = myTime;
+		            haveLyric = false;
+		        }
+		
+		        if (isLyric) {
+		            std::string ssyllable;
+		            (*j)->get
+		            <String>(Text::TextPropertyName, ssyllable);
+		            QString syllable(strtoqstr(ssyllable));
+		            syllable.replace(QRegExp("\\s+"), "");
+		            text += " \"" + syllable + "\"";
+		            haveLyric = true;
+		        }
+		    }
+		
+		    // Do not create empty context for lyrics.
+		    // Does this save some vertical space, as was written
+		    // in earlier comment?
+		    QRegExp rx( "\"" );
+		    if ( rx.search( text ) ) {
+		    
+			str << indent(col) << "\\lyricsto \"" << voiceNumber.str() << "\""
+			    << " \\new Lyrics \\lyricmode {" << std::endl;
+			str << indent(++col) << text << " " << std::endl;
+			str << indent(--col) << " } % Lyrics" << std::endl;
+			// close the Lyrics context
+		    }
+		}
             }
         }
     }
@@ -953,12 +1013,8 @@ LilypondExporter::write()
     // close \notes section
     str << std::endl << indent(--col) << ">> % notes" << std::endl << std::endl; // indent-
 
-    // write \\paper or \layout block
-    if (m_languageLevel == 0) {
-        str << indent(col) << "\\paper { }" << std::endl;
-    } else {
-        str << indent(col) << "\\layout { }" << std::endl;
-    }
+    // write \layout block
+    str << indent(col) << "\\layout { }" << std::endl;
 
     // write initial tempo in Midi block, if user wishes (added per user request...
     // makes debugging the .ly file easier because fewer "noisy" errors are
@@ -1082,10 +1138,10 @@ LilypondExporter::writeBar(Segment *s,
                            int barNo, int barStart, int barEnd, int col,
                            Rosegarden::Key &key,
                            std::string &lilyText,
-                           std::string &lilyLyrics,
                            std::string &prevStyle,
                            eventendlist &eventsInProgress,
                            std::ofstream &str,
+                           int &MultiMeasureRestCount,
                            bool &nextBarIsAlt1, bool &nextBarIsAlt2,
                            bool &nextBarIsDouble, bool &nextBarIsEnd, bool &nextBarIsDot)
 {
@@ -1095,12 +1151,14 @@ LilypondExporter::writeBar(Segment *s,
     if (!s->isBeforeEndMarker(i))
         return ;
 
-    str << std::endl;
+    if (MultiMeasureRestCount == 0) {
+	str << std::endl;
 
-    if ((barNo + 1) % 5 == 0) {
-        str << "%% " << barNo + 1 << std::endl << indent(col);
-    } else {
-        str << indent(col);
+	if ((barNo + 1) % 5 == 0) {
+	    str << "%% " << barNo + 1 << std::endl << indent(col);
+	} else {
+	    str << indent(col);
+	}
     }
 
     bool isNew = false;
@@ -1264,11 +1322,7 @@ LilypondExporter::writeBar(Segment *s,
                 }
             } else {
                 if (lastStem != 0) {
-                    if (m_languageLevel == 0) {
-                        str << "\\stemBoth ";
-                    } else {
-                        str << "\\stemNeutral ";
-                    }
+                    str << "\\stemNeutral ";
                     lastStem = 0;
                 }
             }
@@ -1284,22 +1338,20 @@ LilypondExporter::writeBar(Segment *s,
                     if (!handleDirective(*i, lilyText, nextBarIsAlt1, nextBarIsAlt2,
                                          nextBarIsDouble, nextBarIsEnd, nextBarIsDot)) {
 
-                        handleText(*i, lilyText, lilyLyrics);
+                        handleText(*i, lilyText);
                     }
 
                 } else if ((*i)->isa(Note::EventType)) {
 
-                    if (m_languageLevel >= 3) {
+                    if (m_languageLevel >= 1) {
                         // one \tweak per each chord note
                         if (chord.size() > 1)
                             writeStyle(*i, prevStyle, col, str, true);
                         else
                             writeStyle(*i, prevStyle, col, str, false);
-                    } else if (m_languageLevel >= 1) {
+                    } else {
                         // only one override per chord, and that outside the <>
                         stylei = i;
-                    } else {
-                        writeStyle(*i, prevStyle, col, str, false);
                     }
                     writePitch(*i, key, str);
 
@@ -1334,7 +1386,7 @@ LilypondExporter::writeBar(Segment *s,
                 prevDuration = duration;
             }
 
-            if (m_languageLevel >= 1 && m_languageLevel < 3) {
+            if (m_languageLevel == 0) {
                 // only one override per chord, and that outside the <>
                 if (stylei != s->end()) {
                     writeStyle(*stylei, prevStyle, col, str, false);
@@ -1379,25 +1431,51 @@ LilypondExporter::writeBar(Segment *s,
                 }
             }
 
-            str << (hiddenRest ? "s" : "r");
-            if (duration != prevDuration) {
-                writeDuration(duration, str);
-                prevDuration = duration;
-            }
-            writtenDuration += soundingDuration;
+	    if (MultiMeasureRestCount == 0) {
+		if (hiddenRest) {
+		    str << "s";
+		} else if (duration == timeSignature.getBarDuration()) {
+		    // Look ahead the segment in order to detect
+		    // the number of measures in the multi measure rest.
+		    Segment::iterator mm_i = i;
+		    while (s->isBeforeEndMarker(++mm_i)) {
+			if ((*mm_i)->isa(Note::EventRestType) &&
+			    (*mm_i)->getNotationDuration() == (*i)->getNotationDuration() &&
+			    timeSignature == m_composition->getTimeSignatureAt((*mm_i)->getNotationAbsoluteTime())) {
+			    MultiMeasureRestCount++;
+			} else {
+			    break;
+			}
+		    }
+		    str << "R";
+		} else {
+		    str << "r";
+		}
+	    
+		if (duration != prevDuration) {
+		    writeDuration(duration, str);
+		    if (MultiMeasureRestCount > 0) {
+			str << "*" << (1 + MultiMeasureRestCount);
+		    }
+		    prevDuration = duration;
+		}
 
-            if (lilyText != "") {
-                str << lilyText;
-                lilyText = "";
-            }
+		if (lilyText != "") {
+		    str << lilyText;
+		    lilyText = "";
+		}
 
-            str << " ";
+		str << " ";
+	    
+		handleEndingEvents(eventsInProgress, i, str);
+		handleStartingEvents(eventsToStart, str);
 
-            handleEndingEvents(eventsInProgress, i, str);
-            handleStartingEvents(eventsToStart, str);
-
-            if (newBeamedGroup)
-                notesInBeamedGroup++;
+		if (newBeamedGroup)
+		    notesInBeamedGroup++;
+	    } else {
+		MultiMeasureRestCount--;
+	    }
+	    writtenDuration += soundingDuration;
         } else if ((*i)->isa(Clef::EventType)) {
 
             try {
@@ -1459,7 +1537,61 @@ LilypondExporter::writeBar(Segment *s,
 
             if (!handleDirective(*i, lilyText, nextBarIsAlt1, nextBarIsAlt2,
                                  nextBarIsDouble, nextBarIsEnd, nextBarIsDot)) {
-                handleText(*i, lilyText, lilyLyrics);
+                handleText(*i, lilyText);
+            }
+
+        } else if ((*i)->isa(Guitar::Fingering::EventType)) {
+
+            try {
+                Guitar::Fingering::Fingering arrangement =
+                    Guitar::Fingering::Fingering(**i);
+
+                int firstFret = arrangement.getFirstFret();
+                int barre_start = 0, barre_end = 0, barre_fret = 0;
+
+                // 
+                // Check if there is a barre.
+                //
+                for (int fret_num = firstFret; fret_num <= firstFret + 5; fret_num++) {
+                    if (arrangement.hasBarre(fret_num)) {
+                        barre_start = (arrangement.getBarre(fret_num))->getStart();
+                        barre_end = (arrangement.getBarre(fret_num))->getEnd();
+                        barre_fret = (arrangement.getBarre(fret_num))->getFret();
+                    }
+                }
+
+                if (barre_start == 0) {
+                    str << " s4*0^\\markup \\fret-diagram #\"";
+                } else {
+                    str << " s4*0^\\markup \\override #'(barre-type . straight) \\fret-diagram #\"";
+                }
+                //
+                // Check each string individually.
+                //
+                for (int string_num = 6; string_num >= 1; string_num--) {
+                    if (barre_start == string_num) {
+                        str << "c:" << barre_start << "-" << barre_end << "-" << barre_fret << ";";
+                    }
+
+                    if (arrangement.getStringStatus( string_num ) == Guitar::GuitarString::MUTED) {
+                        str << string_num << "-x;";
+                    } else if (arrangement.getStringStatus( string_num ) == Guitar::GuitarString::OPEN) {
+                        str << string_num << "-o;";
+                    } else {
+                        if (arrangement.hasNote(string_num)) {
+                            str << string_num << "-" << (arrangement.getNote(string_num))->getFret() << ";";
+                        } else if ((string_num <= barre_start) && (string_num >= barre_end)) {
+                            str << string_num << "-" << barre_fret << ";";
+                        } else {
+                            // This else-else stage should not be ever reached.
+                            str << string_num << "-" << "o;";
+                        }
+                    }
+                }
+                str << "\" ";
+
+            } catch (Exception e) { // Fretboard ctor failed
+                RG_DEBUG << "Bad fretboard event in Lilypond export" << endl;
             }
         }
 
@@ -1491,11 +1623,7 @@ LilypondExporter::writeBar(Segment *s,
     }
 
     if (lastStem != 0) {
-        if (m_languageLevel == 0) {
-            str << "\\stemBoth ";
-        } else {
-            str << "\\stemNeutral ";
-        }
+        str << "\\stemNeutral ";
     }
 
     if (overlong) {
@@ -1511,10 +1639,11 @@ LilypondExporter::writeBar(Segment *s,
         writeSkip(timeSignature, writtenDuration,
                   (barEnd - barStart) - writtenDuration, true, str);
     }
-    if (m_exportBarChecks) {
-        if (!nextBarIsDouble && !nextBarIsEnd && !nextBarIsDot) {
-            str << " |";
-        }
+    //
+    // Export bar checks.
+    //
+    if (MultiMeasureRestCount == 0 && !nextBarIsDouble && !nextBarIsEnd && !nextBarIsDot) {
+        str << " |";
     }
     if (nextBarIsDouble) {
         str << "\\bar \"||\" ";
@@ -1546,10 +1675,12 @@ LilypondExporter::writeSkip(const TimeSignature &timeSig,
 
             if (count > 0) {
 
-                if (useRests)
-                    str << "r";
-                else
+                if (!useRests)
                     str << "\\skip ";
+                else if (t == timeSig.getBarDuration())
+                    str << "R";
+                else
+                    str << "r";
 
                 writeDuration(t, str);
 
@@ -1611,7 +1742,7 @@ LilypondExporter::handleDirective(const Event *textEvent,
 
 void
 LilypondExporter::handleText(const Event *textEvent,
-                             std::string &lilyText, std::string &lilyLyrics)
+                             std::string &lilyText)
 {
     try {
 
@@ -1633,16 +1764,6 @@ LilypondExporter::handleText(const Event *textEvent,
 
             // print above staff, bold, small
             lilyText += "^\\markup { \\bold \"" + s + "\" } ";
-
-        } else if (text.getTextType() == Text::Lyric) {
-
-            // convert Rosegarden's lyric skip character to LilyPond's one
-            if (s == ".") {
-                // is this point really reached?
-                lilyLyrics += "_ ";
-            } else {
-                lilyLyrics += "\"" + s + "\" ";
-            }
 
         } else if (text.getTextType() == Text::Dynamic) {
 

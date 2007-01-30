@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -271,6 +271,7 @@ RosegardenGUIApp::RosegardenGUIApp(bool useSequencer,
         m_lircClient(0),
         m_lircCommander(0),
 #endif
+        m_haveAudioImporter(false),
         m_parameterArea(0)
 {
     m_myself = this;
@@ -422,27 +423,18 @@ RosegardenGUIApp::RosegardenGUIApp(bool useSequencer,
     // transport is created by setupActions()
     m_seqManager = new SequenceManager(m_doc, getTransport());
 
-    try {
-        if (m_useSequencer) {
-            m_seqManager->checkSoundDriverStatus();
-        }
-    } catch (Exception e) {
-        KStartupLogo::hideIfStillThere();
-        CurrentProgressDialog::freeze();
-        KMessageBox::error(this, i18n("Sequencer startup failed: %1")
-                           .arg(strtoqstr(e.getMessage())));
-        CurrentProgressDialog::thaw();
+    if (m_useSequencer) {
+        // Check the sound driver status and warn the user of any
+        // problems.  This warning has to happen early, in case it
+        // affects the ability to load plugins etc from a file on the
+        // command line.
+        m_seqManager->checkSoundDriverStatus(true);
     }
 
     if (m_view) {
         connect(m_seqManager, SIGNAL(controllerDeviceEventReceived(MappedEvent *)),
                 m_view, SLOT(slotControllerDeviceEventReceived(MappedEvent *)));
     }
-
-    // Make sure we get the sequencer status now
-    //
-    emit startupStatusMessage(i18n("Getting sound driver status..."));
-    (void)m_seqManager->getSoundDriverStatus();
 
     if (m_seqManager->getSoundDriverStatus() & AUDIO_OK) {
         slotStateChanged("got_audio", true);
@@ -740,7 +732,7 @@ void RosegardenGUIApp::setupActions()
     QIconSet icon = QIconSet(pixmap);
 
     // TODO : add some shortcuts here
-    action = new KRadioAction(i18n("&Select"), icon, Key_F2,
+    action = new KRadioAction(i18n("&Select and Edit"), icon, Key_F2,
                               this, SLOT(slotPointerSelected()),
                               actionCollection(), "select");
     action->setExclusiveGroup("segmenttools");
@@ -1259,7 +1251,7 @@ void RosegardenGUIApp::initZoomToolbar()
 
 void RosegardenGUIApp::initStatusBar()
 {
-    KTmpStatusMsg::setDefaultMsg(i18n("  Ready."));
+    KTmpStatusMsg::setDefaultMsg("");
     statusBar()->insertItem(KTmpStatusMsg::getDefaultMsg(),
                             KTmpStatusMsg::getDefaultId(), 1);
     statusBar()->setItemAlignment(KTmpStatusMsg::getDefaultId(),
@@ -1427,7 +1419,7 @@ void RosegardenGUIApp::initView()
 
     m_view->show();
 
-    connect(m_view->getTrackEditor()->getSegmentCanvas()->getToolBox(),
+    connect(m_view->getTrackEditor()->getSegmentCanvas(),
             SIGNAL(showContextHelp(const QString &)),
             this,
             SLOT(slotShowToolHelp(const QString &)));
@@ -2631,18 +2623,21 @@ void RosegardenGUIApp::slotRescaleSelection()
     KMacroCommand *command = new KMacroCommand
                              (SegmentRescaleCommand::getGlobalName());
 
+    bool pathTested = false;
+
     for (SegmentSelection::iterator i = selection.begin();
             i != selection.end(); ++i) {
         if ((*i)->getType() == Segment::Audio) {
-            //!!! this command should take an extra arg for intended
-            // end time so it can set that afterwards to avoid rounding error
+            if (!pathTested) {
+	        testAudioPath(i18n("rescaling an audio file"));
+                pathTested = true;
+            }
             AudioSegmentRescaleCommand *asrc = new AudioSegmentRescaleCommand
                 (m_doc, *i, ratio);
             command->addCommand(asrc);
             asrcs.push_back(asrc);
         } else {
-            command->addCommand(new SegmentRescaleCommand
-                                (*i, mult, div));
+            command->addCommand(new SegmentRescaleCommand(*i, mult, div));
         }
     }
 
@@ -2684,6 +2679,24 @@ void RosegardenGUIApp::slotRescaleSelection()
     }
 
     if (progressDlg) delete progressDlg;
+}
+
+bool
+RosegardenGUIApp::testAudioPath(QString op)
+{
+    try {
+        m_doc->getAudioFileManager().testAudioPath();
+    } catch (AudioFileManager::BadAudioPathException) {
+        if (KMessageBox::warningContinueCancel
+            (this,
+	     i18n("The audio file path does not exist or is not writable.\nYou must set the audio file path to a valid directory in Document Properties before %1.\nWould you like to set it now?").arg(op),
+             i18n("Warning"),
+             i18n("Set audio file path")) == KMessageBox::Continue) {
+            slotOpenAudioPathSettings();
+        }
+	return false;
+    }
+    return true;
 }
 
 void RosegardenGUIApp::slotAutoSplitSelection()
@@ -2764,6 +2777,11 @@ void RosegardenGUIApp::createAndSetupTransport()
     m_transport =
         new TransportDialog(this);
     plugAccelerators(m_transport, m_transport->getAccelerators());
+
+    m_transport->getAccelerators()->connectItem
+        (m_transport->getAccelerators()->insertItem(Key_T),
+         this,
+         SLOT(slotHideTransport()));
 
     // Ensure that the checkbox is unchecked if the dialog
     // is closed
@@ -3210,6 +3228,17 @@ void RosegardenGUIApp::slotToggleTransport()
     }
 }
 
+void RosegardenGUIApp::slotHideTransport()
+{
+    if (m_viewTransport->isChecked()) {
+        m_viewTransport->blockSignals(true);
+        m_viewTransport->setChecked(false);
+        m_viewTransport->blockSignals(false);
+    }
+    getTransport()->hide();
+    getTransport()->blockSignals(true);
+}        
+
 void RosegardenGUIApp::slotToggleTrackLabels()
 {
     if (m_viewTrackLabels->isChecked()) {
@@ -3451,7 +3480,7 @@ void RosegardenGUIApp::slotDeleteTrack()
         SegmentSelection selection = m_view->getSelection();
         m_view->slotSelectTrackSegments(trackId);
         m_view->getTrackEditor()->slotDeleteSelectedSegments();
-        m_view->slotSetSelectedSegments(selection);
+        m_view->slotPropagateSegmentSelection(selection);
 
     } else {
 
@@ -4390,13 +4419,52 @@ void RosegardenGUIApp::slotTestStartupTester()
         return ;
     }
 
+    QStringList missing;
+    bool have = m_startupTester->haveProjectPackager(&missing);
+
     stateChanged("have_project_packager",
-                 m_startupTester->haveProjectPackager() ?
+                 have ?
                  KXMLGUIClient::StateNoReverse : KXMLGUIClient::StateReverse);
 
+    if (!have) {
+        KMessageBox::informationList
+            (m_view,
+             i18n("<h3>Project Packager not available</h3><p>Rosegarden could not find one or more of the additional programs needed to support the Rosegarden Project Packager.</p><p>Export and import of Rosegarden Project files will not be available.<p><p>To fix this, you should install the following additional programs:</p>"),
+             missing,
+             i18n("Rosegarden Project Packager not available"),
+             "startup-project-packager");
+    }
+
+    have = m_startupTester->haveLilypondView(&missing);
+
     stateChanged("have_lilypondview",
-                 m_startupTester->haveLilypondView() ?
+                 have ?
                  KXMLGUIClient::StateNoReverse : KXMLGUIClient::StateReverse);
+
+    if (!have) {
+        KMessageBox::informationList
+            (m_view,
+             i18n("<h3>LilyPond Preview not available</h3><p>Rosegarden could not find one or more of the additional programs needed to support the LilyPond previewer.</p><p>Notation previews through LilyPond will not be available.</p><p>To fix this, you should install the following additional programs:</p>"),
+             missing,
+             i18n("LilyPond previews not available"),
+             "startup-lilypondview");
+    }
+
+#ifdef HAVE_LIBJACK
+    if (m_seqManager && (m_seqManager->getSoundDriverStatus() & AUDIO_OK)) {
+
+        m_haveAudioImporter = m_startupTester->haveAudioFileImporter(&missing);
+
+        if (!m_haveAudioImporter) {
+            KMessageBox::informationList
+                (m_view,
+                 i18n("<h3>General audio file import not available</h3><p>Rosegarden could not find one or more of the additional programs needed to support its audio file conversion helper.</p><p>Support for importing additional audio file types, and sample rate conversion, will not be available.</p><p>To fix this, you should install the following additional programs:</p>"),
+                 missing,
+                 i18n("Audio file importer not available"),
+                 "startup-audiofile-importer");
+        }
+    }
+#endif
 
     delete m_startupTester;
     m_startupTester = 0;
@@ -4417,15 +4485,7 @@ bool RosegardenGUIApp::launchSequencer(bool useExisting)
 
     if (isSequencerRunning()) {
         RG_DEBUG << "RosegardenGUIApp::launchSequencer() - sequencer already running - returning\n";
-        try {
-            if (m_seqManager)
-                m_seqManager->checkSoundDriverStatus();
-        } catch (...) {
-            // checkSoundDriverStatus can throw an exception, but the sequence
-            // manager should have reported that to the user on startup, or
-            // else we'll have had a failure report in the mean time.  No
-            // benefit in duplicating that report here
-        }
+        if (m_seqManager) m_seqManager->checkSoundDriverStatus(false);
         return true;
     }
 
@@ -4441,12 +4501,7 @@ bool RosegardenGUIApp::launchSequencer(bool useExisting)
         << "existing DCOP registered sequencer found\n";
 
         if (useExisting) {
-            try {
-                if (m_seqManager)
-                    m_seqManager->checkSoundDriverStatus();
-            } catch (...) {
-                // as above
-            }
+            if (m_seqManager) m_seqManager->checkSoundDriverStatus(false);
             m_sequencerProcess = (KProcess*)SequencerExternal;
             return true;
         }
@@ -5992,7 +6047,7 @@ RosegardenGUIApp::slotAudioManager()
     connect(m_audioManagerDialog,
             SIGNAL(segmentsSelected(const SegmentSelection&)),
             m_view,
-            SLOT(slotSetSelectedSegments(const SegmentSelection&)));
+            SLOT(slotPropagateSegmentSelection(const SegmentSelection&)));
 
     // and from us to dialog
     connect(this, SIGNAL(segmentsSelected(const SegmentSelection&)),
@@ -6117,7 +6172,7 @@ RosegardenGUIApp::slotDeleteAudioFile(unsigned int id)
 void
 RosegardenGUIApp::slotDeleteSegments(const SegmentSelection &selection)
 {
-    m_view->slotSetSelectedSegments(selection);
+    m_view->slotPropagateSegmentSelection(selection);
     slotDeleteSelectedSegments();
 }
 
@@ -6673,8 +6728,10 @@ RosegardenGUIApp::slotShowPluginDialog(QWidget *parent,
     connect(dialog, SIGNAL(windowActivated()),
             m_view, SLOT(slotActiveMainWindowChanged()));
 
+/* This feature isn't provided by the plugin dialog
     connect(m_view, SIGNAL(controllerDeviceEventReceived(MappedEvent *, const void *)),
             dialog, SLOT(slotControllerDeviceEventReceived(MappedEvent *, const void *)));
+*/
 
     // Plug the new dialog into the standard keyboard accelerators so
     // that we can use them still while the plugin has focus.
@@ -7670,8 +7727,7 @@ RosegardenGUIApp::slotShowTip()
 void RosegardenGUIApp::slotShowToolHelp(const QString &s)
 {
     QString msg = s;
-    if (msg == "") msg = i18n("  Ready.");
-    KTmpStatusMsg::setDefaultMsg(msg);
+    if (msg != "") msg = " " + msg;
     slotStatusMsg(msg);
 }
 

@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -22,6 +22,8 @@
     COPYING included with this distribution for more information.
 */
 
+
+#ifdef HAVE_LIBLO
 
 #include "OSCMessage.h"
 
@@ -80,3 +82,5 @@ OSCMessage::getArg(size_t i, char &type) const
 }
 
 }
+
+#endif // HAVE_LIBLO

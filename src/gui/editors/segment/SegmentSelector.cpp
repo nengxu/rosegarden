@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -39,13 +39,15 @@
 #include "CompositionModel.h"
 #include "CompositionView.h"
 #include "document/RosegardenGUIDoc.h"
+#include "document/ConfigGroups.h"
 #include "gui/general/BaseTool.h"
 #include "gui/general/RosegardenCanvasView.h"
 #include "SegmentPencil.h"
 #include "SegmentResizer.h"
 #include "SegmentTool.h"
 #include "SegmentToolBox.h"
-#include <kcommand.h>
+#include <kapplication.h>
+#include <kconfig.h>
 #include <qcursor.h>
 #include <qevent.h>
 #include <qpoint.h>
@@ -76,7 +78,7 @@ void SegmentSelector::ready()
     m_canvas->viewport()->setCursor(Qt::arrowCursor);
     connect(m_canvas, SIGNAL(contentsMoving (int, int)),
             this, SLOT(slotCanvasScrolled(int, int)));
-
+    setContextHelp(i18n("Click and drag to select segments"));
 }
 
 void SegmentSelector::stow()
@@ -109,13 +111,11 @@ SegmentSelector::handleMouseButtonPress(QMouseEvent *e)
 
     if (item) {
 
-        // Ten percent of the width of the SegmentItem
+        // Fifteen percent of the width of the SegmentItem, up to 10px
         //
         int threshold = int(float(item->rect().width()) * 0.15);
-        if (threshold == 0)
-            threshold = 1;
-        if (threshold > 10)
-            threshold = 10;
+        if (threshold == 0) threshold = 1;
+        if (threshold > 10) threshold = 10;
 
         bool start = false;
 
@@ -146,14 +146,14 @@ SegmentSelector::handleMouseButtonPress(QMouseEvent *e)
             return ;
         }
 
-
-        m_canvas->getModel()->startChange(item, CompositionModel::ChangeMove);
-
         bool selecting = true;
-// cc - doesn't appear to work
-//        if (m_segmentAddMode && m_canvas->getModel()->isSelected(item)) {
-//            selecting = false;
-//        }
+        
+        if (m_segmentAddMode && m_canvas->getModel()->isSelected(item)) {
+            selecting = false;
+        } else {
+            // put the segment in 'move' mode only if it's being selected
+            m_canvas->getModel()->startChange(item, CompositionModel::ChangeMove);                 
+        }
 
         m_canvas->getModel()->setSelected(item, selecting);
 
@@ -281,15 +281,17 @@ SegmentSelector::handleMouseButtonRelease(QMouseEvent *e)
     m_selectionMoveStarted = false;
 
     m_currentItem = CompositionItem();
+
+    setContextHelpFor(e->pos());
 }
 
 int
 SegmentSelector::handleMouseMove(QMouseEvent *e)
 {
-    //     RG_DEBUG << "SegmentSelector::handleMouseMove\n";
-
-    if (!m_buttonPressed)
-        return RosegardenCanvasView::FollowHorizontal | RosegardenCanvasView::FollowVertical;
+    if (!m_buttonPressed) {
+        setContextHelpFor(e->pos(), (e->state() & Qt::ControlButton));
+        return RosegardenCanvasView::NoFollow;
+    }
 
     if (m_dispatchTool) {
         return m_dispatchTool->handleMouseMove(e);
@@ -352,6 +354,13 @@ SegmentSelector::handleMouseMove(QMouseEvent *e)
     m_canvas->setSnapGrain(true);
 
     if (m_canvas->getModel()->isSelected(m_currentItem)) {
+
+        if (!m_canvas->isFineGrain()) {
+            setContextHelp(i18n("Hold Shift to avoid snapping to beat grid"));
+        } else {
+            clearContextHelp();
+        }
+
         // 	RG_DEBUG << "SegmentSelector::handleMouseMove: current item is selected\n";
 
         if (!m_selectionMoveStarted) { // start move on selected items only once
@@ -443,6 +452,53 @@ SegmentSelector::handleMouseMove(QMouseEvent *e)
     }
 
     return RosegardenCanvasView::FollowHorizontal | RosegardenCanvasView::FollowVertical;
+}
+
+void SegmentSelector::setContextHelpFor(QPoint p, bool ctrlPressed)
+{
+    kapp->config()->setGroup(GeneralOptionsConfigGroup);
+    if (!kapp->config()->readBoolEntry("toolcontexthelp", true)) return;
+
+    CompositionItem item = m_canvas->getFirstItemAt(p);
+
+    if (!item) {
+        setContextHelp(i18n("Click and drag to select segments; middle-click and drag to draw an empty segment"));
+
+    } else {
+
+        // Same logic as in handleMouseButtonPress to establish
+        // whether we'd be moving or resizing
+
+        int threshold = int(float(item->rect().width()) * 0.15);
+        if (threshold == 0) threshold = 1;
+        if (threshold > 10) threshold = 10;
+        bool start = false;
+
+        if ((!m_segmentAddMode ||
+             !m_canvas->getModel()->haveSelection()) &&
+            SegmentResizer::cursorIsCloseEnoughToEdge(item, p,
+                                                      threshold, start)) {
+            if (!ctrlPressed) {
+                setContextHelp(i18n("Click and drag to resize a segment; hold Ctrl as well to rescale its contents"));
+            } else {
+                setContextHelp(i18n("Click and drag to rescale segment"));
+            }
+        } else {
+            if (m_canvas->getModel()->haveMultipleSelection()) {
+                if (!ctrlPressed) {
+                    setContextHelp(i18n("Click and drag to move segments; hold Ctrl as well to copy them"));
+                } else {
+                    setContextHelp(i18n("Click and drag to copy segments"));
+                }
+            } else {
+                if (!ctrlPressed) {
+                    setContextHelp(i18n("Click and drag to move segment; hold Ctrl as well to copy it; double-click to edit"));
+                } else {
+                    setContextHelp(i18n("Click and drag to copy segment"));
+                }
+            }
+        }
+    }
 }
 
 const QString SegmentSelector::ToolName = "segmentselector";

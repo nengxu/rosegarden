@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -50,6 +50,7 @@
 #include "commands/segment/SegmentSingleRepeatToCopyCommand.h"
 #include "document/MultiViewCommandHistory.h"
 #include "document/RosegardenGUIDoc.h"
+#include "RosegardenApplication.h"
 #include "gui/configuration/GeneralConfigurationPage.h"
 #include "gui/dialogs/AudioSplitDialog.h"
 #include "gui/dialogs/AudioManagerDialog.h"
@@ -70,6 +71,8 @@
 #include "gui/rulers/LoopRuler.h"
 #include "gui/rulers/TempoRuler.h"
 #include "gui/rulers/StandardRuler.h"
+#include "gui/widgets/ProgressDialog.h"
+#include "gui/widgets/CurrentProgressDialog.h"
 #include "RosegardenGUIApp.h"
 #include "SetWaitCursor.h"
 #include "sound/AudioFile.h"
@@ -923,15 +926,14 @@ void RosegardenGUIView::slotSelectTrackSegments(int trackId)
                                      getInstrument());
 
 
-    slotSetSelectedSegments(segments);
+    slotPropagateSegmentSelection(segments);
 
     // inform
     emit segmentsSelected(segments);
     emit compositionStateUpdate();
 }
 
-void RosegardenGUIView::slotSetSelectedSegments(
-    const SegmentSelection &segments)
+void RosegardenGUIView::slotPropagateSegmentSelection(const SegmentSelection &segments)
 {
     // Send this signal to the GUI to activate the correct tool
     // on the toolbar so that we have a SegmentSelector object
@@ -1365,7 +1367,7 @@ RosegardenGUIView::slotAddAudioSegment(AudioFileId audioId,
     if (newSegment) {
         SegmentSelection selection;
         selection.insert(newSegment);
-        slotSetSelectedSegments(selection);
+        slotPropagateSegmentSelection(selection);
         emit segmentsSelected(selection);
     }
 }
@@ -1390,7 +1392,7 @@ RosegardenGUIView::slotAddAudioSegmentCurrentPosition(AudioFileId audioFileId,
     if (newSegment) {
         SegmentSelection selection;
         selection.insert(newSegment);
-        slotSetSelectedSegments(selection);
+        slotPropagateSegmentSelection(selection);
         emit segmentsSelected(selection);
     }
 }
@@ -1471,48 +1473,85 @@ RosegardenGUIView::slotDroppedNewAudio(QString audioDesc)
 {
     QTextIStream s(&audioDesc);
 
-    QString audioFile;
+    QString url;
     int trackId;
     timeT time;
-    audioFile = s.readLine();
+    url = s.readLine();
     s >> trackId;
     s >> time;
 
-    RG_DEBUG << "RosegardenGUIView::slotDroppedNewAudio: audioFile " << audioFile << ", trackId " << trackId << ", time " << time << endl;
+    std::cerr << "RosegardenGUIView::slotDroppedNewAudio: url " << url << ", trackId " << trackId << ", time " << time << std::endl;
 
     RosegardenGUIApp *app = RosegardenGUIApp::self();
     AudioFileManager &aFM = getDocument()->getAudioFileManager();
 
     AudioFileId audioFileId = 0;
 
-    if (app->getAudioManagerDialog()) {
-
-        // Add audio file through manager dialog
-        //
-        if (app->getAudioManagerDialog()->addAudioFile(audioFile) == false)
-            return ;
-
-        // get the last added audio file id and insert the segment
-        //
-        audioFileId = aFM.getLastAudioFile()->getId();
-
-    } else {
-
-        try {
-            audioFileId = aFM.addFile(qstrtostr(audioFile));
-        } catch (AudioFileManager::BadAudioPathException e) {
-            QString errorString = i18n("Can't add dropped file. ") + strtoqstr(e.getMessage());
-            KMessageBox::sorry(this, errorString);
-            return ;
-        } catch (QString e) {
-            QString errorString = i18n("Can't add dropped file. ") + e;
-            KMessageBox::sorry(this, errorString);
-            return ;
-        }
-
-        // add the file at the sequencer
-        emit addAudioFile(audioFileId);
+    int sampleRate = 0;
+    if (getDocument()->getSequenceManager()) {
+        sampleRate = getDocument()->getSequenceManager()->getSampleRate();
     }
+
+    KURL kurl(url);
+    if (!kurl.isLocalFile()) {
+        if (!RosegardenGUIApp::self()->testAudioPath("importing a remote audio file")) return;
+    } else if (aFM.fileNeedsConversion(qstrtostr(kurl.path()), sampleRate)) {
+	if (!RosegardenGUIApp::self()->testAudioPath("importing an audio file that needs to be converted or resampled")) return;
+    }
+
+    ProgressDialog progressDlg(i18n("Adding audio file..."),
+                               100,
+                               this);
+
+    CurrentProgressDialog::set(&progressDlg);
+    progressDlg.progressBar()->hide();
+    progressDlg.show();
+
+    // Connect the progress dialog
+    //
+    connect(&aFM, SIGNAL(setProgress(int)),
+            progressDlg.progressBar(), SLOT(setValue(int)));
+    connect(&aFM, SIGNAL(setOperationName(QString)),
+            &progressDlg, SLOT(slotSetOperationName(QString)));
+    connect(&progressDlg, SIGNAL(cancelClicked()),
+            &aFM, SLOT(slotStopImport()));
+
+    try {
+        audioFileId = aFM.importURL(kurl, sampleRate);
+    } catch (AudioFileManager::BadAudioPathException e) {
+        CurrentProgressDialog::freeze();
+        QString errorString = i18n("Can't add dropped file. ") + strtoqstr(e.getMessage());
+        KMessageBox::sorry(this, errorString);
+        return ;
+    } catch (SoundFile::BadSoundFileException e) {
+        CurrentProgressDialog::freeze();
+        QString errorString = i18n("Can't add dropped file. ") + strtoqstr(e.getMessage());
+        KMessageBox::sorry(this, errorString);
+        return ;
+    }
+             
+    disconnect(&progressDlg, SIGNAL(cancelClicked()),
+               &aFM, SLOT(slotStopImport()));
+    connect(&progressDlg, SIGNAL(cancelClicked()),
+            &aFM, SLOT(slotStopPreview()));
+    progressDlg.progressBar()->show();
+    progressDlg.slotSetOperationName(i18n("Generating audio preview..."));
+
+    try {
+        aFM.generatePreview(audioFileId);
+    } catch (Exception e) {
+        CurrentProgressDialog::freeze();
+        QString message = strtoqstr(e.getMessage()) + "\n\n" +
+                          i18n("Try copying this file to a directory where you have write permission and re-add it");
+        KMessageBox::information(this, message);
+        //return false;
+    }
+
+    disconnect(&progressDlg, SIGNAL(cancelClicked()),
+               &aFM, SLOT(slotStopPreview()));
+
+    // add the file at the sequencer
+    emit addAudioFile(audioFileId);
 
     // Now fetch file details
     //
@@ -1523,10 +1562,9 @@ RosegardenGUIView::slotDroppedNewAudio(QString audioDesc)
                             RealTime(0, 0), aF->getLength());
 
         RG_DEBUG << "RosegardenGUIView::slotDroppedNewAudio("
-        << "filename = " << audioFile
+        << "file = " << url
         << ", trackid = " << trackId
         << ", time = " << time << endl;
-
     }
 }
 

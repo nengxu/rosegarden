@@ -4,7 +4,7 @@
     Rosegarden
     A sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <bownie@bownie.com>
@@ -171,6 +171,7 @@ std::string Track::toXmlString()
 
     track << " instrument=\"" << m_instrument << "\"";
 
+    track << " defaultLabel=\"" << m_presetLabel << "\"";
     track << " defaultClef=\"" << m_clef << "\"";
     track << " defaultTranspose=\"" << m_transpose << "\"";
     track << " defaultColour=\"" << m_color << "\"";

@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -103,6 +103,7 @@ protected:
     QCheckBox* m_studio;
     QSpinBox*  m_midiPitchOctave;
     QLineEdit* m_externalAudioEditorPath;
+    QCheckBox* m_toolContextHelp;
     QCheckBox* m_backgroundTextures;
     QCheckBox* m_notationBackgroundTextures;
     QCheckBox* m_matrixBackgroundTextures;

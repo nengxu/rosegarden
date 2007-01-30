@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -148,6 +148,7 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
         m_hoveredOverNoteName(0),
         m_selectionCounter(0),
         m_insertModeLabel(0),
+        m_haveHoveredOverNote(false),
         m_previousEvPitch(0),
         m_dockLeft(0),
         m_canvasView(0),
@@ -159,7 +160,8 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
         m_tempoRuler(0),
         m_playTracking(true),
         m_dockVisible(true),
-        m_drumMode(drumMode)
+        m_drumMode(drumMode),
+        m_mouseInCanvasView(false)
 {
     RG_DEBUG << "MatrixView ctor: drumMode " << drumMode << "\n";
 
@@ -186,6 +188,9 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
     m_toolBox = new MatrixToolBox(this);
 
     initStatusBar();
+
+    connect(m_toolBox, SIGNAL(showContextHelp(const QString &)),
+            this, SLOT(slotToolHelpChanged(const QString &)));
 
     QCanvas *tCanvas = new QCanvas(this);
 
@@ -360,6 +365,12 @@ MatrixView::MatrixView(RosegardenGUIDoc *doc,
     //
     connect(m_canvasView, SIGNAL(bottomWidgetHeightChanged(int)),
             this, SLOT(slotCanvasBottomWidgetHeightChanged(int)));
+
+    connect(m_canvasView, SIGNAL(mouseEntered()),
+            this, SLOT(slotMouseEnteredCanvasView()));
+
+    connect(m_canvasView, SIGNAL(mouseLeft()),
+            this, SLOT(slotMouseLeftCanvasView()));
 
     /*
     QObject::connect
@@ -620,7 +631,7 @@ void MatrixView::setupActions()
     QString pixmapDir = KGlobal::dirs()->findResource("appdata", "pixmaps/");
     QIconSet icon(QPixmap(pixmapDir + "/toolbar/select.xpm"));
 
-    toolAction = new KRadioAction(i18n("&Select"), icon, Key_F2,
+    toolAction = new KRadioAction(i18n("&Select and Edit"), icon, Key_F2,
                                   this, SLOT(slotSelectSelected()),
                                   actionCollection(), "select");
     toolAction->setExclusiveGroup("tools");
@@ -955,16 +966,17 @@ void MatrixView::initStatusBar()
 {
     KStatusBar* sb = statusBar();
 
-    m_hoveredOverNoteName = new QLabel(sb);
     m_hoveredOverAbsoluteTime = new QLabel(sb);
+    m_hoveredOverNoteName = new QLabel(sb);
 
-    m_hoveredOverNoteName->setMinimumWidth(32);
-    m_hoveredOverAbsoluteTime->setMinimumWidth(160);
+    m_hoveredOverAbsoluteTime->setMinimumWidth(175);
+    m_hoveredOverNoteName->setMinimumWidth(65);
 
     sb->addWidget(m_hoveredOverAbsoluteTime);
     sb->addWidget(m_hoveredOverNoteName);
 
     m_insertModeLabel = new QLabel(sb);
+    m_insertModeLabel->setMinimumWidth(20);
     sb->addWidget(m_insertModeLabel);
 
     sb->insertItem(KTmpStatusMsg::getDefaultMsg(),
@@ -974,6 +986,33 @@ void MatrixView::initStatusBar()
 
     m_selectionCounter = new QLabel(sb);
     sb->addWidget(m_selectionCounter);
+}
+
+void MatrixView::slotToolHelpChanged(const QString &s)
+{
+    QString msg = " " + s;
+    if (m_toolContextHelp == msg) return;
+    m_toolContextHelp = msg;
+
+    m_config->setGroup(GeneralOptionsConfigGroup);
+    if (!m_config->readBoolEntry("toolcontexthelp", true)) return;
+
+    if (m_mouseInCanvasView) statusBar()->changeItem(m_toolContextHelp, 1);
+}
+
+void MatrixView::slotMouseEnteredCanvasView()
+{
+    m_config->setGroup(GeneralOptionsConfigGroup);
+    if (!m_config->readBoolEntry("toolcontexthelp", true)) return;
+
+    m_mouseInCanvasView = true;
+    statusBar()->changeItem(m_toolContextHelp, 1);
+}
+
+void MatrixView::slotMouseLeftCanvasView()
+{
+    m_mouseInCanvasView = false;
+    statusBar()->changeItem(KTmpStatusMsg::getDefaultMsg(), 1);
 }
 
 bool MatrixView::applyLayout(int staffNo,
@@ -1407,14 +1446,15 @@ void MatrixView::slotMouseReleased(timeT time, int pitch, QMouseEvent* e)
 }
 
 void
-MatrixView::slotHoveredOverNoteChanged(int evPitch, bool haveEvent,
+MatrixView::slotHoveredOverNoteChanged(int evPitch,
+                                       bool haveEvent,
                                        timeT evTime)
 {
     MidiPitchLabel label(evPitch);
 
-    QString timeStr;
-
     if (haveEvent) {
+
+        m_haveHoveredOverNote = true;
 
         int bar, beat, fraction, remainder;
         getDocument()->getComposition().getMusicalTimeForAbsoluteTime
@@ -1424,7 +1464,7 @@ MatrixView::slotHoveredOverNoteChanged(int evPitch, bool haveEvent,
             getDocument()->getComposition().getElapsedRealTime(evTime);
         long ms = rt.msec();
 
-        timeStr = i18n("%1 (%2.%3s)")
+        QString msg = i18n("Note: %1 (%2.%3s)")
                   .arg(QString("%1-%2-%3-%4")
                        .arg(QString("%1").arg(bar + 1).rightJustify(3, '0'))
                        .arg(QString("%1").arg(beat).rightJustify(2, '0'))
@@ -1432,18 +1472,15 @@ MatrixView::slotHoveredOverNoteChanged(int evPitch, bool haveEvent,
                        .arg(QString("%1").arg(remainder).rightJustify(2, '0')))
                   .arg(rt.sec)
                   .arg(QString("%1").arg(ms).rightJustify(3, '0'));
+
+        m_hoveredOverAbsoluteTime->setText(msg);
     }
 
-    if (timeStr != "") {
-        m_hoveredOverNoteName->setText(i18n("%1 (%2): %3")
-                                       .arg(label.getQString())
-                                       .arg(evPitch)
-                                       .arg(timeStr));
-    } else {
-        m_hoveredOverNoteName->setText(i18n("%1 (%2)")
-                                       .arg(label.getQString())
-                                       .arg(evPitch));
-    }
+    m_haveHoveredOverNote = false;
+
+    m_hoveredOverNoteName->setText(i18n("%1 (%2)")
+                                   .arg(label.getQString())
+                                   .arg(evPitch));
 
     m_pitchRuler->drawHoverNote(evPitch);
 }
@@ -1466,6 +1503,8 @@ MatrixView::slotHoveredOverKeyChanged(unsigned int y)
 void
 MatrixView::slotHoveredOverAbsoluteTimeChanged(unsigned int time)
 {
+    if (m_haveHoveredOverNote) return;
+
     timeT t = time;
 
     int bar, beat, fraction, remainder;
@@ -2876,7 +2915,7 @@ MatrixView::slotUpdateInsertModeStatus()
 {
     QString message;
     if (isInChordMode()) {
-        message = i18n(" Chord");
+        message = i18n(" Chord ");
     } else {
         message = "";
     }

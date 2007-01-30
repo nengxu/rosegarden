@@ -4,7 +4,7 @@
     Rosegarden
     A sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <bownie@bownie.com>
@@ -204,6 +204,7 @@ protected:
     static RingBufferPool  *m_ringBufferPool;
 
     RealTime              m_currentScanPoint;
+    size_t                m_smallFileScanFrame;
 
     bool                  m_autoFade;
     RealTime  m_fadeInTime;

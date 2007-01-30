@@ -4,7 +4,7 @@
     Rosegarden
     A sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <bownie@bownie.com>
@@ -33,6 +33,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+//#define DEBUG_DECODE 1
 
 namespace Rosegarden
 {
@@ -221,8 +222,10 @@ WAVAudioFile::decode(const unsigned char *ubuf,
             if (j >= fileFrames)
                 j = fileFrames - 1;
 
-            target[tch][i] += convertBytesToSample
-                              (&ubuf[(bitsPerSample / 8) * (ch + j * sourceChannels)]);
+	    float sample = convertBytesToSample
+		(&ubuf[(bitsPerSample / 8) * (ch + j * sourceChannels)]);
+
+            target[tch][i] += sample;
         }
     }
 

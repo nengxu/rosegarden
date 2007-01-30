@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -39,6 +39,7 @@
 #include "CompositionRect.h"
 #include "AudioPreviewPainter.h"
 #include "document/RosegardenGUIDoc.h"
+#include "document/ConfigGroups.h"
 #include "gui/general/GUIPalette.h"
 #include "gui/general/RosegardenCanvasView.h"
 #include "gui/general/RosegardenScrollView.h"
@@ -62,6 +63,8 @@
 #include <qsize.h>
 #include <qstring.h>
 #include <qwidget.h>
+#include <kapplication.h>
+#include <kconfig.h>
 
 
 namespace Rosegarden
@@ -120,9 +123,13 @@ CompositionView::CompositionView(RosegardenGUIDoc* doc,
         m_artifactsDrawBufferRefresh(0, 0, visibleWidth(), visibleHeight()),
         m_lastBufferRefreshX(0),
         m_lastBufferRefreshY(0),
-        m_lastPointerRefreshX(0)
+        m_lastPointerRefreshX(0),
+        m_contextHelpShown(false)
 {
     m_toolBox = new SegmentToolBox(this, doc);
+
+    connect(m_toolBox, SIGNAL(showContextHelp(const QString &)),
+            this, SLOT(slotToolHelpChanged(const QString &)));
 
     setDragAutoScroll(true);
     setBackgroundMode(NoBackground);
@@ -144,8 +151,6 @@ CompositionView::CompositionView(RosegardenGUIDoc* doc,
 
     //     connect(this, SIGNAL(contentsMoving(int, int)),
     //             this, SLOT(slotContentsMoving(int, int)));
-    connect(model, SIGNAL(selectedSegments(const SegmentSelection &)),
-            this, SIGNAL(selectedSegments(const SegmentSelection &)));
 
     connect(model, SIGNAL(needContentUpdate()),
             this, SLOT(slotUpdateSegmentsDrawBuffer()));
@@ -183,7 +188,7 @@ CompositionView::CompositionView(RosegardenGUIDoc* doc,
     m_segmentsDrawBuffer.setOptimization(QPixmap::BestOptim);
     m_artifactsDrawBuffer.setOptimization(QPixmap::BestOptim);
 
-
+    viewport()->setMouseTracking(true);
 }
 
 void CompositionView::endAudioPreviewGeneration()
@@ -305,6 +310,8 @@ void CompositionView::slotSetTool(const QString& toolName)
 
     if (m_tool)
         m_tool->stow();
+
+    m_toolContextHelp = "";
 
     m_tool = m_toolBox->getTool(toolName);
 
@@ -1268,6 +1275,32 @@ bool CompositionView::event(QEvent* e)
     }
 
     return RosegardenScrollView::event(e);
+}
+
+void CompositionView::enterEvent(QEvent *e)
+{
+    kapp->config()->setGroup(GeneralOptionsConfigGroup);
+    if (!kapp->config()->readBoolEntry("toolcontexthelp", true)) return;
+
+    emit showContextHelp(m_toolContextHelp);
+    m_contextHelpShown = true;
+}
+
+void CompositionView::leaveEvent(QEvent *e)
+{
+    emit showContextHelp("");
+    m_contextHelpShown = false;
+}
+
+void CompositionView::slotToolHelpChanged(const QString &text)
+{
+    if (m_toolContextHelp == text) return;
+    m_toolContextHelp = text;
+
+    kapp->config()->setGroup(GeneralOptionsConfigGroup);
+    if (!kapp->config()->readBoolEntry("toolcontexthelp", true)) return;
+
+    if (m_contextHelpShown) emit showContextHelp(text);
 }
 
 void CompositionView::contentsMousePressEvent(QMouseEvent* e)

@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -55,6 +55,7 @@ namespace Rosegarden
 
 class TimeSignature;
 class Studio;
+class RosegardenGUIView;
 class RosegardenGUIDoc;
 class Key;
 class Composition;
@@ -77,6 +78,7 @@ public:
     bool write();
 
 protected:
+    RosegardenGUIView *m_view;
     RosegardenGUIDoc *m_doc;
     Composition *m_composition;
     Studio *m_studio;
@@ -84,9 +86,10 @@ protected:
     bool m_pitchBorked;
 
     void writeBar(Segment *, int barNo, int barStart, int barEnd, int col,
-                  Rosegarden::Key &key, std::string &lilyText, std::string &lilyLyrics,
+                  Rosegarden::Key &key, std::string &lilyText,
                   std::string &prevStyle, eventendlist &eventsInProgress,
-                  std::ofstream &str, bool &nextBarIsAlt1, bool &nextBarIsAlt2,
+                  std::ofstream &str, int &MultiMeasureRestCount,
+                  bool &nextBarIsAlt1, bool &nextBarIsAlt2,
                   bool &nextBarIsDouble, bool &nextBarIsEnd, bool &nextBarIsDot);
     
     timeT calculateDuration(Segment *s,
@@ -129,7 +132,7 @@ protected:
                          bool &nextBarIsAlt1, bool &nextBarIsAlt2,
                          bool &nextBarIsDouble, bool &nextBarIsEnd, bool &nextBarIsDot);
 
-    void handleText(const Event *, std::string &lilyText, std::string &lilyLyrics);
+    void handleText(const Event *, std::string &lilyText);
     void writePitch(const Event *note, const Rosegarden::Key &key, std::ofstream &);
     void writeStyle(const Event *note, std::string &prevStyle, int col, std::ofstream &, bool isInChord);
     void writeDuration(timeT duration, std::ofstream &);
@@ -140,6 +143,7 @@ private:
     static const PropertyName SKIP_PROPERTY;
     
     unsigned int m_paperSize;
+    bool m_paperLandscape;
     unsigned int m_fontSize;
     bool m_exportLyrics;
     bool m_exportHeaders;
@@ -150,19 +154,22 @@ private:
         // 1 -> first
         // 2 -> all
     unsigned int m_exportTempoMarks;
-    bool m_exportUnmuted;
+    
+    	// exportSelection meaning:
+    	// 0 -> All tracks
+    	// 1 -> Non-muted tracks
+    	// 2 -> Selected tracks
+    	// 3 -> Selected segments
+    unsigned int m_exportSelection;
     bool m_exportPointAndClick;
-    bool m_exportBarChecks;
     bool m_exportBeams;
     bool m_exportStaffGroup;
     bool m_exportStaffMerge;
 
         // languagelevel meaning:
-        // 0 -> Lilypond 2.2
-        // 1 -> Lilypond 2.4
-        // 2 -> Lilypond 2.6
-        // 3 -> Lilypond 2.8
-        // 4 -> Lilypond 2.10
+        // 0 -> Lilypond 2.6
+        // 1 -> Lilypond 2.8
+        // 2 -> Lilypond 2.10
     int m_languageLevel;
 };
 
@@ -171,3 +178,4 @@ private:
 }
 
 #endif
+

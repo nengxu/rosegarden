@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -88,6 +88,8 @@ protected slots:
 
 protected:
     MatrixResizer(MatrixView*);
+
+    void setBasicContextHelp();
 
     MatrixElement* m_currentElement;
     MatrixStaff* m_currentStaff;

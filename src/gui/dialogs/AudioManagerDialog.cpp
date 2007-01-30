@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -689,10 +689,18 @@ AudioManagerDialog::slotCancelPlayingAudio()
 void
 AudioManagerDialog::slotAdd()
 {
+    QString extensionList = i18n("*.wav|WAV files (*.wav)\n*.*|All files");
+    
+    if (RosegardenGUIApp::self()->haveAudioImporter()) {
+	//!!! This list really needs to come from the importer helper program
+	// (which has an option to supply it -- we just haven't recorded it)
+        extensionList = i18n("*.wav *.flac *.ogg *.mp3|Audio files (*.wav *.flac *.ogg *.mp3)\n*.wav|WAV files (*.wav)\n*.flac|FLAC files (*.flac)\n*.ogg|Ogg files (*.ogg)\n*.mp3|MP3 files (*.mp3)\n*.*|All files");
+    }
+
     KURL::List kurlList =
         KFileDialog::getOpenURLs(":WAVS",
+                                 extensionList,
                                  //                                 i18n("*.wav|WAV files (*.wav)\n*.mp3|MP3 files (*.mp3)"),
-                                 i18n("*.wav|WAV files (*.wav)"),
                                  this, i18n("Select one or more audio files"));
 
     KURL::List::iterator it;
@@ -1067,68 +1075,64 @@ AudioManagerDialog::addFile(const KURL& kurl)
 {
     AudioFileId id = 0;
 
-    // Now set the "last add" path so that next time we use "file add"
-    // we start looking in the same place.
-    //
-    ProgressDialog progressDlg(i18n("Generating audio preview..."),
+    AudioFileManager &aFM = m_doc->getAudioFileManager();
+
+    if (!kurl.isLocalFile()) {
+	if (!RosegardenGUIApp::self()->testAudioPath("importing a remote audio file")) return false;
+    } else if (aFM.fileNeedsConversion(qstrtostr(kurl.path()), m_sampleRate)) {
+        if (!RosegardenGUIApp::self()->testAudioPath("importing an audio file that needs to be converted or resampled")) return false;
+    }
+
+    ProgressDialog progressDlg(i18n("Adding audio file..."),
                                100,
                                this);
-    connect(&progressDlg, SIGNAL(cancelClicked()),
-            &m_doc->getAudioFileManager(), SLOT(slotStopPreview()));
 
     CurrentProgressDialog::set(&progressDlg);
-
-    QString newFilePath;
-
-    if (kurl.isLocalFile()) {
-
-        newFilePath = kurl.path();
-
-    } else { // download locally
-        if (KIO::NetAccess::download(kurl, newFilePath) == false) {
-            KMessageBox::error(this, i18n("Cannot download file %1").arg(kurl.prettyURL()));
-            return false;
-        }
-    }
-
-    try {
-        id = m_doc->
-             getAudioFileManager().addFile(std::string(newFilePath.data()));
-    } catch (AudioFileManager::BadAudioPathException e) {
-        CurrentProgressDialog::freeze();
-
-        QString errorString = i18n("Cannot add file %1: %2")
-                              .arg(kurl.prettyURL()).arg(strtoqstr(e.getMessage()));
-        KMessageBox::sorry(this, errorString);
-        return false;
-    } catch (QString e) //???
-    {
-        CurrentProgressDialog::freeze();
-
-        QString errorString = i18n("Cannot add file %1: %2")
-                              .arg(kurl.prettyURL()).arg(e);
-        KMessageBox::sorry(this, errorString);
-        return false;
-    }
+    progressDlg.progressBar()->hide();
+    progressDlg.show();
 
     // Connect the progress dialog
     //
-    connect(&m_doc->getAudioFileManager(), SIGNAL(setProgress(int)),
+    connect(&aFM, SIGNAL(setProgress(int)),
             progressDlg.progressBar(), SLOT(setValue(int)));
+    connect(&aFM, SIGNAL(setOperationName(QString)),
+            &progressDlg, SLOT(slotSetOperationName(QString)));
+    connect(&progressDlg, SIGNAL(cancelClicked()),
+            &aFM, SLOT(slotStopImport()));
 
     try {
-        m_doc->getAudioFileManager().generatePreview(id);
+        id = aFM.importURL(kurl, m_sampleRate);
+    } catch (AudioFileManager::BadAudioPathException e) {
+        CurrentProgressDialog::freeze();
+        QString errorString = i18n("Failed to add audio file. ") + strtoqstr(e.getMessage());
+        KMessageBox::sorry(this, errorString);
+        return false;
+    } catch (SoundFile::BadSoundFileException e) {
+        CurrentProgressDialog::freeze();
+        QString errorString = i18n("Failed to add audio file. ") + strtoqstr(e.getMessage());
+        KMessageBox::sorry(this, errorString);
+        return false;
+    }
+            
+    disconnect(&progressDlg, SIGNAL(cancelClicked()),
+               &aFM, SLOT(slotStopImport()));
+    connect(&progressDlg, SIGNAL(cancelClicked()),
+            &aFM, SLOT(slotStopPreview()));
+    progressDlg.progressBar()->show();
+    progressDlg.slotSetOperationName(i18n("Generating audio preview..."));
+
+    try {
+        aFM.generatePreview(id);
     } catch (Exception e) {
         CurrentProgressDialog::freeze();
 
         QString message = strtoqstr(e.getMessage()) + "\n\n" +
                           i18n("Try copying this file to a directory where you have write permission and re-add it");
         KMessageBox::information(this, message);
-        //return false;
     }
 
     disconnect(&progressDlg, SIGNAL(cancelClicked()),
-               &m_doc->getAudioFileManager(), SLOT(slotStopPreview()));
+               &aFM, SLOT(slotStopPreview()));
 
     slotPopulateFileList();
 

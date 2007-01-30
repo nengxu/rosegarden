@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -48,6 +48,8 @@
 #include "MatrixView.h"
 #include <kaction.h>
 #include <kglobal.h>
+#include <kapplication.h>
+#include <kconfig.h>
 #include <qdialog.h>
 #include <qiconset.h>
 #include <qpoint.h>
@@ -354,8 +356,14 @@ int MatrixSelector::handleMouseMove(timeT time, int height,
         return m_dispatchTool->handleMouseMove(time, height, e);
     }
 
-    if (!m_updateRect)
+
+    if (!m_updateRect) {
+        setContextHelpFor(e->pos(), 
+                          getSnapGrid().getSnapSetting() == SnapGrid::NoSnap);
         return RosegardenCanvasView::NoFollow;
+    } else {
+        clearContextHelp();
+    }
 
     int w = int(p.x() - m_selectionRect->x());
     int h = int(p.y() - m_selectionRect->y());
@@ -417,6 +425,8 @@ void MatrixSelector::handleMouseRelease(timeT time, int height, QMouseEvent *e)
 
     // Tell anyone who's interested that the selection has changed
     emit gotSelection();
+
+    setContextHelpFor(e->pos());
 }
 
 void MatrixSelector::ready()
@@ -433,6 +443,7 @@ void MatrixSelector::ready()
     connect(m_parentView->getCanvasView(), SIGNAL(contentsMoving (int, int)),
             this, SLOT(slotMatrixScrolled(int, int)));
 
+    setContextHelp(i18n("Click and drag to select; middle-click and drag to draw new note"));
 }
 
 void MatrixSelector::stow()
@@ -531,6 +542,77 @@ EventSelection* MatrixSelector::getSelection()
     } else {
         delete selection;
         return 0;
+    }
+}
+
+void MatrixSelector::setContextHelpFor(QPoint p, bool ctrlPressed)
+{
+    kapp->config()->setGroup(GeneralOptionsConfigGroup);
+    if (!kapp->config()->readBoolEntry("toolcontexthelp", true)) return;
+
+    p = m_mParentView->inverseMapPoint(p);
+
+    // same logic as in MatrixCanvasView::contentsMousePressEvent
+
+    QCanvasItemList itemList = m_mParentView->canvas()->collisions(p);
+    QCanvasItemList::Iterator it;
+    MatrixElement* mel = 0;
+    QCanvasItem* activeItem = 0;
+
+    for (it = itemList.begin(); it != itemList.end(); ++it) {
+
+        QCanvasItem *item = *it;
+        QCanvasMatrixRectangle *mRect = 0;
+
+        if (item->active()) {
+            break;
+        }
+
+        if ((mRect = dynamic_cast<QCanvasMatrixRectangle*>(item))) {
+            if (! mRect->rect().contains(p, true)) continue;
+            mel = &(mRect->getMatrixElement());
+            break;
+        }
+    }
+
+    if (!mel) {
+        setContextHelp(i18n("Click and drag to select; middle-click and drag to draw new note"));
+
+    } else {
+        
+        // same logic as in handleMouseButtonPress
+        
+        int x = int(mel->getLayoutX());
+        int width = mel->getWidth();
+        int resizeStart = int(double(width) * 0.85) + x;
+
+        // max size of 10
+        if ((x + width ) - resizeStart > 10)
+            resizeStart = x + width - 10;
+
+        EventSelection *s = m_mParentView->getCurrentSelection();
+
+        if (p.x() > resizeStart) {
+            if (s && s->getAddedEvents() > 1) {
+                setContextHelp(i18n("Click and drag to resize selected notes"));
+            } else {
+                setContextHelp(i18n("Click and drag to resize note"));
+            }
+        } else {
+            if (s && s->getAddedEvents() > 1) {
+                if (!ctrlPressed) {
+                    setContextHelp(i18n("Click and drag to move selected notes; hold Ctrl as well to copy"));
+                } else {
+                    setContextHelp(i18n("Click and drag to copy selected notes"));
+                }
+            } else {
+                if (!ctrlPressed) {
+                    setContextHelp(i18n("Click and drag to move note; hold Ctrl as well to copy"));
+                } else {
+                    setContextHelp(i18n("Click and drag to copy note"));
+                }
+            }                
+        }
     }
 }
 

@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -151,6 +151,12 @@ int MatrixPainter::handleMouseMove(timeT time,
     if (!m_currentElement)
         return RosegardenCanvasView::NoFollow;
 
+    if (getSnapGrid().getSnapSetting() != SnapGrid::NoSnap) {
+        setContextHelp(i18n("Hold Shift to avoid snapping to beat grid"));
+    } else {
+        clearContextHelp();
+    }
+
     // We don't want to use the time passed in, because it's snapped
     // to the left and we want a more particular policy
 
@@ -287,6 +293,8 @@ void MatrixPainter::handleMouseRelease(timeT endTime,
 
     m_mParentView->update();
     m_currentElement = 0;
+
+    setBasicContextHelp();
 }
 
 void MatrixPainter::ready()
@@ -295,6 +303,8 @@ void MatrixPainter::ready()
             this, SLOT(slotMatrixScrolled(int, int)));
 
     m_mParentView->setCanvasCursor(Qt::crossCursor);
+
+    setBasicContextHelp();
 }
 
 void MatrixPainter::stow()
@@ -322,6 +332,15 @@ void MatrixPainter::slotMatrixScrolled(int newX, int newY)
     int newPitch = m_currentStaff->getHeightAtCanvasCoords(p.x(), p.y());
 
     handleMouseMove(newTime, newPitch, 0);
+}
+
+void MatrixPainter::setBasicContextHelp()
+{
+    if (getSnapGrid().getSnapSetting() != SnapGrid::NoSnap) {
+        setContextHelp(i18n("Click and drag to draw a note; Shift to avoid snapping to grid"));
+    } else {
+        setContextHelp(i18n("Click and drag to draw a note"));
+    }        
 }
 
 const QString MatrixPainter::ToolName   = "painter";

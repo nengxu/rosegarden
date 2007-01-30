@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -37,14 +37,32 @@ namespace Rosegarden
 {
 
 SegmentRescaleCommand::SegmentRescaleCommand(Segment *s,
-        int multiplier,
-        int divisor) :
-        KNamedCommand(getGlobalName()),
-        m_segment(s),
-        m_newSegment(0),
-        m_multiplier(multiplier),
-        m_divisor(divisor),
-        m_detached(false)
+                                             int multiplier,
+                                             int divisor) :
+    KNamedCommand(getGlobalName()),
+    m_segment(s),
+    m_newSegment(0),
+    m_startTimeGiven(false),
+    m_startTime(s->getStartTime()),
+    m_multiplier(multiplier),
+    m_divisor(divisor),
+    m_detached(false)
+{
+    // nothing
+}
+
+SegmentRescaleCommand::SegmentRescaleCommand(Segment *s,
+                                             int multiplier,
+                                             int divisor,
+                                             timeT st) :
+    KNamedCommand(getGlobalName()),
+    m_segment(s),
+    m_newSegment(0),
+    m_startTimeGiven(true),
+    m_startTime(st),
+    m_multiplier(multiplier),
+    m_divisor(divisor),
+    m_detached(false)
 {
     // nothing
 }
@@ -74,12 +92,19 @@ SegmentRescaleCommand::execute()
 {
     timeT startTime = m_segment->getStartTime();
 
+    if (m_startTimeGiven) startTime = m_startTime;
+
     if (!m_newSegment) {
 
         m_newSegment = new Segment();
         m_newSegment->setTrack(m_segment->getTrack());
-        m_newSegment->setLabel(qstrtostr(i18n("%1 (rescaled)").arg
-                                         (strtoqstr(m_segment->getLabel()))));
+        QString oldLabel = strtoqstr(m_segment->getLabel());
+        if (oldLabel.endsWith(i18n("(rescaled)"))) {
+            m_newSegment->setLabel(m_segment->getLabel());
+        } else {
+            m_newSegment->setLabel(qstrtostr(i18n("%1 (rescaled)").arg
+                                             (oldLabel)));
+        }
         m_newSegment->setColourIndex(m_segment->getColourIndex());
 
         for (Segment::iterator i = m_segment->begin();
@@ -106,7 +131,8 @@ SegmentRescaleCommand::execute()
                                  m_newSegment->getEndTime());
 
     m_newSegment->setEndMarkerTime
-    (startTime + rescale(m_segment->getEndMarkerTime() - startTime));
+    (startTime + rescale(m_segment->getEndMarkerTime() - 
+                         m_segment->getStartTime()));
 
     m_detached = true;
 }

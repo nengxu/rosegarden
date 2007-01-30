@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -268,7 +268,8 @@ RoseXmlHandler::RoseXmlHandler(RosegardenGUIDoc *doc,
         m_createDevices(createNewDevicesWhenNeeded),
         m_haveControls(false),
         m_cancelled(false),
-        m_skipAllAudio(false)
+        m_skipAllAudio(false),
+        m_hasActiveAudio(false)
 {}
 
 RoseXmlHandler::~RoseXmlHandler()
@@ -781,7 +782,12 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         // track properties affecting newly created segments are initialized
         // to default values in the ctor, so they don't need to be initialized
         // here
-        //
+        
+	QString presetLabelStr = atts.value("defaultLabel");
+	if (labelStr) {
+	    track->setPresetLabel(presetLabelStr);
+	}	
+	
         QString clefStr = atts.value("defaultClef");
         if (clefStr) {
             track->setClef(clefStr.toInt());
@@ -794,7 +800,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
 
         QString colorStr = atts.value("defaultColour");
         if (colorStr) {
-            track->setColor(transposeStr.toInt());
+            track->setColor(colorStr.toInt());
         }
 
         QString highplayStr = atts.value("highestPlayable");
@@ -1016,6 +1022,8 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
             m_errorString = "Audio object has empty parameters";
             return false;
         }
+
+        m_hasActiveAudio = true;
 
         // attempt to insert file into AudioFileManager
         // (this checks the integrity of the file at the
@@ -1916,6 +1924,10 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
 
         m_section = InAudioFiles;
 
+        int rate = atts.value("expectedRate").toInt();
+        if (rate) {
+            getAudioFileManager().setExpectedSampleRate(rate);
+        }
 
     } else if (lcName == "configuration") {
 

@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -1613,7 +1613,7 @@ void NotationView::setupActions()
     noteAction->setExclusiveGroup("notes");
 
     icon = QIconSet(NotePixmapFactory::toQPixmap(NotePixmapFactory::makeToolbarPixmap("select")));
-    noteAction = new KRadioAction(i18n("&Select"), icon, Key_F2,
+    noteAction = new KRadioAction(i18n("&Select and Edit"), icon, Key_F2,
                                   this, SLOT(slotSelectSelected()),
                                   actionCollection(), "select");
     noteAction->setExclusiveGroup("notes");
@@ -2819,7 +2819,7 @@ bool NotationView::applyLayout(int staffNo, timeT startTime, timeT endTime)
 }
 
 void NotationView::setCurrentSelectedNote(const char *pixmapName,
-        bool rest, Note::Type n, int dots)
+                                          bool rest, Note::Type n, int dots)
 {
     NoteInserter* inserter = 0;
 
@@ -2834,7 +2834,8 @@ void NotationView::setCurrentSelectedNote(const char *pixmapName,
     setTool(inserter);
 
     m_currentNotePixmap->setPixmap
-    (NotePixmapFactory::toQPixmap(NotePixmapFactory::makeToolbarPixmap(pixmapName)));
+        (NotePixmapFactory::toQPixmap
+         (NotePixmapFactory::makeToolbarPixmap(pixmapName, true)));
 
     emit changeCurrentNote(rest, n);
 }

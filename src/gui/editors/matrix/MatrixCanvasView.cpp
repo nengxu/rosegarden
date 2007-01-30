@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -204,7 +204,7 @@ void MatrixCanvasView::contentsMouseMoveEvent(QMouseEvent* e)
         m_previousEvPitch = evPitch;
     }
 
-    if (m_mouseWasPressed)
+//    if (m_mouseWasPressed)
         emit mouseMoved(evTime, evPitch, e);
 
 }
@@ -272,6 +272,16 @@ void MatrixCanvasView::updateGridSnap(QMouseEvent *e)
         m_snapGrid->setSnapTime(m_lastSnap);
         m_isSnapTemporary = false;
     }
+}
+
+void MatrixCanvasView::enterEvent(QEvent *e)
+{
+    emit mouseEntered();
+}
+
+void MatrixCanvasView::leaveEvent(QEvent *e)
+{
+    emit mouseLeft();
 }
 
 }

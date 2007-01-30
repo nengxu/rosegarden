@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -46,6 +46,10 @@ public:
     SegmentRescaleCommand(Segment *segment,
                           int multiplier,
                           int divisor);
+    SegmentRescaleCommand(Segment *segment,
+                          int multiplier,
+                          int divisor,
+                          timeT newStartTime);
     virtual ~SegmentRescaleCommand();
 
     virtual void execute();
@@ -56,6 +60,8 @@ public:
 private:
     Segment *m_segment;
     Segment *m_newSegment;
+    bool m_startTimeGiven;
+    timeT m_startTime;
     int m_multiplier;
     int m_divisor;
     bool m_detached;

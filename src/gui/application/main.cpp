@@ -4,7 +4,7 @@
     Rosegarden
     A sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <bownie@bownie.com>
@@ -405,14 +405,14 @@ int main(int argc, char *argv[])
 
     KAboutData aboutData( "rosegarden", I18N_NOOP("Rosegarden"),
                           VERSION, description, KAboutData::License_GPL,
-                          I18N_NOOP("Copyright 2000 - 2006 Guillaume Laurent, Chris Cannam, Richard Bown\nParts copyright 1994 - 2004 Chris Cannam, Andy Green, Richard Bown, Guillaume Laurent\nLilypond fonts copyright 1997 - 2005 Han-Wen Nienhuys and Jan Nieuwenhuizen"),
+                          I18N_NOOP("Copyright 2000 - 2007 Guillaume Laurent, Chris Cannam, Richard Bown\nParts copyright 1994 - 2004 Chris Cannam, Andy Green, Richard Bown, Guillaume Laurent\nLilypond fonts copyright 1997 - 2005 Han-Wen Nienhuys and Jan Nieuwenhuizen"),
                           0,
                           "http://www.rosegardenmusic.com/",
                           "rosegarden-devel@lists.sourceforge.net");
 
     aboutData.addAuthor("Guillaume Laurent (lead)", 0, "glaurent@telegraph-road.org", "http://telegraph-road.org");
     aboutData.addAuthor("Chris Cannam (lead)", 0, "cannam@all-day-breakfast.com", "http://all-day-breakfast.com");
-    aboutData.addAuthor("Richard Bown (lead)", 0, "bownie@bownie.com", "http://bownie.com");
+    aboutData.addAuthor("Richard Bown (lead)", 0, "richard.bown@ferventsoftware.com");
     aboutData.addAuthor("D. Michael McIntyre", 0, "dmmcintyr@users.sourceforge.net");
     aboutData.addAuthor("Pedro Lopez-Cabanillas", 0, "plcl@users.sourceforge.net");
 
@@ -425,6 +425,7 @@ int main(int argc, char *argv[])
     aboutData.addCredit("Eckhard Jokisch", I18N_NOOP("German translation"), "e.jokisch@u-code.de");
     aboutData.addCredit("Kevin Donnelly", I18N_NOOP("Welsh translation"));
     aboutData.addCredit("Didier Burli", I18N_NOOP("French translation"), "didierburli@bluewin.ch");
+    aboutData.addCredit("Yves Guillemot", I18N_NOOP("French translation"), "yc.guillemot@wanadoo.fr");
     aboutData.addCredit("Daniele Medri", I18N_NOOP("Italian translation"), "madrid@linuxmeeting.net");
     aboutData.addCredit("Alessandro Musesti", I18N_NOOP("Italian translation"), "a.musesti@dmf.unicatt.it");
     aboutData.addCredit("Stefan Asserhäll", I18N_NOOP("Swedish translation"), "stefan.asserhall@comhem.se");

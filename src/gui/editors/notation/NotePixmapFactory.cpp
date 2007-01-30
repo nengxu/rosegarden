@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -1868,14 +1868,21 @@ NotePixmapFactory::makeUnknownPixmap()
 }
 
 QCanvasPixmap*
-NotePixmapFactory::makeToolbarPixmap(const char *name)
+NotePixmapFactory::makeToolbarPixmap(const char *name, bool menuSize)
 {
     QString pixmapDir = KGlobal::dirs()->findResource("appdata", "pixmaps/");
-    QString fileBase = pixmapDir + "/toolbar/" + name;
+    QString fileBase = pixmapDir + "/toolbar/";
+    if (menuSize) fileBase += "menu-";
+    fileBase += name;
     if (QFile(fileBase + ".png").exists()) {
         return new QCanvasPixmap(fileBase + ".png");
-    } else {
+    } else if (QFile(fileBase + ".xpm").exists()) {
         return new QCanvasPixmap(fileBase + ".xpm");
+    } else if (menuSize) {
+        return makeToolbarPixmap(name, false);
+    } else {
+        // this will fail, but we don't want to return a null pointer
+        return new QCanvasPixmap(fileBase + ".png");
     }
 }
 

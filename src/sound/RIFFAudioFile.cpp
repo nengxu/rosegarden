@@ -4,7 +4,7 @@
     Rosegarden
     A sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <bownie@bownie.com>
@@ -36,7 +36,10 @@ namespace Rosegarden
 RIFFAudioFile::RIFFAudioFile(unsigned int id,
                              const std::string &name,
                              const std::string &fileName):
-        AudioFile(id, name, fileName)
+    AudioFile(id, name, fileName),
+    m_subFormat(PCM),
+    m_bytesPerSecond(0),
+    m_bytesPerFrame(0)
 {}
 
 RIFFAudioFile::RIFFAudioFile(const std::string &fileName,
@@ -58,7 +61,7 @@ RIFFAudioFile::RIFFAudioFile(const std::string &fileName,
     else if (bitsPerSample == 32)
         m_subFormat = FLOAT;
     else
-        throw(BadSoundFileException(m_fileName, "Rosegarden currently only supports 16-bit PCM or IEEE floating-point RIFF files for writing"));
+        throw(BadSoundFileException(m_fileName, "Rosegarden currently only supports 16 or 32-bit PCM or IEEE floating-point RIFF files for writing"));
 
 }
 
@@ -169,21 +172,34 @@ RIFFAudioFile::scanTo(std::ifstream *file, const RealTime &time)
         file->seekg(lengthOfFormat, std::ios::cur);
 
         // check we've got data chunk start
-        if (getBytes(file, 4) != "data") {
-#ifdef DEBUG_RIFF
-            std::cerr << "RIFFAudioFile::scanTo() - can't find data chunk where "
-            << "it was expected" << std::endl;
-#endif
+	std::string chunkName;
+	int chunkLength = 0;
 
-            return false;
+        while ((chunkName = getBytes(file, 4)) != "data") {
+	    if (file->eof()) {
+		std::cerr << "RIFFAudioFile::scanTo(): failed to find data "
+			  << std::endl;
+		return false;
+	    }
+//#ifdef DEBUG_RIFF
+	    std::cerr << "RIFFAudioFile::scanTo(): skipping chunk: "
+		      << chunkName << std::endl;
+//#endif
+	    chunkLength = getIntegerFromLittleEndian(getBytes(file, 4));
+	    if (chunkLength < 0) {
+		std::cerr << "RIFFAudioFile::scanTo(): negative chunk length "
+			  << chunkLength << " for chunk " << chunkName << std::endl;
+		return false;
+	    }
+	    file->seekg(chunkLength, std::ios::cur);
         }
 
         // get the length of the data chunk, and scan past it as a side-effect
-        int dataChunkLength = getIntegerFromLittleEndian(getBytes(file, 4));
+	chunkLength = getIntegerFromLittleEndian(getBytes(file, 4));
 #ifdef DEBUG_RIFF
 
         std::cout << "RIFFAudioFile::scanTo() - data chunk size = "
-        << dataChunkLength << std::endl;
+        << chunkLength << std::endl;
 #endif
 
     } catch (BadSoundFileException s) {
@@ -315,6 +331,8 @@ RIFFAudioFile::getLength()
         m_inFile->seekg(headerLength, std::ios::cur);
         headerLength += (16 + 8);
     }
+
+    if (!m_bytesPerFrame || !m_sampleRate) return RealTime::zeroTime;
 
     double frames = (m_fileSize - headerLength) / m_bytesPerFrame;
     double seconds = frames / ((double)m_sampleRate);
@@ -495,7 +513,7 @@ RIFFAudioFile::readFormatChunk()
         }
     }
 
-    //printStats();
+   // printStats();
 
 }
 

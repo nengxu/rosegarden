@@ -4,7 +4,7 @@
     Rosegarden
     A sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <bownie@bownie.com>
@@ -36,6 +36,8 @@
 #ifdef HAVE_LIBLRDF
 #include "lrdf.h"
 #endif // HAVE_LIBLRDF
+
+#include <kdebug.h>
 
 namespace Rosegarden
 {
@@ -74,6 +76,8 @@ LADSPAPluginFactory::enumeratePlugins(MappedObjectPropertyList &list)
             continue;
         }
 
+//	std::cerr << "Enumerating plugin identifier " << *i << std::endl;
+
         list.push_back(*i);
         list.push_back(descriptor->Name);
         list.push_back(QString("%1").arg(descriptor->UniqueID));
@@ -85,17 +89,17 @@ LADSPAPluginFactory::enumeratePlugins(MappedObjectPropertyList &list)
 
         if (m_taxonomy.find(descriptor->UniqueID) != m_taxonomy.end() &&
                 m_taxonomy[descriptor->UniqueID] != "") {
-            //		std::cerr << "LADSPAPluginFactory: cat for " << *i<< " found in taxonomy as " << m_taxonomy[descriptor->UniqueID] << std::endl;
+//            		std::cerr << "LADSPAPluginFactory: cat for " << *i<< " found in taxonomy as " << m_taxonomy[descriptor->UniqueID] << std::endl;
             list.push_back(m_taxonomy[descriptor->UniqueID]);
 
         } else if (m_fallbackCategories.find(*i) !=
                    m_fallbackCategories.end()) {
             list.push_back(m_fallbackCategories[*i]);
-            //		std::cerr << "LADSPAPluginFactory: cat for " << *i  <<" found in fallbacks as " << m_fallbackCategories[*i] << std::endl;
+//            		std::cerr << "LADSPAPluginFactory: cat for " << *i  <<" found in fallbacks as " << m_fallbackCategories[*i] << std::endl;
 
         } else {
             list.push_back("");
-            //		std::cerr << "LADSPAPluginFactory: cat for " << *i << " not found (despite having " << m_fallbackCategories.size() << " fallbacks)" << std::endl;
+//            		std::cerr << "LADSPAPluginFactory: cat for " << *i << " not found (despite having " << m_fallbackCategories.size() << " fallbacks)" << std::endl;
 
         }
 
@@ -567,13 +571,17 @@ LADSPAPluginFactory::discoverPlugins()
 {
     std::vector<QString> pathList = getPluginPath();
 
-    //    std::cerr << "LADSPAPluginFactory::discoverPlugins - "
-    //	      << "discovering plugins; path is ";
+    std::cerr << "LADSPAPluginFactory::discoverPlugins - "
+    	      << "discovering plugins; path is ";
     for (std::vector<QString>::iterator i = pathList.begin();
             i != pathList.end(); ++i) {
         std::cerr << "[" << *i << "] ";
     }
     std::cerr << std::endl;
+
+    std::cerr << "LADSPAPluginFactory::discoverPlugins - "
+    	      << "trace is ";
+    std::cerr << kdBacktrace() << std::endl;
 
 #ifdef HAVE_LIBLRDF
     // Initialise liblrdf and read the description files
@@ -617,6 +625,8 @@ LADSPAPluginFactory::discoverPlugins()
     //
     lrdf_cleanup();
 #endif // HAVE_LIBLRDF
+
+    std::cerr << "LADSPAPluginFactory::discoverPlugins - done" << std::endl;
 }
 
 void
@@ -658,11 +668,11 @@ LADSPAPluginFactory::discoverPlugins(QString soName)
             }
         }
 
-        //	std::cerr << "Plugin id is " << descriptor->UniqueID
-        //		  << ", category is \"" << (category ? category : QString("(none)"))
-        //		  << "\", name is " << descriptor->Name
-        //		  << ", label is " << descriptor->Label
-        //		  << std::endl;
+//        	std::cerr << "Plugin id is " << descriptor->UniqueID
+//        		  << ", category is \"" << (category ? category : QString("(none)"))
+//        		  << "\", name is " << descriptor->Name
+//        		  << ", label is " << descriptor->Label
+//        		  << std::endl;
 
         def_uri = lrdf_get_default_uri(descriptor->UniqueID);
         if (def_uri) {
@@ -693,6 +703,7 @@ LADSPAPluginFactory::discoverPlugins(QString soName)
 
         QString identifier = PluginIdentifier::createIdentifier
                              ("ladspa", soName, descriptor->Label);
+//	std::cerr << "Added plugin identifier " << identifier << std::endl;
         m_identifiers.push_back(identifier);
 
         ++index;
@@ -725,7 +736,7 @@ LADSPAPluginFactory::generateFallbackCategories()
 
         QDir dir(path[i], "*.cat");
 
-        //	std::cerr << "LADSPAPluginFactory::generateFallbackCategories: directory " << path[i] << " has " << dir.count() << " .cat files" << std::endl;
+//        	std::cerr << "LADSPAPluginFactory::generateFallbackCategories: directory " << path[i] << " has " << dir.count() << " .cat files" << std::endl;
         for (unsigned int j = 0; j < dir.count(); ++j) {
 
             QFile file(path[i] + "/" + dir[j]);
@@ -743,7 +754,7 @@ LADSPAPluginFactory::generateFallbackCategories()
                     QString id = line.section("::", 0, 0);
                     QString cat = line.section("::", 1, 1);
                     m_fallbackCategories[id] = cat;
-                    //		    std::cerr << "set id \"" << id << "\" to cat \"" << cat << "\"" << std::endl;
+//                    		    std::cerr << "set id \"" << id << "\" to cat \"" << cat << "\"" << std::endl;
                 }
             }
         }

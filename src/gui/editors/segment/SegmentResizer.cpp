@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -35,6 +35,7 @@
 #include "base/SnapGrid.h"
 #include "commands/segment/AudioSegmentResizeFromStartCommand.h"
 #include "commands/segment/AudioSegmentRescaleCommand.h"
+#include "commands/segment/SegmentRescaleCommand.h"
 #include "commands/segment/SegmentReconfigureCommand.h"
 #include "commands/segment/SegmentResizeFromStartCommand.h"
 #include "CompositionItemHelper.h"
@@ -42,6 +43,7 @@
 #include "CompositionView.h"
 #include "document/RosegardenGUIDoc.h"
 #include "gui/general/BaseTool.h"
+#include "gui/application/RosegardenGUIApp.h"
 #include "gui/general/RosegardenCanvasView.h"
 #include "gui/widgets/ProgressDialog.h"
 #include "SegmentTool.h"
@@ -70,7 +72,7 @@ void SegmentResizer::ready()
     m_canvas->viewport()->setCursor(Qt::sizeHorCursor);
     connect(m_canvas, SIGNAL(contentsMoving (int, int)),
             this, SLOT(slotCanvasScrolled(int, int)));
-
+    setBasicContextHelp(false);
 }
 
 void SegmentResizer::stow()
@@ -140,43 +142,43 @@ void SegmentResizer::handleMouseButtonRelease(QMouseEvent *e)
         }
 
         if (changeMade()) {
+                
+            if (newStartTime > newEndTime) std::swap(newStartTime, newEndTime);
 
-            if (m_resizeStart && (newStartTime < newEndTime)) {
-
-                //!!! deal with rescale
-
-                if (segment->getType() == Segment::Audio) {
-                    addCommandToHistory(new AudioSegmentResizeFromStartCommand(segment, newStartTime));
-                } else {
-                    addCommandToHistory(new SegmentResizeFromStartCommand(segment, newStartTime));
-                }
-
-            } else if (rescale) {
+            if (rescale) {
 
                 if (segment->getType() == Segment::Audio) {
 
-                    //!!! too much stuff to be here
+                    try {
+                        m_doc->getAudioFileManager().testAudioPath();
+                    } catch (AudioFileManager::BadAudioPathException) {
+                        if (KMessageBox::warningContinueCancel
+                            (0,
+                             i18n("The audio file path does not exist or is not writable.\nYou must set the audio file path to a valid directory in Document Properties before rescaling an audio file.\nWould you like to set it now?"),
+                             i18n("Warning"),
+                             i18n("Set audio file path")) == KMessageBox::Continue) {
+                            RosegardenGUIApp::self()->slotOpenAudioPathSettings();
+                        }
+                    }
 
                     float ratio = float(newEndTime - newStartTime) /
                         float(oldEndTime - oldStartTime);
 
                     AudioSegmentRescaleCommand *command =
-                        new AudioSegmentRescaleCommand(m_doc, segment, ratio);
+                        new AudioSegmentRescaleCommand(m_doc, segment, ratio,
+                                                       newStartTime, newEndTime);
 
                     ProgressDialog progressDlg
                         (i18n("Rescaling audio file..."), 100, 0);
                     progressDlg.setAutoClose(false);
                     progressDlg.setAutoReset(false);
                     progressDlg.show();
-
                     command->connectProgressDialog(&progressDlg);
                     
                     addCommandToHistory(command);
 
                     progressDlg.setLabel(i18n("Generating audio preview..."));
-
                     command->disconnectProgressDialog(&progressDlg);
-
                     connect(&m_doc->getAudioFileManager(), SIGNAL(setProgress(int)),
                             progressDlg.progressBar(), SLOT(setValue(int)));
                     connect(&progressDlg, SIGNAL(cancelClicked()),
@@ -187,28 +189,45 @@ void SegmentResizer::handleMouseButtonRelease(QMouseEvent *e)
                         RosegardenGUIApp::self()->slotAddAudioFile(fid);
                         m_doc->getAudioFileManager().generatePreview(fid);
                     }
-
+                
                 } else {
                     
-                    //!!! handle non-audio rescale
-
+                    SegmentRescaleCommand *command =
+                        new SegmentRescaleCommand(segment,
+                                                  newEndTime - newStartTime,
+                                                  oldEndTime - oldStartTime,
+                                                  newStartTime);
+                    addCommandToHistory(command);
                 }
-
             } else {
 
-                SegmentReconfigureCommand *command =
-                    new SegmentReconfigureCommand("Resize Segment");
+                if (m_resizeStart) {
 
-                int trackPos = CompositionItemHelper::getTrackPos(m_currentItem, m_canvas->grid());
+                    if (segment->getType() == Segment::Audio) {
+                        addCommandToHistory(new AudioSegmentResizeFromStartCommand
+                                            (segment, newStartTime));
+                    } else {
+                        addCommandToHistory(new SegmentResizeFromStartCommand
+                                            (segment, newStartTime));
+                    }
 
-                Composition &comp = m_doc->getComposition();
-                Track *track = comp.getTrackByPosition(trackPos);
+                } else {
 
-                command->addSegment(segment,
-                                    newStartTime,
-                                    newEndTime,
-                                    track->getId());
-                addCommandToHistory(command);
+                    SegmentReconfigureCommand *command =
+                        new SegmentReconfigureCommand("Resize Segment");
+
+                    int trackPos = CompositionItemHelper::getTrackPos
+                        (m_currentItem, m_canvas->grid());
+
+                    Composition &comp = m_doc->getComposition();
+                    Track *track = comp.getTrackByPosition(trackPos);
+
+                    command->addSegment(segment,
+                                        newStartTime,
+                                        newEndTime,
+                                        track->getId());
+                    addCommandToHistory(command);
+                }
             }
         }
     }
@@ -217,14 +236,33 @@ void SegmentResizer::handleMouseButtonRelease(QMouseEvent *e)
     m_canvas->updateContents();
     setChangeMade(false);
     m_currentItem = CompositionItem();
+    setBasicContextHelp();
 }
 
 int SegmentResizer::handleMouseMove(QMouseEvent *e)
 {
     //     RG_DEBUG << "SegmentResizer::handleMouseMove" << endl;
 
-    if (!m_currentItem)
+    bool rescale = (e->state() & Qt::ControlButton);
+
+    if (!m_currentItem) {
+        setBasicContextHelp(rescale);
         return RosegardenCanvasView::NoFollow;
+    }
+
+    if (rescale) {
+        if (!m_canvas->isFineGrain()) {
+            setContextHelp(i18n("Hold Shift to avoid snapping to beat grid"));
+        } else {
+            clearContextHelp();
+        }
+    } else {
+        if (!m_canvas->isFineGrain()) {
+            setContextHelp(i18n("Hold Shift to avoid snapping to beat grid; hold Ctrl as well to rescale contents"));
+        } else {
+            setContextHelp("Hold Ctrl to rescale contents");
+        }
+    }
 
     Segment* segment = CompositionItemHelper::getSegment(m_currentItem);
 
@@ -339,6 +377,15 @@ bool SegmentResizer::cursorIsCloseEnoughToEdge(const CompositionItem& p, const Q
         return false;
     }
 }
+
+void SegmentResizer::setBasicContextHelp(bool ctrlPressed)
+{
+    if (ctrlPressed) {
+        setContextHelp(i18n("Click and drag to resize a segment; hold Ctrl as well to rescale its contents"));
+    } else {
+        setContextHelp(i18n("Click and drag to rescale segment"));
+    }        
+}    
 
 const QString SegmentResizer::ToolName  = "segmentresizer";
 

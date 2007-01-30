@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -205,8 +205,8 @@ signals:
     void audioSegmentAutoSplit(Segment*);
     void editRepeat(Segment*, timeT);
 
-    void selectedSegments(const SegmentSelection &);
-    
+    void showContextHelp(const QString &);
+
 protected:
     virtual bool event(QEvent *);
 
@@ -217,6 +217,9 @@ protected:
 
     virtual void viewportPaintEvent(QPaintEvent*);
     virtual void resizeEvent(QResizeEvent*);
+
+    virtual void enterEvent(QEvent *);
+    virtual void leaveEvent(QEvent *);
 
     virtual void viewportPaintRect(QRect);
     
@@ -283,6 +286,8 @@ protected slots:
         slotArtifactsDrawBufferNeedsRefresh(r);
     }
 
+    void slotToolHelpChanged(const QString &);
+
 protected:         
 
     //--------------- Data members ---------------------------------
@@ -332,6 +337,9 @@ protected:
     int          m_lastBufferRefreshY;
     int          m_lastPointerRefreshX;
     QPixmap      m_backgroundPixmap;
+
+    QString      m_toolContextHelp;
+    bool         m_contextHelpShown;
 
     mutable CompositionModel::AudioPreviewDrawData m_audioPreviewRects;
     mutable CompositionModel::RectRanges m_notationPreviewRects;

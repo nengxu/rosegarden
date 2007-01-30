@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -787,7 +787,7 @@ void CompositionModelImpl::setSelected(const itemcontainer& items)
 
 void CompositionModelImpl::setSelected(const Segment* segment, bool selected)
 {
-    RG_DEBUG << "CompositionModelImpl::setSelected" << endl;
+    RG_DEBUG << "CompositionModelImpl::setSelected " << segment << " - " << selected << endl;
     if (selected) {
         if (!isSelected(segment))
             m_selectedSegments.insert(const_cast<Segment*>(segment));

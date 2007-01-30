@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -1255,6 +1255,7 @@ NotationStaff::renderSingleElement(ViewElementList::iterator &vli,
                 }
             }
         } else if (elt->event()->isa(Guitar::Fingering::EventType)) {
+
             // Create a fretboard pixmap
             try {
 
@@ -1281,7 +1282,7 @@ NotationStaff::renderSingleElement(ViewElementList::iterator &vli,
                          int(coords.first),
                          coords.second);
                 //		    }
-            } catch (Exception e) { // Text ctor failed
+            } catch (Exception e) { // Fretboard ctor failed
                 NOTATION_DEBUG << "Bad fretboard event" << endl;
             }
 

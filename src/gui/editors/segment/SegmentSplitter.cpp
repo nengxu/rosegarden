@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -40,6 +40,7 @@
 #include <qpoint.h>
 #include <qrect.h>
 #include <qstring.h>
+#include <klocale.h>
 
 
 namespace Rosegarden
@@ -59,6 +60,7 @@ SegmentSplitter::~SegmentSplitter()
 void SegmentSplitter::ready()
 {
     m_canvas->viewport()->setCursor(Qt::splitHCursor);
+    setBasicContextHelp();
 }
 
 void
@@ -81,6 +83,8 @@ SegmentSplitter::handleMouseButtonPress(QMouseEvent *e)
 void
 SegmentSplitter::handleMouseButtonRelease(QMouseEvent *e)
 {
+    setBasicContextHelp();
+
     CompositionItem item = m_canvas->getFirstItemAt(e->pos());
 
     if (item) {
@@ -109,10 +113,12 @@ SegmentSplitter::handleMouseButtonRelease(QMouseEvent *e)
 int
 SegmentSplitter::handleMouseMove(QMouseEvent *e)
 {
+    setBasicContextHelp();
+
     CompositionItem item = m_canvas->getFirstItemAt(e->pos());
 
     if (item) {
-        m_canvas->viewport()->setCursor(Qt::blankCursor);
+//        m_canvas->viewport()->setCursor(Qt::blankCursor);
         drawSplitLine(e);
         delete item;
         return RosegardenCanvasView::FollowHorizontal;
@@ -151,6 +157,16 @@ void
 SegmentSplitter::contentsMouseDoubleClickEvent(QMouseEvent*)
 {
     // DO NOTHING
+}
+
+void
+SegmentSplitter::setBasicContextHelp()
+{
+    if (!m_canvas->isFineGrain()) {
+        setContextHelp(i18n("Click on a segment to split it in two; hold Shift to avoid snapping to beat grid"));
+    } else {
+        setContextHelp(i18n("Click on a segment to split it in two"));
+    }
 }
 
 const QString SegmentSplitter::ToolName = "segmentsplitter";

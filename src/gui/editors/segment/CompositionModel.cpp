@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -72,8 +72,11 @@ const CompositionModel::rectcontainer& CompositionModelImpl::getRectanglesIn(con
 
         if (sr.intersects(rect)) {
             bool tmpSelected = isTmpSelected(s),
-                               pTmpSelected = wasTmpSelected(s);
+                 pTmpSelected = wasTmpSelected(s);
 
+//            RG_DEBUG << "CompositionModelImpl::getRectanglesIn: segment " << s 
+//                     << " selected : " << isSelected(s) << " - tmpSelected : " << isTmpSelected(s) << endl;
+                       
             if (isSelected(s) || isTmpSelected(s) || sr.intersects(m_selectionRect)) {
                 sr.setSelected(true);
             }

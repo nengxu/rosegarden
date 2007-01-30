@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -183,7 +183,7 @@ public slots:
 
     // And this one from the user interface going down
     //
-    void slotSetSelectedSegments(const SegmentSelection &segments);
+    void slotPropagateSegmentSelection(const SegmentSelection &segments);
 
     void slotShowRulers(bool);
 

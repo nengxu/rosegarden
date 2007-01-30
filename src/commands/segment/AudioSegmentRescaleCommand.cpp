@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -49,6 +49,29 @@ AudioSegmentRescaleCommand::AudioSegmentRescaleCommand(RosegardenGUIDoc *doc,
     m_segment(s),
     m_newSegment(0),
     m_fid(-1),
+    m_timesGiven(false),
+    m_startTime(0),
+    m_endMarkerTime(0),
+    m_ratio(ratio),
+    m_detached(false)
+{
+    // nothing
+}
+
+AudioSegmentRescaleCommand::AudioSegmentRescaleCommand(RosegardenGUIDoc *doc,
+                                                       Segment *s,
+						       float ratio,
+                                                       timeT st,
+                                                       timeT emt) :
+    KNamedCommand(getGlobalName()),
+    m_afm(&doc->getAudioFileManager()),
+    m_stretcher(new AudioFileTimeStretcher(m_afm)),
+    m_segment(s),
+    m_newSegment(0),
+    m_fid(-1),
+    m_timesGiven(true),
+    m_startTime(st),
+    m_endMarkerTime(emt),
     m_ratio(ratio),
     m_detached(false)
 {
@@ -98,8 +121,12 @@ AudioSegmentRescaleCommand::execute()
     if (!m_newSegment) {
 
         m_newSegment = new Segment(*m_segment);
-        m_newSegment->setLabel(qstrtostr(i18n("%1 (rescaled)").arg
-                                         (strtoqstr(m_segment->getLabel()))));
+
+        QString oldLabel = strtoqstr(m_segment->getLabel());
+        if (!oldLabel.endsWith(i18n("(rescaled)"))) {
+            m_newSegment->setLabel(qstrtostr(i18n("%1 (rescaled)").arg
+                                             (oldLabel)));
+        }
 
         AudioFileId sourceFileId = m_segment->getAudioFileId();
         float absoluteRatio = m_ratio;
@@ -113,6 +140,11 @@ AudioSegmentRescaleCommand::execute()
             std::cerr << "AudioSegmentRescaleCommand: unstretched file id " << sourceFileId << ", prev ratio " << m_segment->getStretchRatio() << ", resulting ratio " << absoluteRatio << std::endl;
         }
 
+        if (!m_timesGiven) {
+            m_endMarkerTime = m_segment->getStartTime() +
+                (m_segment->getEndMarkerTime() - m_segment->getStartTime()) * m_ratio;
+        }
+
         try {
             m_fid = m_stretcher->getStretchedAudioFile(sourceFileId,
                                                        absoluteRatio);
@@ -121,8 +153,16 @@ AudioSegmentRescaleCommand::execute()
             m_newSegment->setStretchRatio(absoluteRatio);
             m_newSegment->setAudioStartTime(m_segment->getAudioStartTime() *
                                             m_ratio);
-            m_newSegment->setAudioEndTime(m_segment->getAudioEndTime() *
-                                          m_ratio);
+            if (m_timesGiven) {
+                m_newSegment->setStartTime(m_startTime);
+                m_newSegment->setAudioEndTime(m_segment->getAudioEndTime() *
+                                              m_ratio);
+                m_newSegment->setEndMarkerTime(m_endMarkerTime);
+            } else {
+                m_newSegment->setEndMarkerTime(m_endMarkerTime);
+                m_newSegment->setAudioEndTime(m_segment->getAudioEndTime() *
+                                              m_ratio);
+            }
         } catch (SoundFile::BadSoundFileException e) {
             std::cerr << "AudioSegmentRescaleCommand: ERROR: BadSoundFileException: "
                       << e.getMessage() << std::endl;

@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -28,19 +28,21 @@
 
 #include <qmutex.h>
 #include <qthread.h>
+#include <qstringlist.h>
+#include <qobject.h>
 
-
-
+class KProcess;
 
 namespace Rosegarden
 {
 
-
-
-class StartupTester : public QThread
+class StartupTester : public QObject, public QThread
 {
+    Q_OBJECT
+
 public:
     StartupTester();
+    virtual ~StartupTester();
     
     virtual void run();
 
@@ -49,15 +51,26 @@ public:
     // If you call one of these methods before the startup test has
     // completed in the background, then it will block.
     
-    bool haveProjectPackager();
-    bool haveLilypondView();
-    
+    bool haveProjectPackager(QStringList *missingApplications);
+    bool haveLilypondView(QStringList *missingApplications);
+    bool haveAudioFileImporter(QStringList *missingApplications);
+
+protected slots:
+    void stdoutReceived(KProcess *, char *, int);
+
 protected:
     bool m_ready;
     QMutex m_projectPackagerMutex;
     QMutex m_lilypondViewMutex;
+    QMutex m_audioFileImporterMutex;
     bool m_haveProjectPackager;
+    QStringList m_projectPackagerMissing;
     bool m_haveLilypondView;
+    QStringList m_lilypondViewMissing;
+    bool m_haveAudioFileImporter;
+    QStringList m_audioFileImporterMissing;
+    QString m_stdoutBuffer;
+    void parseStdoutBuffer(QStringList &target);
 };
 
 

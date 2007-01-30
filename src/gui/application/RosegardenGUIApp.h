@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -312,6 +312,9 @@ public:
     virtual void setCursor(const QCursor&);
 
     bool isTrackEditorPlayTracking() const;
+
+    bool testAudioPath(QString op); // and open the dialog to set it if unset
+    bool haveAudioImporter() const { return m_haveAudioImporter; }
 
 protected:
 
@@ -951,6 +954,11 @@ public slots:
      * toggles the transport window
      */
     void slotToggleTransport();
+
+    /**
+     * hides the transport window
+     */
+    void slotHideTransport();
 
     /**
      * toggles the tools toolbar
@@ -1618,6 +1626,8 @@ private:
     QTimer *m_stopTimer;
 
     StartupTester *m_startupTester;
+
+    bool m_haveAudioImporter;
 
     RosegardenParameterArea *m_parameterArea;
 

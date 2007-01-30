@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -97,8 +97,13 @@ void MatrixEraser::handleLeftButtonPress(timeT,
 void MatrixEraser::ready()
 {
     m_mParentView->setCanvasCursor(Qt::pointingHandCursor);
+    setBasicContextHelp();
 }
 
+void MatrixEraser::setBasicContextHelp()
+{
+    setContextHelp(i18n("Click on a note to delete it"));
+}
 
 const QString MatrixEraser::ToolName    = "eraser";
 

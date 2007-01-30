@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -67,7 +67,7 @@ void SegmentPencil::ready()
     m_canvas->viewport()->setCursor(Qt::ibeamCursor);
     connect(m_canvas, SIGNAL(contentsMoving (int, int)),
             this, SLOT(slotCanvasScrolled(int, int)));
-    setContextHelp(i18n("Click and drag to draw new segments"));
+    setContextHelpFor(QPoint(0, 0));
 }
 
 void SegmentPencil::stow()
@@ -141,6 +141,8 @@ void SegmentPencil::handleMouseButtonRelease(QMouseEvent* e)
 {
     if (e->button() == RightButton)
         return ;
+
+    setContextHelpFor(e->pos());
 
     if (m_newRect) {
 
@@ -248,14 +250,15 @@ void SegmentPencil::handleMouseButtonRelease(QMouseEvent* e)
 
 int SegmentPencil::handleMouseMove(QMouseEvent *e)
 {
-    if (!m_newRect)
+    if (!m_newRect) {
+        setContextHelpFor(e->pos());
         return RosegardenCanvasView::NoFollow;
+    }
 
-    if (m_canvas->isFineGrain()) {
-        setContextHelp("");
-    } else {
-        std::cerr << "Setting mouse-move context help" << std::endl;
+    if (!m_canvas->isFineGrain()) {
         setContextHelp(i18n("Hold Shift to avoid snapping to bar lines"));
+    } else {
+        clearContextHelp();
     }
 
     QRect tmpRect = m_canvas->getTmpRect();
@@ -300,6 +303,24 @@ int SegmentPencil::handleMouseMove(QMouseEvent *e)
 
     m_canvas->setTmpRect(tmpRect);
     return RosegardenCanvasView::FollowHorizontal;
+}
+
+void SegmentPencil::setContextHelpFor(QPoint p)
+{
+    int trackPosition = m_canvas->grid().getYBin(p.y());
+
+    if (trackPosition < m_doc->getComposition().getNbTracks()) {
+        Track *t = m_doc->getComposition().getTrackByPosition(trackPosition);
+        if (t) {
+            InstrumentId id = t->getInstrument();
+            if (id >= AudioInstrumentBase && id < MidiInstrumentBase) {
+                setContextHelp(i18n("Record or drop audio here"));
+                return;
+            }
+        }
+    }
+
+    setContextHelp(i18n("Click and drag to draw an empty segment"));
 }
 
 const QString SegmentPencil::ToolName   = "segmentpencil";

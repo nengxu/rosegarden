@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -57,12 +57,12 @@ protected:
     QComboBox *m_lilyPaperSize;
     QComboBox *m_lilyFontSize;
     QComboBox *m_lilyTempoMarks;
+    QComboBox *m_lilyExportSelection;
+    QCheckBox *m_lilyPaperLandscape;
     QCheckBox *m_lilyExportHeaders;
     QCheckBox *m_lilyExportLyrics;
     QCheckBox *m_lilyExportMidi;
-    QCheckBox *m_lilyExportUnmuted;
     QCheckBox *m_lilyExportPointAndClick;
-    QCheckBox *m_lilyExportBarChecks;
     QCheckBox *m_lilyExportBeams;
     QCheckBox *m_lilyExportStaffGroup;
     QCheckBox *m_lilyExportStaffMerge;

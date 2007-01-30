@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -108,9 +108,10 @@ public:
     void processAsynchronousMidi(const MappedComposition &mC,
                                  AudioManagerDialog *aMD);
 
-    // Before playing and recording (throws exceptions)
+    // Before playing and recording.  If warnUser is true, show the
+    // user a warning dialog if there is a problem with the setup.
     //
-    void checkSoundDriverStatus();
+    void checkSoundDriverStatus(bool warnUser);
 
     /**
      * Send program changes and align Instrument lists before playback
@@ -208,6 +209,8 @@ public:
     
     void enableMIDIThruRouting(bool state);
     
+    int getSampleRate(); // may return 0 if sequencer uncontactable
+
 public slots:
 
     void update();
@@ -246,6 +249,7 @@ protected:
     void checkRefreshStatus();
     void sendMIDIRecordingDevice(const QString recordDeviceStr);
     void restoreRecordSubscriptions();
+    bool shouldWarnForImpreciseTimer();
     
     //--------------- Data members ---------------------------------
 
@@ -305,7 +309,9 @@ protected:
 
     bool                       m_lastLowLatencySwitchSent;
 
-    timeT          m_lastTransportStartPosition;
+    timeT                      m_lastTransportStartPosition;
+
+    int                        m_sampleRate;
 };
 
 

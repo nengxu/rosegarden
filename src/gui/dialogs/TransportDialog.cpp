@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -35,6 +35,7 @@
 #include "gui/studio/StudioControl.h"
 #include "gui/widgets/Label.h"
 #include "sound/MappedEvent.h"
+#include "document/ConfigGroups.h"
 #include <kconfig.h>
 #include <kglobal.h>
 #include <qaccel.h>
@@ -58,7 +59,7 @@ namespace Rosegarden
 TransportDialog::TransportDialog(QWidget *parent,
                                  const char *name,
                                  WFlags flags):
-    KDockMainWindow(parent, name, flags | WType_Dialog | WDestructiveClose),
+    QWidget(parent, name, WType_TopLevel | WStyle_DialogBorder | WStyle_Minimize | WStyle_SysMenu | WDestructiveClose),
     m_transport(0),
     m_lastTenHours(0),
     m_lastUnitHours(0),
@@ -258,12 +259,50 @@ TransportDialog::TransportDialog(QWidget *parent,
     // accelerator object
     //
     m_accelerators = new QAccel(this);
-
-
 }
 
 TransportDialog::~TransportDialog()
-{}
+{
+    if (isVisible()) {
+        KConfig* config = rgapp->config();
+        config->setGroup(GeneralOptionsConfigGroup);
+        config->writeEntry("transportx", x());
+        config->writeEntry("transporty", y());
+    }
+}
+
+void
+TransportDialog::show()
+{
+    KConfig* config = rgapp->config();
+    config->setGroup(GeneralOptionsConfigGroup);
+    int x = config->readNumEntry("transportx", -1);
+    int y = config->readNumEntry("transporty", -1);
+    if (x >= 0 && y >= 0) {
+        int dw = QApplication::desktop()->availableGeometry(QPoint(x, y)).width();
+        int dh = QApplication::desktop()->availableGeometry(QPoint(x, y)).height();
+        if (x + m_transport->width() > dw) x = dw - m_transport->width();
+        if (y + m_transport->height() > dh) y = dh - m_transport->height();
+        move(x, y);
+//        std::cerr << "TransportDialog::show(): moved to " << x << "," << y << std::endl;
+        QWidget::show();
+//        std::cerr << "TransportDialog::show(): now at " << this->x() << "," << this->y() << std::endl;
+    } else {
+        QWidget::show();
+    }
+}
+
+void
+TransportDialog::hide()
+{
+    if (isVisible()) {
+        KConfig* config = rgapp->config();
+        config->setGroup(GeneralOptionsConfigGroup);
+        config->writeEntry("transportx", x());
+        config->writeEntry("transporty", y());
+    }
+    QWidget::hide();
+}
 
 void
 TransportDialog::loadPixmaps()

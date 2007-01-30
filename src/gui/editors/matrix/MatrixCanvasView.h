@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -94,6 +94,9 @@ signals:
 
     void mouseReleased(timeT time, int pitch, QMouseEvent*);
 
+    void mouseEntered();
+    void mouseLeft();
+
 public slots:
     void slotExternalWheelEvent(QWheelEvent*);
 
@@ -120,6 +123,9 @@ protected:
      * event
      */
     virtual void contentsMouseDoubleClickEvent(QMouseEvent*);
+
+    virtual void enterEvent(QEvent *);
+    virtual void leaveEvent(QEvent *);
 
     /**
      * Update the value of snap grid according to the button's state

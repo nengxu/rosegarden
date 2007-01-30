@@ -3,7 +3,7 @@
   Rosegarden
   A sequencer and musical notation editor.
 
-  This program is Copyright 2000-2006
+  This program is Copyright 2000-2007
   Guillaume Laurent   <glaurent@telegraph-road.org>,
   Chris Cannam        <cannam@all-day-breakfast.com>,
   Richard Bown        <bownie@bownie.com>
@@ -35,6 +35,8 @@
 #include "PeakFile.h"
 #include "Exception.h"
 
+#include <kurl.h>
+
 // AudioFileManager loads and maps audio files to their
 // internal references (ids).  A point of contact for
 // AudioFile information - loading a Composition should
@@ -48,6 +50,8 @@
 // Rosegarden is stored in the GUI process.  This class
 // is not (and should not be) used elsewhere within the
 // sound or sequencer libraries.
+
+class KProcess;
 
 namespace Rosegarden
 {
@@ -90,6 +94,27 @@ public:
     //
     AudioFileId addFile(const std::string &filePath);
     // throw BadAudioPathException
+
+    // Return true if a file would require importFile to import it, rather
+    // than a simple addFile.  You can use importFile even when a file
+    // doesn't need conversion, but this tells you whether it's necessary
+    //
+    bool fileNeedsConversion(const std::string &filePath,
+                             int targetSampleRate = 0);
+
+    // Create an audio file by importing (i.e. converting and/or
+    // resampling) an existing file using the external conversion
+    // utility
+    //
+    AudioFileId importFile(const std::string &filePath,
+			   int targetSampleRate = 0);
+    // throw BadAudioPathException, BadSoundFileException
+
+    // Create an audio file by importing from a URL
+    //
+    AudioFileId importURL(const KURL &filePath,
+			  int targetSampleRate = 0);
+    // throw BadAudioPathException, BadSoundFileException
 
     // Insert an audio file into the AudioFileManager and get the
     // first allocated id for it.  Used from the RG file as we already
@@ -258,13 +283,21 @@ public:
     //
     PeakFileManager& getPeakFileManager() { return m_peakManager; }
 
+    int getExpectedSampleRate() const { return m_expectedSampleRate; }
+    void setExpectedSampleRate(int rate) { m_expectedSampleRate = rate; }
+
+    std::set<int> getActualSampleRates() const;
+
 signals:
     void setProgress(int);
+    void setOperationName(QString);
 
 public slots:
     // Cancel a running preview
     //
     void slotStopPreview();
+
+    void slotStopImport();
 
 private:
     std::string getFileInPath(const std::string &file);
@@ -283,6 +316,10 @@ private:
     // the document is not saved.
     std::set<AudioFile *> m_recordedAudioFiles;
     std::set<AudioFile *> m_derivedAudioFiles;
+
+    KProcess *m_importProcess;
+
+    int m_expectedSampleRate;
 };
 
 }

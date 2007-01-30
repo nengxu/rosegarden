@@ -5,7 +5,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
 
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -120,7 +120,8 @@ public:
 
     // Other support methods for producing pixmaps for other contexts:
 
-    static QCanvasPixmap *makeToolbarPixmap(const char *name);
+    static QCanvasPixmap *makeToolbarPixmap(const char *name,
+                                            bool menuSize = false);
     static QCanvasPixmap *makeNoteMenuPixmap(timeT duration,
                                              timeT &errorReturn);
     static QCanvasPixmap *makeMarkMenuPixmap(Mark);

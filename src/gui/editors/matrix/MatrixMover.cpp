@@ -4,7 +4,7 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
  
-    This program is Copyright 2000-2006
+    This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
         Richard Bown        <richard.bown@ferventsoftware.com>
@@ -199,8 +199,18 @@ int MatrixMover::handleMouseMove(timeT newTime,
     MATRIX_DEBUG << "MatrixMover::handleMouseMove() time = "
     << newTime << endl;
 
+    if (e) {
+        setBasicContextHelp(e->state() & Qt::ControlButton);
+    }
+
     if (!m_currentElement || !m_currentStaff)
         return RosegardenCanvasView::NoFollow;
+
+    if (getSnapGrid().getSnapSetting() != SnapGrid::NoSnap) {
+        setContextHelp(i18n("Hold Shift to avoid snapping to beat grid"));
+    } else {
+        clearContextHelp();
+    }
 
     if (e) newTime = getDragTime(e, newTime);
 
@@ -397,6 +407,8 @@ void MatrixMover::handleMouseRelease(timeT newTime,
 
     m_mParentView->canvas()->update();
     m_currentElement = 0;
+
+    setBasicContextHelp();
 }
 
 void MatrixMover::ready()
@@ -406,6 +418,7 @@ void MatrixMover::ready()
     connect(this, SIGNAL(hoveredOverNoteChanged(int, bool, timeT)),
             m_mParentView, SLOT(slotHoveredOverNoteChanged(int, bool, timeT)));
     m_mParentView->setCanvasCursor(Qt::sizeAllCursor);
+    setBasicContextHelp();
 }
 
 void MatrixMover::stow()
@@ -435,6 +448,24 @@ void MatrixMover::slotMatrixScrolled(int newX, int newY)
     int newPitch = m_currentStaff->getHeightAtCanvasCoords(p.x(), p.y());
 
     handleMouseMove(newTime, newPitch, 0);
+}
+
+void MatrixMover::setBasicContextHelp(bool ctrlPressed)
+{
+    EventSelection *selection = m_mParentView->getCurrentSelection();
+    if (!selection || selection->getAddedEvents() < 2) {
+        if (!ctrlPressed) {
+            setContextHelp(i18n("Click and drag to move a note; hold Ctrl as well to copy it"));
+        } else {
+            setContextHelp(i18n("Click and drag to copy a note"));
+        }
+    } else {
+        if (!ctrlPressed) {
+            setContextHelp(i18n("Click and drag to move selected notes; hold Ctrl as well to copy"));
+        } else {
+            setContextHelp(i18n("Click and drag to copy selected notes"));
+        }
+    }
 }
 
 const QString MatrixMover::ToolName = "mover";
