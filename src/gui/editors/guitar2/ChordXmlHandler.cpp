@@ -88,8 +88,10 @@ bool ChordXmlHandler::endElement(const QString& namespaceURI,
 
 bool ChordXmlHandler::characters(const QString& ch)
 {
-    if (m_inFingering)
-        parseFingering(ch.simplifyWhiteSpace());
+    QString ch2 = ch.simplifyWhiteSpace();
+    
+    if (!ch2.isEmpty() && m_inFingering)
+        parseFingering(ch2);
 
     return true;
 }
@@ -106,13 +108,13 @@ bool ChordXmlHandler::parseFingering(const QString& ch) {
     Fingering2 fingering = Fingering2::parseFingering(ch, errString);
     
     if (m_errorString.isEmpty()) {
-        m_errorString = errString;
+        NOTATION_DEBUG << "ChordXmlHandler::parseFingering : adding fingering " << ch << endl;
         m_currentChord.addFingering(fingering);
         return true;    
+    } else {
+        m_errorString = errString;
+        return false;
     }
-    
-    return false;
-    
 }
 
 bool

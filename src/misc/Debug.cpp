@@ -107,7 +107,7 @@ operator<<(kdbgstream &dbg, const Rosegarden::Colour &c)
 kdbgstream&
 operator<<(kdbgstream &dbg, const Rosegarden::Chord2 &c)
 {
-    dbg << "Chord root = " << c.getRoot() << ", ext = '" << c.getExt() << "'";
+    dbg << "Chord root = " << c.getRoot() << ", ext = '" << c.getExt() << "', nb fingerings = " << c.getNbFingerings();
     return dbg;
 }
 

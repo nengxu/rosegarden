@@ -52,17 +52,17 @@ GuitarChordSelectorDialog::GuitarChordSelectorDialog(QWidget *parent)
     m_fingeringBox = new FingeringBox2(false, page);
     topLayout->addMultiCellWidget(m_fingeringBox, 1, 1, 0, 1);
     
-    connect(m_rootNotesList, SIGNAL(selected(int)),
-            this, SLOT(slotRootSelected(int)));
-    connect(m_chordExtList, SIGNAL(selected(int)),
-            this, SLOT(slotChordExtSelected(int)));
-    connect(m_fingeringsList, SIGNAL(selected(int)),
-            this, SLOT(slotFingeringSelected(int)));
+    connect(m_rootNotesList, SIGNAL(highlighted(int)),
+            this, SLOT(slotRootHighlighted(int)));
+    connect(m_chordExtList, SIGNAL(highlighted(int)),
+            this, SLOT(slotChordExtHighlighted(int)));
+    connect(m_fingeringsList, SIGNAL(highlighted(int)),
+            this, SLOT(slotFingeringHighlighted(int)));
 }
 
 void
-GuitarChordSelectorDialog::init() {
-
+GuitarChordSelectorDialog::init()
+{
     // populate the listboxes
     //
     std::vector<QString> chordFiles = getAvailableChordFiles();
@@ -80,26 +80,35 @@ GuitarChordSelectorDialog::init() {
         
         ChordMap2::chordarray chords = m_chordMap.getChords(rootList.first(), extList.first());
         populateFingerings(chords);
+
+        m_chord.setRoot(rootList.first());
+        m_chord.setExt(extList.first());
     }
 }
 
 void
-GuitarChordSelectorDialog::slotRootSelected(int i)
+GuitarChordSelectorDialog::slotRootHighlighted(int i)
 {
+    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotRootHighlighted " << i << endl;
+
     m_chord.setRoot(m_rootNotesList->text(i));
 }
 
 void
-GuitarChordSelectorDialog::slotChordExtSelected(int i)
+GuitarChordSelectorDialog::slotChordExtHighlighted(int i)
 {
+    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotChordExtHighlighted " << i << endl;
+
     m_chord.setExt(m_chordExtList->text(i));
     ChordMap2::chordarray chords = m_chordMap.getChords(m_chord.getRoot(), m_chord.getExt());
     populateFingerings(chords);    
 }
 
 void
-GuitarChordSelectorDialog::slotFingeringSelected(int i)
+GuitarChordSelectorDialog::slotFingeringHighlighted(int i)
 {
+    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotFingeringHighlighted " << i << endl;
+    
     QString f = m_fingeringsList->text(i);
     QString errString;
     Fingering2 fingering = Fingering2::parseFingering(f, errString);
@@ -134,6 +143,7 @@ GuitarChordSelectorDialog::populateFingerings(const ChordMap2::chordarray& chord
         const Chord2& chord = *i;
         for(unsigned int j = 0; j < chord.getNbFingerings(); ++j) {
             QString fingeringString = chord.getFingering(j).toString();
+            NOTATION_DEBUG << "GuitarChordSelectorDialog::populateFingerings " << chord << " - fingering : " << fingeringString << endl;
             // TODO add pixmap
             m_fingeringsList->insertItem(fingeringString);
         }

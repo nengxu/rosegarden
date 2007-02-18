@@ -54,9 +54,9 @@ public:
     void setChord(const Chord2&);
 
 protected slots:
-    void slotRootSelected(int);
-    void slotChordExtSelected(int);
-    void slotFingeringSelected(int);
+    void slotRootHighlighted(int);
+    void slotChordExtHighlighted(int);
+    void slotFingeringHighlighted(int);
     
 protected:
 

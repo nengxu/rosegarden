@@ -45,10 +45,13 @@ ChordMap2::getChords(const QString& root, const QString& ext) const
     Chord2 tmp(root);
     
     for (chordset::const_iterator i = m_map.lower_bound(tmp); i != m_map.end(); ++i) {
+//        NOTATION_DEBUG << "ChordMap2::getChords : checking chord " << *i << endl;
+        
         if (i->getRoot() != root)
             break;
 
-        if (ext.isNull() || i->getExt() == ext) {
+        if (/* ext.isNull() || */ i->getExt() == ext) {
+//            NOTATION_DEBUG << "ChordMap2::getChords : adding chord " << *i << endl;
             res.push_back(*i);
         }
     }
