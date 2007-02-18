@@ -68,45 +68,12 @@
 #include <qstring.h>
 #include <qstringlist.h>
 #include "XmlStorableEvent.h"
-
+#include "XmlSubHandler.h"
 
 namespace Rosegarden
 {
 
 using namespace BaseProperties;
-
-class XmlSubHandler
-{
-public:
-    XmlSubHandler();
-    virtual ~XmlSubHandler();
-    
-    virtual bool startElement(const QString& namespaceURI,
-                              const QString& localName,
-                              const QString& qName,
-                              const QXmlAttributes& atts) = 0;
-
-    /**
-     * @param finished : if set to true on return, means that
-     * the handler should be deleted
-     */
-    virtual bool endElement(const QString& namespaceURI,
-                            const QString& localName,
-                            const QString& qName,
-                            bool& finished) = 0;
-
-    virtual bool characters(const QString& ch) = 0;
-};
-
-XmlSubHandler::XmlSubHandler()
-{
-}
-
-XmlSubHandler::~XmlSubHandler()
-{
-}
-
-//----------------------------------------
 
 class ConfigurationXmlSubHandler : public XmlSubHandler
 {

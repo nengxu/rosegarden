@@ -320,6 +320,8 @@ SET(document_SRCS
 	document/RoseXmlHandler.h
 	document/XmlStorableEvent.cpp
 	document/XmlStorableEvent.h
+	document/XmlSubHandler.cpp
+	document/XmlSubHandler.h
 )
 
 SET(guitar_test_SRCS
@@ -498,6 +500,18 @@ SET(gui_SRCS
 	gui/editors/guitar/Note.h
 	gui/editors/guitar/NoteSymbols.cpp
 	gui/editors/guitar/NoteSymbols.h
+	gui/editors/guitar2/Chord2.h
+	gui/editors/guitar2/Chord2.cpp
+	gui/editors/guitar2/Fingering2.h
+	gui/editors/guitar2/Fingering2.cpp
+	gui/editors/guitar2/FingeringBox2.h
+	gui/editors/guitar2/FingeringBox2.cpp
+	gui/editors/guitar2/ChordXmlHandler.h
+	gui/editors/guitar2/ChordXmlHandler.cpp
+	gui/editors/guitar2/ChordMap2.h
+	gui/editors/guitar2/ChordMap2.cpp
+	gui/editors/guitar2/GuitarChordSelectorDialog.h
+	gui/editors/guitar2/GuitarChordSelectorDialog.cpp
 	gui/editors/matrix/MatrixCanvasView.cpp
 	gui/editors/matrix/MatrixCanvasView.h
 	gui/editors/matrix/MatrixElement.cpp

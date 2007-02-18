@@ -39,6 +39,7 @@
 #include "base/Segment.h"
 #include "base/RealTime.h"
 #include "base/Colour.h"
+#include "gui/editors/guitar2/Chord2.h"
 
 #ifndef NDEBUG
 
@@ -100,6 +101,13 @@ kdbgstream&
 operator<<(kdbgstream &dbg, const Rosegarden::Colour &c)
 {
     dbg << "Colour : rgb = " << c.getRed() << "," << c.getGreen() << "," << c.getBlue();
+    return dbg;
+}
+
+kdbgstream&
+operator<<(kdbgstream &dbg, const Rosegarden::Chord2 &c)
+{
+    dbg << "Chord root = " << c.getRoot() << ", ext = '" << c.getExt() << "'";
     return dbg;
 }
 

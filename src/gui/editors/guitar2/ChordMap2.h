@@ -1,4 +1,3 @@
-
 /* -*- c-basic-offset: 4 indent-tabs-mode: nil -*- vi:set ts=8 sts=4 sw=4: */
 
 /*
@@ -23,39 +22,38 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef _RG_FRETBOARDINSERTIONCOMMAND_H_
-#define _RG_FRETBOARDINSERTIONCOMMAND_H_
+#ifndef CHORDMAP2_H_
+#define CHORDMAP2_H_
 
-#include "document/BasicCommand.h"
-#include "base/Event.h"
-#include "gui/editors/guitar2/Chord2.h"
+#include "Chord2.h"
 
+#include <qstringlist.h>
+#include <set>
 
 namespace Rosegarden
 {
 
-class Segment;
-class Event;
-
-
-class FretboardInsertionCommand : public BasicCommand
+class ChordMap2
 {
 public:
-    FretboardInsertionCommand(Segment &segment,
-                              timeT time,
-                              const Chord2& chord);
-    virtual ~FretboardInsertionCommand();
-
-    Event *getLastInsertedEvent() { return m_lastInsertedEvent; }
-
+    typedef std::vector<Chord2> chordarray;
+    
+	ChordMap2();
+    
+    void insert(const Chord2&);
+    
+    chordarray getChords(const QString& root, const QString& ext = QString::null) const;
+    
+    QStringList getRootList() const;
+    QStringList getExtList(const QString& root) const;
+    
+    void debugDump() const;
+    
 protected:
-    virtual void modifySegment();
-
-    Chord2 m_chord;
-    Event *m_lastInsertedEvent;
+    typedef std::multiset<Chord2, Chord2::ChordCmp> chordset; 
+    chordset m_map;
 };
-
 
 }
 
-#endif
+#endif /*CHORDMAP2_H_*/

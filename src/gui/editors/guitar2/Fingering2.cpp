@@ -1,4 +1,3 @@
-
 /* -*- c-basic-offset: 4 indent-tabs-mode: nil -*- vi:set ts=8 sts=4 sw=4: */
 
 /*
@@ -23,39 +22,51 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef _RG_FRETBOARDINSERTIONCOMMAND_H_
-#define _RG_FRETBOARDINSERTIONCOMMAND_H_
-
-#include "document/BasicCommand.h"
-#include "base/Event.h"
-#include "gui/editors/guitar2/Chord2.h"
-
+#include "Fingering2.h"
+#include <qstringlist.h>
+#include <sstream>
 
 namespace Rosegarden
 {
 
-class Segment;
-class Event;
-
-
-class FretboardInsertionCommand : public BasicCommand
+Fingering2::Fingering2(unsigned int nbStrings) :
+    m_strings(nbStrings)
 {
-public:
-    FretboardInsertionCommand(Segment &segment,
-                              timeT time,
-                              const Chord2& chord);
-    virtual ~FretboardInsertionCommand();
-
-    Event *getLastInsertedEvent() { return m_lastInsertedEvent; }
-
-protected:
-    virtual void modifySegment();
-
-    Chord2 m_chord;
-    Event *m_lastInsertedEvent;
-};
-
-
 }
 
-#endif
+Fingering2
+Fingering2::parseFingering(const QString& ch, QString& errorString)
+{
+    QStringList tokens = QStringList::split(' ', ch);
+
+    unsigned int idx = 0;
+    Fingering2 fingering;
+    
+    for(QStringList::iterator i = tokens.begin(); i != tokens.end(); ++i, ++idx) {
+        QString t = *i;
+        bool b;
+        unsigned int fn = t.toUInt(&b);
+        if (b)
+            fingering[idx] = fn;
+        else if (t.lower() == 'x')
+            fingering[idx] = Fingering2::MUTED;
+        else {
+            errorString = i18n("couldn't parse fingering '%1' in '%2'").arg(t).arg(ch);            
+        }
+    }
+
+    return fingering;
+}
+
+std::string Fingering2::toString() const
+{
+    std::stringstream s;
+    
+    for(std::vector<int>::const_iterator i = m_strings.begin(); i != m_strings.end(); ++i) {
+        s << *i << ' ';
+    }
+
+    return s.str();
+}
+
+}
