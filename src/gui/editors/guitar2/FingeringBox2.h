@@ -39,6 +39,9 @@ class Fingering2;
 
 class FingeringBox2 : public QWidget
 {
+    static const unsigned int IMG_WIDTH  = 200;
+    static const unsigned int IMG_HEIGHT = 200;
+    
 public:
 	FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name = 0);
     FingeringBox2(bool editable, QWidget *parent, const char* name = 0);
@@ -50,8 +53,9 @@ public:
     const Fingering2& getFingering() { return m_fingering; }
     
 protected:
+    void init();
 
-    virtual void drawContents(QPainter *);
+    virtual void paintEvent(QPaintEvent*);
 
     virtual void mousePressEvent(QMouseEvent*);
     virtual void mouseReleaseEvent(QMouseEvent*);

@@ -84,6 +84,10 @@ GuitarChordSelectorDialog::init()
         m_chord.setRoot(rootList.first());
         m_chord.setExt(extList.first());
     }
+    
+    m_rootNotesList->setCurrentItem(0);
+    m_chordExtList->setCurrentItem(0);
+    m_fingeringsList->setCurrentItem(0);
 }
 
 void
@@ -101,7 +105,9 @@ GuitarChordSelectorDialog::slotChordExtHighlighted(int i)
 
     m_chord.setExt(m_chordExtList->text(i));
     ChordMap2::chordarray chords = m_chordMap.getChords(m_chord.getRoot(), m_chord.getExt());
-    populateFingerings(chords);    
+    populateFingerings(chords);
+    
+    m_fingeringsList->setCurrentItem(0);        
 }
 
 void
@@ -118,6 +124,8 @@ GuitarChordSelectorDialog::slotFingeringHighlighted(int i)
         m_chord.addFingering(fingering);
 
     m_chord.setSelectedFingeringIdx(0);
+    
+    m_fingeringBox->setFingering(fingering);
 }
 
 
@@ -148,6 +156,7 @@ GuitarChordSelectorDialog::populateFingerings(const ChordMap2::chordarray& chord
             m_fingeringsList->insertItem(fingeringString);
         }
     }
+
 }
 
 void

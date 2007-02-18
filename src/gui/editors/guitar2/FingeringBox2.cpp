@@ -26,6 +26,8 @@
 #include "FingeringBox2.h"
 #include "Fingering2.h"
 
+#include "misc/Debug.h"
+
 namespace Rosegarden
 {
 
@@ -39,7 +41,7 @@ FingeringBox2::FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool 
     m_editable(editable),
     m_noteSymbols(m_nbStrings, m_nbFretsDisplayed)
 {
-    
+    init();    
 }
 
 FingeringBox2::FingeringBox2(bool editable, QWidget *parent, const char* name)
@@ -50,11 +52,25 @@ FingeringBox2::FingeringBox2(bool editable, QWidget *parent, const char* name)
     m_editable(editable),
     m_noteSymbols(m_nbStrings, m_nbFretsDisplayed)
 {
+    init();
+}
+
+void
+FingeringBox2::init()
+{
+    setFixedSize(IMG_WIDTH, IMG_HEIGHT);
+    setBackgroundMode(PaletteBase);
     
 }
 
-void FingeringBox2::drawContents(QPainter *p)
+void
+FingeringBox2::paintEvent(QPaintEvent*)
 {
+    QPainter pp(this);
+    QPainter *p = &pp;
+    
+    NOTATION_DEBUG << "FingeringBox2::drawContents()" << endl;
+    
     // For all strings on guitar
     //   check state of string
     //     If pressed display note
@@ -139,7 +155,8 @@ FingeringBox2::getFretNumber(const QPoint& pos)
     return fretNum;
 }
 
-void FingeringBox2::mousePressEvent(QMouseEvent *event)
+void
+FingeringBox2::mousePressEvent(QMouseEvent *event)
 {
     if (!m_editable)
         return;
@@ -154,7 +171,8 @@ void FingeringBox2::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void FingeringBox2::mouseReleaseEvent(QMouseEvent *event)
+void
+FingeringBox2::mouseReleaseEvent(QMouseEvent *event)
 {
     if(!m_editable)
         return ;
@@ -165,7 +183,8 @@ void FingeringBox2::mouseReleaseEvent(QMouseEvent *event)
     processMouseRelease(release_string_num, release_fret_num);
 }
 
-void FingeringBox2::processMouseRelease(unsigned int release_string_num,
+void
+FingeringBox2::processMouseRelease(unsigned int release_string_num,
                                         unsigned int release_fret_num)
 {
     if(m_press_fret_num == release_fret_num){
@@ -222,7 +241,8 @@ void FingeringBox2::processMouseRelease(unsigned int release_string_num,
 }
 
 
-void FingeringBox2::mouseMoveEvent( QMouseEvent *event )
+void
+FingeringBox2::mouseMoveEvent( QMouseEvent *event )
 {
     if (!m_editable)
         return;

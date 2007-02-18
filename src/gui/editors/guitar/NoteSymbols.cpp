@@ -195,6 +195,8 @@ NoteSymbols::drawFrets ( QPainter* p )
     p->setPen(pen);
     unsigned int y_pos = (getY ( imgHeight, 0, m_nbOfFrets )).first + TOP_FRETBOARD_MARGIN;
     
+    NOTATION_DEBUG << "NoteSymbols::drawFrets : " << m_nbOfFrets << endl;
+    
     // Horizontal lines
     for ( unsigned int i = 0; i <= m_nbOfFrets; ++i ) {
 
@@ -203,6 +205,8 @@ NoteSymbols::drawFrets ( QPainter* p )
                      y_pos,
                      endXPos.first,
                      y_pos);
+        NOTATION_DEBUG << "NoteSymbols::drawFrets : " << QPoint(getLeftBorder(imgWidth), y_pos)
+                       << " to " << QPoint(endXPos.first, y_pos) << endl;
                      
 
        y_pos += rowHeight;
