@@ -27,7 +27,7 @@
 #ifndef _RG_FINGERINGBOX2_H_
 #define _RG_FINGERINGBOX2_H_
 
-#include <qwidget.h>
+#include <qframe.h>
 
 #include "gui/editors/guitar/NoteSymbols.h"
 #include "Fingering2.h"
@@ -37,7 +37,7 @@ namespace Rosegarden
 
 class Fingering2;
 
-class FingeringBox2 : public QWidget
+class FingeringBox2 : public QFrame
 {
     static const unsigned int IMG_WIDTH  = 200;
     static const unsigned int IMG_HEIGHT = 200;
@@ -55,7 +55,7 @@ public:
 protected:
     void init();
 
-    virtual void paintEvent(QPaintEvent*);
+    virtual void drawContents(QPainter*);
 
     virtual void mousePressEvent(QMouseEvent*);
     virtual void mouseReleaseEvent(QMouseEvent*);

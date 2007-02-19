@@ -50,6 +50,7 @@ public:
      */
     int getStringStatus(int stringNb) { return m_strings[stringNb]; } 
     void setStringStatus(int stringNb, int status) { m_strings[stringNb] = status; } 
+    unsigned int getStartFret() const;
     
     int operator[](int i) const { return m_strings[i]; }
     int& operator[](int i) { return m_strings[i]; }

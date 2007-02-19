@@ -88,12 +88,11 @@ NoteSymbols::drawNoteSymbol ( QPainter* p,
                               int fretNb,
                               bool transient )
 {
-    //std::cout << "NoteSymbols::drawNoteSymbol - string: " << position << ", fret:" << fret
-    //<< std::endl;
+    NOTATION_DEBUG << "NoteSymbols::drawNoteSymbol - string: " << stringNb << ", fret:" << fretNb << endl;
 
     QRect v = p->viewport();
     posPair x_pos = getX ( v.width(), stringNb, m_nbOfStrings );
-    posPair y_pos = getY ( v.height(), fretNb, m_nbOfFrets );
+    posPair y_pos = getY ( v.height(), fretNb - 1, m_nbOfFrets );
     double columnWidth = x_pos.second;
     unsigned int radius;
 

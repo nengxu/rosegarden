@@ -34,6 +34,18 @@ Fingering2::Fingering2(unsigned int nbStrings) :
 {
 }
 
+unsigned int
+Fingering2::getStartFret() const
+{
+    int min = 999;
+    for(std::vector<int>::const_iterator i = m_strings.begin(); i != m_strings.end(); ++i) {
+        if (*i < min && *i > 0)
+            min = *i;
+    }
+    
+    return min;
+}
+
 Fingering2
 Fingering2::parseFingering(const QString& ch, QString& errorString)
 {

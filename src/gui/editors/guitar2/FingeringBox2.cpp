@@ -32,7 +32,7 @@ namespace Rosegarden
 {
 
 FingeringBox2::FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name)
-    : QWidget(parent, name),
+    : QFrame(parent, name),
     m_nbFretsDisplayed(nbFrets),
     m_startFret(0),
     m_nbStrings(nbStrings),
@@ -45,7 +45,7 @@ FingeringBox2::FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool 
 }
 
 FingeringBox2::FingeringBox2(bool editable, QWidget *parent, const char* name)
-    : QWidget(parent, name),
+    : QFrame(parent, name),
     m_nbFretsDisplayed(4),
     m_startFret(0),
     m_nbStrings(Fingering2::DEFAULT_NB_STRINGS),
@@ -58,17 +58,15 @@ FingeringBox2::FingeringBox2(bool editable, QWidget *parent, const char* name)
 void
 FingeringBox2::init()
 {
+    setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
     setFixedSize(IMG_WIDTH, IMG_HEIGHT);
     setBackgroundMode(PaletteBase);
     
 }
 
 void
-FingeringBox2::paintEvent(QPaintEvent*)
+FingeringBox2::drawContents(QPainter* p)
 {
-    QPainter pp(this);
-    QPainter *p = &pp;
-    
     NOTATION_DEBUG << "FingeringBox2::drawContents()" << endl;
     
     // For all strings on guitar
@@ -91,17 +89,18 @@ FingeringBox2::paintEvent(QPaintEvent*)
                 
         switch (*pos) {
         case Fingering2::OPEN:
-                //std::cout << "Fingering::drawContents - drawing Open symbol" << std::endl;
-                m_noteSymbols.drawOpenSymbol(p, m_nbStrings - stringNb);
+                NOTATION_DEBUG << "Fingering::drawContents - drawing Open symbol on string " << stringNb << endl;
+                m_noteSymbols.drawOpenSymbol(p, stringNb);
                 break;
 
         case Fingering2::MUTED:
-                //std::cout << "Fingering::drawContents - drawing Mute symbol" << std::endl;
-                m_noteSymbols.drawMuteSymbol(p, m_nbStrings - stringNb);
+                NOTATION_DEBUG << "Fingering::drawContents - drawing Mute symbol on string" << stringNb << endl;
+                m_noteSymbols.drawMuteSymbol(p, stringNb);
                 break;
 
         default:
-                m_noteSymbols.drawNoteSymbol(p, m_nbStrings - stringNb, *pos - m_startFret, false);
+                NOTATION_DEBUG << "Fingering::drawContents - drawing note symbol at " << *pos << " on string " << stringNb << endl;
+                m_noteSymbols.drawNoteSymbol(p, stringNb, *pos - (m_startFret - 1), false);
                 break;
         }
     }
@@ -118,6 +117,7 @@ FingeringBox2::paintEvent(QPaintEvent*)
 void
 FingeringBox2::setFingering(const Fingering2& f) {
     m_fingering = f;
+    m_startFret = m_fingering.getStartFret();
     update();
 }
 

@@ -2,6 +2,10 @@
 <chords>
 	<chordset root="C">
 
+		<chord ext="AA">
+			<fingering>1 1 1 1 1 1</fingering>
+		</chord>
+
 		<chord>
 			<fingering>x 3 2 0 1 0</fingering>
 			<fingering>x 3 5 5 5 0</fingering>
@@ -79,13 +83,13 @@
 
 		<chord ext="maj7">
 			<fingering>x 3 2 0 0 0</fingering>
-			<fingering>x 3 5 4 5 1</fingering>
+			<fingering>x 1 5 4 5 1</fingering>
 			<fingering>x x 10 9 8 7</fingering>
 		</chord>
 
 		<chord ext="maj7/G">
 			<fingering>3 3 2 0 0 0</fingering>
-			<fingering>3 3 5 4 5 1</fingering>
+			<fingering>3 1 5 4 5 1</fingering>
 		</chord>
 
 		<chord ext="maj7/E">
