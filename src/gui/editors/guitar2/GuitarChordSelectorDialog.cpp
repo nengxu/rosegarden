@@ -165,12 +165,16 @@ GuitarChordSelectorDialog::populateFingerings(const ChordMap2::chordarray& chord
 QPixmap
 GuitarChordSelectorDialog::getFingeringPixmap(const Fingering2& fingering) const
 {
-    QPixmap pixmap(75, 75);
+    QPixmap pixmap(FINGERING_PIXMAP_WIDTH, FINGERING_PIXMAP_HEIGHT);
     pixmap.fill();
     
     unsigned int startFret = fingering.getStartFret();
-    QPainter pp(&pixmap);
+    QPainter pp(&pixmap);    
     QPainter *p = &pp;
+    
+    p->setViewport(FINGERING_PIXMAP_H_MARGIN, FINGERING_PIXMAP_W_MARGIN,
+                   FINGERING_PIXMAP_WIDTH  - FINGERING_PIXMAP_W_MARGIN,
+                   FINGERING_PIXMAP_HEIGHT - FINGERING_PIXMAP_H_MARGIN);
     
     const Guitar::NoteSymbols& noteSymbols = m_fingeringBox->getNoteSymbols();    
     noteSymbols.drawFrets(p);

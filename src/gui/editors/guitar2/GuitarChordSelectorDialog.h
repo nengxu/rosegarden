@@ -87,6 +87,11 @@ protected:
     //! Fingering constructor object
     FingeringBox2* m_fingeringBox;
 
+    static const unsigned int FINGERING_PIXMAP_HEIGHT = 75;
+    static const unsigned int FINGERING_PIXMAP_WIDTH = 75;
+    static const unsigned int FINGERING_PIXMAP_H_MARGIN = 5;
+    static const unsigned int FINGERING_PIXMAP_W_MARGIN = 5;
+    
 };
 
 }
