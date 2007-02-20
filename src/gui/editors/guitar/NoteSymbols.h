@@ -86,19 +86,19 @@ public:
     //! Display a mute symbol in the QPainter object
     void
     drawMuteSymbol ( QPainter* p,
-                     unsigned int position );
+                     unsigned int position ) const;
 
     /* This code borrowed from KGuitar 0.5 */
     //! Display a open symbol in the QPainter object (KGuitar)
     void drawOpenSymbol ( QPainter* p,
-                          unsigned int position );
+                          unsigned int position ) const;
 
     /* This code borrowed from KGuitar 0.5 */
     //! Display a note symbol in the QPainter object (KGuitar)
     void drawNoteSymbol ( QPainter* p,
                           unsigned int stringNb,
                           int fretNb,
-                          bool transient = false );
+                          bool transient = false ) const;
 
     /* This code borrowed from KGuitar 0.5 */
     /**
@@ -109,48 +109,48 @@ public:
     void drawBarreSymbol ( QPainter* p,
                            int fretNb,
                            unsigned int start,
-                           unsigned int end );
+                           unsigned int end ) const;
 
     void drawFretNumber ( QPainter* p,
-                          unsigned int fret_num );
+                          unsigned int fret_num ) const;
 
-    void drawFrets ( QPainter* p );
+    void drawFrets ( QPainter* p ) const;
 
-    void drawStrings ( QPainter* p );
+    void drawStrings ( QPainter* p ) const;
 
-    unsigned int getTopBorder ( unsigned int imgHeight );
+    unsigned int getTopBorder ( unsigned int imgHeight ) const;
 
-    unsigned int getBottomBorder ( unsigned int imgHeight );
+    unsigned int getBottomBorder ( unsigned int imgHeight ) const;
 
-    unsigned int getLeftBorder ( unsigned int imgWidth );
+    unsigned int getLeftBorder ( unsigned int imgWidth ) const;
 
-    unsigned int getRightBorder ( unsigned int imgWidth );
+    unsigned int getRightBorder ( unsigned int imgWidth ) const;
 
-    unsigned int getFretboardWidth ( int imgWidth );
+    unsigned int getFretboardWidth ( int imgWidth ) const;
 
-    unsigned int getFretboardHeight ( int imgHeight );
+    unsigned int getFretboardHeight ( int imgHeight ) const;
 
     std::pair<bool, unsigned int>
     getStringNumber ( int imgWidth,
                       unsigned int x_pos,
-                      unsigned int string_num );
+                      unsigned int string_num ) const;
 
     std::pair<bool, unsigned int>
     getFretNumber ( int imgHeight,
                     unsigned int y_pos,
-                    unsigned int maxFretNum );
+                    unsigned int maxFretNum ) const;
 
     QRect getTransientNoteSymbolRect(QSize fretboardSize,
                                      unsigned int stringNb,
-                                     int fretNb);
+                                     int fretNb) const;
     
 private:
 
     posPair
-    getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfStrings );
+    getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfStrings ) const;
 
     posPair
-    getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets );
+    getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets ) const;
 
 
     unsigned int m_nbOfStrings;

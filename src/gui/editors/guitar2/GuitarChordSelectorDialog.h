@@ -64,7 +64,9 @@ protected:
     void parseChordFile(const QString& chordFileName);
     void populateFingerings(const ChordMap2::chordarray&);
     void populateExtensions(const QStringList& extList);
-    
+
+    QPixmap getFingeringPixmap(const Fingering2& fingering) const;
+         
     //! Find all chord list files on the system
     std::vector<QString> getAvailableChordFiles();
 

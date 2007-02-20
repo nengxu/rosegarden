@@ -7,7 +7,7 @@ namespace Rosegarden
 namespace Guitar
 {
 NoteSymbols::posPair
-NoteSymbols::getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfStrings )
+NoteSymbols::getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfStrings ) const
 {
     /*
             std::cout << "NoteSymbols::getX - input values" << std::endl
@@ -22,7 +22,7 @@ NoteSymbols::getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfString
 }
 
 NoteSymbols::posPair
-NoteSymbols::getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets )
+NoteSymbols::getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets ) const
 {
     /*
             std::cout << "NoteSymbols::getY - input values" << std::endl
@@ -38,7 +38,7 @@ NoteSymbols::getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets )
 
 void
 NoteSymbols::drawMuteSymbol ( QPainter* p,
-                              unsigned int position )
+                              unsigned int position ) const
 {
     QRect v = p->viewport();
 
@@ -64,7 +64,7 @@ NoteSymbols::drawMuteSymbol ( QPainter* p,
 
 void
 NoteSymbols::drawOpenSymbol ( QPainter* p,
-                              unsigned int position )
+                              unsigned int position ) const
 {
     QRect v = p->viewport();
     posPair x_pos = getX ( v.width(), position, m_nbOfStrings );
@@ -86,7 +86,7 @@ void
 NoteSymbols::drawNoteSymbol ( QPainter* p,
                               unsigned int stringNb,
                               int fretNb,
-                              bool transient )
+                              bool transient ) const
 {
     NOTATION_DEBUG << "NoteSymbols::drawNoteSymbol - string: " << stringNb << ", fret:" << fretNb << endl;
 
@@ -124,7 +124,7 @@ void
 NoteSymbols::drawBarreSymbol ( QPainter* p,
                                int fretNb,
                                unsigned int start,
-                               unsigned int end )
+                               unsigned int end ) const
 {
 
     //std::cout << "NoteSymbols::drawBarreSymbol - start: " << start << ", end:" << end << std::endl;
@@ -150,7 +150,7 @@ NoteSymbols::drawBarreSymbol ( QPainter* p,
 
 void
 NoteSymbols::drawFretNumber ( QPainter* p,
-                              unsigned int fret_num )
+                              unsigned int fret_num ) const
 {
     if ( fret_num > 1 ) {
         QRect v = p->viewport();
@@ -170,7 +170,7 @@ NoteSymbols::drawFretNumber ( QPainter* p,
 }
 
 void
-NoteSymbols::drawFrets ( QPainter* p )
+NoteSymbols::drawFrets ( QPainter* p ) const
 {
     /*
             std::cout << "NoteSymbols::drawFretHorizontalLines" << std::endl
@@ -189,7 +189,7 @@ NoteSymbols::drawFrets ( QPainter* p )
     unsigned int rowHeight = yFretboard / m_nbOfFrets;
 
     QPen pen;
-    pen.setWidth(FRET_PEN_WIDTH);  
+    pen.setWidth(imgHeight >= 100 ? FRET_PEN_WIDTH : FRET_PEN_WIDTH / 2);  
     p->save();
     p->setPen(pen);
     unsigned int y_pos = (getY ( imgHeight, 0, m_nbOfFrets )).first + TOP_FRETBOARD_MARGIN;
@@ -216,7 +216,7 @@ NoteSymbols::drawFrets ( QPainter* p )
 }
 
 void
-NoteSymbols::drawStrings ( QPainter* p )
+NoteSymbols::drawStrings ( QPainter* p ) const
 {
     // Vertical lines
     QRect v = p->viewport();
@@ -232,7 +232,7 @@ NoteSymbols::drawStrings ( QPainter* p )
     unsigned int x_pos = (getX ( imgWidth, 0, m_nbOfStrings )).first;
 
     QPen pen;
-    pen.setWidth(STRING_PEN_WIDTH);  
+    pen.setWidth(imgWidth >= 100 ? STRING_PEN_WIDTH : STRING_PEN_WIDTH / 2);  
     p->save();
     p->setPen(pen);
 
@@ -253,7 +253,7 @@ NoteSymbols::drawStrings ( QPainter* p )
 
 QRect NoteSymbols::getTransientNoteSymbolRect(QSize fretboardSize,
                                               unsigned int stringNb,
-                                              int fretNb)
+                                              int fretNb) const
 {
     posPair x_pos = getX ( fretboardSize.width(), stringNb, m_nbOfStrings );
     posPair y_pos = getY ( fretboardSize.height(), fretNb, m_nbOfFrets );
@@ -267,19 +267,19 @@ QRect NoteSymbols::getTransientNoteSymbolRect(QSize fretboardSize,
 }
 
 unsigned int
-NoteSymbols::getTopBorder ( unsigned int imgHeight )
+NoteSymbols::getTopBorder ( unsigned int imgHeight ) const
 {
     return static_cast<unsigned int>( TOP_BORDER_PERCENTAGE * imgHeight );
 }
 
 unsigned int
-NoteSymbols::getBottomBorder ( unsigned int imgHeight )
+NoteSymbols::getBottomBorder ( unsigned int imgHeight ) const
 {
     return static_cast<unsigned int>( imgHeight * BOTTOM_BORDER_PERCENTAGE );
 }
 
 unsigned int
-NoteSymbols::getLeftBorder ( unsigned int imgWidth )
+NoteSymbols::getLeftBorder ( unsigned int imgWidth ) const
 {
     unsigned int left = static_cast<unsigned int>( imgWidth * LEFT_BORDER_PERCENTAGE );
     if ( left < 15 ) {
@@ -289,19 +289,19 @@ NoteSymbols::getLeftBorder ( unsigned int imgWidth )
 }
 
 unsigned int
-NoteSymbols::getRightBorder ( unsigned int imgWidth )
+NoteSymbols::getRightBorder ( unsigned int imgWidth ) const
 {
     return static_cast<unsigned int>( imgWidth * RIGHT_BORDER_PERCENTAGE );
 }
 
 unsigned int
-NoteSymbols::getFretboardWidth ( int imgWidth )
+NoteSymbols::getFretboardWidth ( int imgWidth ) const
 {
     return static_cast<unsigned int>( imgWidth * FRETBOARD_WIDTH_PERCENTAGE );
 }
 
 unsigned int
-NoteSymbols::getFretboardHeight ( int imgHeight )
+NoteSymbols::getFretboardHeight ( int imgHeight ) const
 {
     return static_cast<unsigned int>( imgHeight * FRETBOARD_HEIGHT_PERCENTAGE );
 }
@@ -309,7 +309,7 @@ NoteSymbols::getFretboardHeight ( int imgHeight )
 std::pair<bool, unsigned int>
 NoteSymbols::getStringNumber ( int imgWidth,
                                unsigned int x_pos,
-                               unsigned int maxStringNum )
+                               unsigned int maxStringNum ) const
 {
     /*
         std::cout << "NoteSymbols::getNumberOfStrings - input values" << std::endl
@@ -359,7 +359,7 @@ NoteSymbols::getStringNumber ( int imgWidth,
 std::pair<bool, unsigned int>
 NoteSymbols::getFretNumber ( int imgHeight,
                              unsigned int y_pos,
-                             unsigned int maxFretNum )
+                             unsigned int maxFretNum ) const
 {
     /*
         std::cout << "NoteSymbols::getNumberOfFrets - input values" << std::endl

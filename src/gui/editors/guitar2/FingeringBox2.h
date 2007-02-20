@@ -52,6 +52,8 @@ public:
     void setFingering(const Fingering2&);
     const Fingering2& getFingering() { return m_fingering; }
     
+    const Guitar::NoteSymbols& getNoteSymbols() const { return m_noteSymbols; }
+    
 protected:
     void init();
 
