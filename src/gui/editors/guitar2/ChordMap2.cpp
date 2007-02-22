@@ -92,7 +92,7 @@ ChordMap2::getExtList(const QString& root) const
             break;
             
         if (chord.getExt() != currentExt) {
-            NOTATION_DEBUG << "ChordMap2::getExtList : adding ext " << chord.getExt() << " for root " << root << endl;
+//            NOTATION_DEBUG << "ChordMap2::getExtList : adding ext " << chord.getExt() << " for root " << root << endl;
             extList.push_back(chord.getExt());
             currentExt = chord.getExt();
         }        

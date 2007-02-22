@@ -34,6 +34,7 @@
 #include <vector>
 
 class QListBox;
+class QPushButton;
 
 namespace Rosegarden
 {
@@ -58,6 +59,10 @@ protected slots:
     void slotChordExtHighlighted(int);
     void slotFingeringHighlighted(int);
     
+    void slotNewFingering();
+    void slotDeleteFingering();
+    void slotEditFingering();
+
 protected:
 
     void parseChordFiles(const std::vector<QString>& chordFiles);
@@ -83,9 +88,11 @@ protected:
     QListBox* m_rootNotesList;
     QListBox* m_chordExtList;
     QListBox* m_fingeringsList;
-
-    //! Fingering constructor object
     FingeringBox2* m_fingeringBox;
+
+    QPushButton* m_newFingeringButton;
+    QPushButton* m_deleteFingeringButton;
+    QPushButton* m_editFingeringButton;    
 
     static const unsigned int FINGERING_PIXMAP_HEIGHT = 75;
     static const unsigned int FINGERING_PIXMAP_WIDTH = 75;

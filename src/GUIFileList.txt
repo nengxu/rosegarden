@@ -512,6 +512,8 @@ SET(gui_SRCS
 	gui/editors/guitar2/ChordMap2.cpp
 	gui/editors/guitar2/GuitarChordSelectorDialog.h
 	gui/editors/guitar2/GuitarChordSelectorDialog.cpp
+	gui/editors/guitar2/GuitarChordEditorDialog.h
+	gui/editors/guitar2/GuitarChordEditorDialog.cpp
 	gui/editors/matrix/MatrixCanvasView.cpp
 	gui/editors/matrix/MatrixCanvasView.h
 	gui/editors/matrix/MatrixElement.cpp

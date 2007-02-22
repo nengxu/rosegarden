@@ -23,12 +23,14 @@
 */
 
 #include "GuitarChordSelectorDialog.h"
+#include "GuitarChordEditorDialog.h"
 #include "ChordXmlHandler.h"
 #include "FingeringBox2.h"
 
 #include "misc/Debug.h"
 #include <qlistbox.h>
 #include <qlayout.h>
+#include <qpushbutton.h>
 
 namespace Rosegarden
 {
@@ -38,7 +40,7 @@ GuitarChordSelectorDialog::GuitarChordSelectorDialog(QWidget *parent)
 {
     QWidget *page = new QWidget(this);
     setMainWidget(page);
-    QGridLayout *topLayout = new QGridLayout(page, 3, 3, spacingHint());
+    QGridLayout *topLayout = new QGridLayout(page, 3, 4, spacingHint());
     
     topLayout->addWidget(new QLabel(i18n("Root"), page), 0, 0);
     m_rootNotesList = new QListBox(page);
@@ -48,9 +50,27 @@ GuitarChordSelectorDialog::GuitarChordSelectorDialog(QWidget *parent)
     m_chordExtList = new QListBox(page);
     topLayout->addWidget(m_chordExtList, 1, 1);
     
-    topLayout->addWidget(new QLabel(i18n("Fingerings"), page), 0, 2);
+    m_newFingeringButton = new QPushButton(i18n("New"), page);
+    m_deleteFingeringButton = new QPushButton(i18n("Delete"), page);
+    m_editFingeringButton = new QPushButton(i18n("Edit"), page);
+    
+    QVBoxLayout* vboxLayout = new QVBoxLayout(page, 5);
+    topLayout->addLayout(vboxLayout, 2, 2);
+    vboxLayout->addStretch(10);
+    vboxLayout->addWidget(m_newFingeringButton); 
+    vboxLayout->addWidget(m_deleteFingeringButton); 
+    vboxLayout->addWidget(m_editFingeringButton); 
+    
+    connect(m_newFingeringButton, SIGNAL(clicked()),
+            this, SLOT(slotNewFingering()));
+    connect(m_deleteFingeringButton, SIGNAL(clicked()),
+            this, SLOT(slotDeleteFingering()));
+    connect(m_editFingeringButton, SIGNAL(clicked()),
+            this, SLOT(slotEditFingering()));
+    
+    topLayout->addWidget(new QLabel(i18n("Fingerings"), page), 0, 3);
     m_fingeringsList = new QListBox(page);
-    topLayout->addMultiCellWidget(m_fingeringsList, 1, 2, 2, 2);
+    topLayout->addMultiCellWidget(m_fingeringsList, 1, 2, 3, 3);
     
     m_fingeringBox = new FingeringBox2(false, page);
     topLayout->addMultiCellWidget(m_fingeringBox, 2, 2, 0, 1);
@@ -131,6 +151,29 @@ GuitarChordSelectorDialog::slotFingeringHighlighted(int i)
     m_fingeringBox->setFingering(fingering);
 }
 
+void
+GuitarChordSelectorDialog::slotNewFingering()
+{
+    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotNewFingering\n";
+    
+}
+
+void
+GuitarChordSelectorDialog::slotDeleteFingering()
+{
+}
+
+void
+GuitarChordSelectorDialog::slotEditFingering()
+{
+    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotEditFingering\n";
+    // TODO : an edited chord needs to be erased and stored back in the chord map
+    GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(this);
+    
+    if (chordEditorDialog->exec() == QDialog::Accepted) {
+        
+    }    
+}
 
 void
 GuitarChordSelectorDialog::setChord(const Chord2& chord)

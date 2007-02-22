@@ -130,7 +130,8 @@ FingeringBox2::getStringNumber(const QPoint& pos)
     unsigned int stringNum = 0;
 
     if(result.first){
-        stringNum = m_nbStrings - result.second;
+        stringNum = result.second;
+        RG_DEBUG << "FingeringBox2::getStringNumber : res = " << stringNum << endl; 
     }
 
     return stringNum;
@@ -185,28 +186,14 @@ FingeringBox2::mouseReleaseEvent(QMouseEvent *event)
 
 void
 FingeringBox2::processMouseRelease(unsigned int release_string_num,
-                                        unsigned int release_fret_num)
+                                   unsigned int release_fret_num)
 {
-    if(m_press_fret_num == release_fret_num){
+    if(m_press_fret_num == release_fret_num) {
         // If press string & fret pos == release string & fret position, display chord
-        if(m_press_string_num == release_string_num){
-            // QUESTION: Move check for whether a note pressed is at position 0
-            // here or not?
-            if((m_press_string_num > 0)&&
-               (m_press_string_num <= m_nbStrings)&&
-               (m_press_fret_num < (m_startFret + m_nbFretsDisplayed))) {
-                /**
-                IF m_press_fret_num == 0
-                    Get fretStatus
-                        status | new status
-                        MUTED  | OPEN
-                        OPEN   | MUTED
-                ELSE m_press_fret_num > 0
-                    status  | new status
-                    MUTED   | PRESSED
-                    OPEN    | PRESSED
-                        PRESSED | PRESSED
-                */
+        if(m_press_string_num == release_string_num) {
+
+            if(m_press_fret_num < (m_startFret + m_nbFretsDisplayed)) {
+
                 unsigned int aVal = m_press_fret_num;
                 
                 if(m_press_fret_num == 0) {
@@ -254,12 +241,12 @@ FingeringBox2::mouseMoveEvent( QMouseEvent *event )
         transientFretNb != m_transientFretNb) {
 
         QRect r1 = m_noteSymbols.getTransientNoteSymbolRect(size(),
-                                                            m_nbStrings - m_transientStringNb,
+                                                            m_transientStringNb,
                                                             m_transientFretNb - m_startFret);
         m_transientStringNb = transientStringNb;
         m_transientFretNb   = transientFretNb;
         QRect r2 = m_noteSymbols.getTransientNoteSymbolRect(size(),
-                                                            m_nbStrings - m_transientStringNb,
+                                                            m_transientStringNb,
                                                             m_transientFretNb - m_startFret);
     
 //    RG_DEBUG << "Fingering::updateTransientPos r1 = " << r1 << " - r2 = " << r2 << endl;

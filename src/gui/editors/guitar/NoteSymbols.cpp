@@ -88,7 +88,7 @@ NoteSymbols::drawNoteSymbol ( QPainter* p,
                               int fretNb,
                               bool transient ) const
 {
-    NOTATION_DEBUG << "NoteSymbols::drawNoteSymbol - string: " << stringNb << ", fret:" << fretNb << endl;
+//    NOTATION_DEBUG << "NoteSymbols::drawNoteSymbol - string: " << stringNb << ", fret:" << fretNb << endl;
 
     QRect v = p->viewport();
     posPair x_pos = getX ( v.width(), stringNb, m_nbOfStrings );
@@ -194,7 +194,7 @@ NoteSymbols::drawFrets ( QPainter* p ) const
     p->setPen(pen);
     unsigned int y_pos = (getY ( imgHeight, 0, m_nbOfFrets )).first + TOP_FRETBOARD_MARGIN;
     
-    NOTATION_DEBUG << "NoteSymbols::drawFrets : " << m_nbOfFrets << endl;
+//    NOTATION_DEBUG << "NoteSymbols::drawFrets : " << m_nbOfFrets << endl;
     
     // Horizontal lines
     for ( unsigned int i = 0; i <= m_nbOfFrets; ++i ) {
@@ -204,8 +204,8 @@ NoteSymbols::drawFrets ( QPainter* p ) const
                      y_pos,
                      endXPos.first,
                      y_pos);
-        NOTATION_DEBUG << "NoteSymbols::drawFrets : " << QPoint(getLeftBorder(imgWidth), y_pos)
-                       << " to " << QPoint(endXPos.first, y_pos) << endl;
+//        NOTATION_DEBUG << "NoteSymbols::drawFrets : " << QPoint(getLeftBorder(imgWidth), y_pos)
+//                       << " to " << QPoint(endXPos.first, y_pos) << endl;
                      
 
        y_pos += rowHeight;
