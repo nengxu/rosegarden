@@ -95,6 +95,7 @@ protected:
 
     Guitar::NoteSymbols m_noteSymbols;
 
+    QRect m_r1, m_r2;
 };
 
 }

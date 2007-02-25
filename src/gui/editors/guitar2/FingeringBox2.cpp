@@ -34,7 +34,7 @@ namespace Rosegarden
 FingeringBox2::FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name)
     : QFrame(parent, name),
     m_nbFretsDisplayed(nbFrets),
-    m_startFret(0),
+    m_startFret(1),
     m_nbStrings(nbStrings),
     m_transientFretNb(0),
     m_transientStringNb(0),
@@ -47,7 +47,7 @@ FingeringBox2::FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool 
 FingeringBox2::FingeringBox2(bool editable, QWidget *parent, const char* name)
     : QFrame(parent, name),
     m_nbFretsDisplayed(4),
-    m_startFret(0),
+    m_startFret(1),
     m_nbStrings(Fingering2::DEFAULT_NB_STRINGS),
     m_editable(editable),
     m_noteSymbols(m_nbStrings, m_nbFretsDisplayed)
@@ -61,13 +61,15 @@ FingeringBox2::init()
     setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
     setFixedSize(IMG_WIDTH, IMG_HEIGHT);
     setBackgroundMode(PaletteBase);
+    if (m_editable)
+        setMouseTracking(true);
     
 }
 
 void
 FingeringBox2::drawContents(QPainter* p)
 {
-    NOTATION_DEBUG << "FingeringBox2::drawContents()" << endl;
+//    NOTATION_DEBUG << "FingeringBox2::drawContents()" << endl;
     
     // For all strings on guitar
     //   check state of string
@@ -77,41 +79,56 @@ FingeringBox2::drawContents(QPainter* p)
     //   display bar
     // Horizontal separator line
 
+    // draw fretboard
+    //
     m_noteSymbols.drawFretNumber(p, m_startFret);
     m_noteSymbols.drawFrets(p);
     m_noteSymbols.drawStrings(p);
 
     unsigned int stringNb = 0;
     
+    // draw notes
+    //
     for (Fingering2::const_iterator pos = m_fingering.begin();
          pos != m_fingering.end();
          ++pos, ++stringNb) {
                 
         switch (*pos) {
         case Fingering2::OPEN:
-                NOTATION_DEBUG << "Fingering::drawContents - drawing Open symbol on string " << stringNb << endl;
+//                NOTATION_DEBUG << "Fingering::drawContents - drawing Open symbol on string " << stringNb << endl;
                 m_noteSymbols.drawOpenSymbol(p, stringNb);
                 break;
 
         case Fingering2::MUTED:
-                NOTATION_DEBUG << "Fingering::drawContents - drawing Mute symbol on string" << stringNb << endl;
+//                NOTATION_DEBUG << "Fingering::drawContents - drawing Mute symbol on string" << stringNb << endl;
                 m_noteSymbols.drawMuteSymbol(p, stringNb);
                 break;
 
         default:
-                NOTATION_DEBUG << "Fingering::drawContents - drawing note symbol at " << *pos << " on string " << stringNb << endl;
+//                NOTATION_DEBUG << "Fingering::drawContents - drawing note symbol at " << *pos << " on string " << stringNb << endl;
                 m_noteSymbols.drawNoteSymbol(p, stringNb, *pos - (m_startFret - 1), false);
                 break;
         }
     }
 
-    // TODO: barres ?
+    // TODO: detect barres and draw them in a special way ?
     
+    // draw transient note (visual feedback for mouse move)
+    //
     if (m_transientFretNb > 0 && m_transientFretNb <= m_nbFretsDisplayed &&
-        m_transientStringNb > 0 && m_transientStringNb <= m_nbStrings) {
-        m_noteSymbols.drawNoteSymbol(p, m_nbStrings - m_transientStringNb, m_transientFretNb - m_startFret, true);
+        m_transientStringNb >= 0 && m_transientStringNb <= m_nbStrings) {
+        m_noteSymbols.drawNoteSymbol(p, m_transientStringNb, m_transientFretNb - (m_startFret - 1), true);
     }
     
+    // DEBUG
+//    p->save();
+//    p->setPen(Qt::red);
+//    unsigned int topBorderY = m_noteSymbols.getTopBorder(maximumHeight());
+//    p->drawLine(0, topBorderY, 20, topBorderY);
+//    p->drawRect(m_r1);
+//    p->setPen(Qt::blue);
+//    p->drawRect(m_r2);
+//    p->restore();
 }
 
 void
@@ -131,7 +148,7 @@ FingeringBox2::getStringNumber(const QPoint& pos)
 
     if(result.first){
         stringNum = result.second;
-        RG_DEBUG << "FingeringBox2::getStringNumber : res = " << stringNum << endl; 
+//        RG_DEBUG << "FingeringBox2::getStringNumber : res = " << stringNum << endl; 
     }
 
     return stringNum;
@@ -142,14 +159,17 @@ FingeringBox2::getFretNumber(const QPoint& pos)
 {
     unsigned int fretNum = 0;
 
-    if(pos.y() > m_noteSymbols.getTopBorder(maximumHeight())) {
+    if(true || pos.y() > m_noteSymbols.getTopBorder(maximumHeight())) {
         // If fret position is below the top line of the fretboard image.
         PositionPair result = m_noteSymbols.getFretNumber(maximumWidth(),
                                                           pos.y(),
                                                           m_nbFretsDisplayed);
 
         if(result.first) {
-            fretNum = result.second + m_startFret;
+            fretNum = result.second + (m_startFret - 1);
+//            RG_DEBUG << "FingeringBox2::getFretNumber : res = " << fretNum << " startFret = " << m_startFret << endl; 
+        } else {
+//            RG_DEBUG << "FingeringBox2::getFretNumber : no res\n";
         }
     }
 
@@ -242,17 +262,22 @@ FingeringBox2::mouseMoveEvent( QMouseEvent *event )
 
         QRect r1 = m_noteSymbols.getTransientNoteSymbolRect(size(),
                                                             m_transientStringNb,
-                                                            m_transientFretNb - m_startFret);
+                                                            m_transientFretNb - (m_startFret - 1));
         m_transientStringNb = transientStringNb;
         m_transientFretNb   = transientFretNb;
         QRect r2 = m_noteSymbols.getTransientNoteSymbolRect(size(),
                                                             m_transientStringNb,
-                                                            m_transientFretNb - m_startFret);
+                                                            m_transientFretNb - (m_startFret - 1));
     
+        m_r1 = r1;
+        m_r2 = r2;
+        
 //    RG_DEBUG << "Fingering::updateTransientPos r1 = " << r1 << " - r2 = " << r2 << endl;
      
-        QRect updateRect = r1 | r2;
-        update(updateRect);
+//        QRect updateRect = r1 | r2;
+//        update(updateRect);
+
+        update();
             
     }    
     

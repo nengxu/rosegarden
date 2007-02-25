@@ -92,7 +92,7 @@ NoteSymbols::drawNoteSymbol ( QPainter* p,
 
     QRect v = p->viewport();
     posPair x_pos = getX ( v.width(), stringNb, m_nbOfStrings );
-    posPair y_pos = getY ( v.height(), fretNb - 1, m_nbOfFrets );
+    posPair y_pos = getY ( v.height(), fretNb, m_nbOfFrets );
     double columnWidth = x_pos.second;
     unsigned int radius;
 
@@ -105,7 +105,9 @@ NoteSymbols::drawNoteSymbol ( QPainter* p,
     }
 
     int x = x_pos.first - ( radius / 2 ),
-        y = y_pos.first + ( (y_pos.second - radius) / 2) + TOP_FRETBOARD_MARGIN; 
+        y = y_pos.first + ( (y_pos.second - radius) / 2) - y_pos.second + TOP_FRETBOARD_MARGIN; 
+
+//        y = y_pos.first - (radius / 2) - y_pos.second + TOP_FRETBOARD_MARGIN;
 
 //    RG_DEBUG << "NoteSymbols::drawNoteSymbol : rect = " << QRect(x,y, radius, radius) << endl;
 
@@ -261,7 +263,7 @@ QRect NoteSymbols::getTransientNoteSymbolRect(QSize fretboardSize,
     unsigned int radius =  static_cast<unsigned int>( columnWidth /* * 0.9 */ );
 
     int x = x_pos.first - ( radius / 2 ),
-        y = y_pos.first + ( (y_pos.second - radius) / 2) + TOP_FRETBOARD_MARGIN; 
+        y = y_pos.first + ( (y_pos.second - radius) / 2) - y_pos.second + TOP_FRETBOARD_MARGIN; 
 
     return QRect(x, y, radius, radius);
 }
@@ -386,7 +388,7 @@ NoteSymbols::getFretNumber ( int imgHeight,
             max_pos = getY ( imgHeight, i + 1, maxFretNum );
 
             if ( ( y_pos >= min_pos.first ) && y_pos <= max_pos.first - 1 ) {
-                result = i;
+                result = i + 1;
                 valueOk = true;
                 break;
             }
