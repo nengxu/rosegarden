@@ -220,14 +220,14 @@ FingeringBox2::processMouseRelease(unsigned int release_string_num,
                     
                     int stringStatus = m_fingering.getStringStatus(m_press_string_num);
 
-                    if (stringStatus == Fingering2::MUTED)
-                        aVal = Fingering2::OPEN;
-                    else if (stringStatus >= Fingering2::OPEN)
+                    if (stringStatus == Fingering2::OPEN)
                         aVal = Fingering2::MUTED;
+                    else if (stringStatus > Fingering2::OPEN)
+                        aVal = Fingering2::OPEN;
 
                 }
                 
-                m_fingering.setStringStatus(m_press_string_num, m_press_fret_num);
+                m_fingering.setStringStatus(m_press_string_num, aVal);
                 
                 update();
             }
