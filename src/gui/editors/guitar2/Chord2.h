@@ -67,8 +67,8 @@ public:
 
     Fingering2 getFingering(unsigned int idx) const { return m_fingerings[idx]; }
     Fingering2 getSelectedFingering() const { return m_selectedFingeringIdx > 0 ? m_fingerings[m_selectedFingeringIdx] : Fingering2(); }
-    void setFingering(unsigned int idx, Fingering2 f) { m_fingerings[idx] = f; }
-    void addFingering(Fingering2 f) { m_fingerings.push_back(f); }
+    void setFingering(unsigned int idx, Fingering2 f);
+    void addFingering(Fingering2 f);
     unsigned int getNbFingerings() const { return m_fingerings.size(); }
 
     unsigned int getSelectedFingeringIdx() const { return m_selectedFingeringIdx; } 

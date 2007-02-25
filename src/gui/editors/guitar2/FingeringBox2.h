@@ -46,7 +46,7 @@ public:
 	FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name = 0);
     FingeringBox2(bool editable, QWidget *parent, const char* name = 0);
 
-    void setStartFret(unsigned int f) { m_startFret = f; }
+    void setStartFret(unsigned int f) { m_startFret = f; update(); }
     unsigned int getStartFret() const { return m_startFret; }
     
     void setFingering(const Fingering2&);
@@ -62,6 +62,7 @@ protected:
     virtual void mousePressEvent(QMouseEvent*);
     virtual void mouseReleaseEvent(QMouseEvent*);
     virtual void mouseMoveEvent(QMouseEvent*);
+    virtual void leaveEvent(QEvent*);
 
     void processMouseRelease( unsigned int release_string_num, unsigned int release_fret_num);
 

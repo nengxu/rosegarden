@@ -43,7 +43,7 @@ Fingering2::getStartFret() const
             min = *i;
     }
     
-    return min;
+    return min == 999 ? 1 : min;
 }
 
 Fingering2

@@ -115,7 +115,8 @@ FingeringBox2::drawContents(QPainter* p)
     
     // draw transient note (visual feedback for mouse move)
     //
-    if (m_transientFretNb > 0 && m_transientFretNb <= m_nbFretsDisplayed &&
+    if (hasMouse() &&
+        m_transientFretNb > 0 && m_transientFretNb <= m_nbFretsDisplayed &&
         m_transientStringNb >= 0 && m_transientStringNb <= m_nbStrings) {
         m_noteSymbols.drawNoteSymbol(p, m_transientStringNb, m_transientFretNb - (m_startFret - 1), true);
     }
@@ -144,7 +145,7 @@ FingeringBox2::getStringNumber(const QPoint& pos)
     PositionPair result = m_noteSymbols.getStringNumber(maximumHeight(),
                                                         pos.x(),
                                                         m_nbStrings);
-    unsigned int stringNum = 0;
+    unsigned int stringNum = -1;
 
     if(result.first){
         stringNum = result.second;
@@ -281,6 +282,12 @@ FingeringBox2::mouseMoveEvent( QMouseEvent *event )
             
     }    
     
+}
+
+void
+FingeringBox2::leaveEvent(QEvent*)
+{
+    update();
 }
 
 }

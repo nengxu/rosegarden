@@ -168,7 +168,7 @@ GuitarChordSelectorDialog::slotEditFingering()
 {
     NOTATION_DEBUG << "GuitarChordSelectorDialog::slotEditFingering\n";
     // TODO : an edited chord needs to be erased and stored back in the chord map
-    GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(this);
+    GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(m_chord, this);
     
     if (chordEditorDialog->exec() == QDialog::Accepted) {
         

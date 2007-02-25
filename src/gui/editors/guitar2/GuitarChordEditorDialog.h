@@ -31,6 +31,7 @@
 
 class KLineEdit;
 class QComboBox;
+class QSpinBox;
 
 namespace Rosegarden
 {
@@ -40,14 +41,20 @@ class FingeringBox2;
 
 class GuitarChordEditorDialog : public KDialogBase
 {
+    Q_OBJECT
+    
 public:
-	GuitarChordEditorDialog(QWidget *parent=0);
+	GuitarChordEditorDialog(const Chord2&, QWidget *parent=0);
     const Chord2& getChord() const { return m_chord; }
 
+protected slots:
+    void slotStartFretChanged(int);
+    
 protected:
 
     FingeringBox2* m_fingeringBox;
     QComboBox* m_rootNotesList;
+    QSpinBox* m_startFret;
     KLineEdit* m_ext;
     Chord2 m_chord;    
 };

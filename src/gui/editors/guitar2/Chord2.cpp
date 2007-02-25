@@ -86,6 +86,23 @@ void Chord2::setSelectedFingeringIdx(unsigned int i)
     m_selectedFingeringIdx = std::min(i, m_fingerings.size() - 1);
 }
 
+void Chord2::setFingering(unsigned int idx, Fingering2 f)
+{
+    m_fingerings[idx] = f;
+
+    if (m_selectedFingeringIdx < 0)
+        m_selectedFingeringIdx = 0;
+}
+
+void Chord2::addFingering(Fingering2 f)
+{
+    m_fingerings.push_back(f);
+
+    if (m_selectedFingeringIdx < 0)
+        m_selectedFingeringIdx = 0;
+}
+
+
 bool operator<(const Chord2& a, const Chord2& b)
 {
     if (a.m_root != b.m_root) {

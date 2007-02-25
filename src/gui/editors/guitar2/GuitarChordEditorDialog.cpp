@@ -27,31 +27,49 @@
 
 #include <klineedit.h>
 #include <qcombobox.h>
+#include <qspinbox.h>
 
 namespace Rosegarden
 {
 
-GuitarChordEditorDialog::GuitarChordEditorDialog(QWidget *parent)
-    : KDialogBase(parent, "GuitarChordEditor", true, i18n("Guitar Chord Editor"), Ok|Cancel)    
+GuitarChordEditorDialog::GuitarChordEditorDialog(const Chord2& chord, QWidget *parent)
+    : KDialogBase(parent, "GuitarChordEditor", true, i18n("Guitar Chord Editor"), Ok|Cancel),
+      m_chord(chord)    
 {
     QWidget *page = new QWidget(this);
     setMainWidget(page);
-    QGridLayout *topLayout = new QGridLayout(page, 5, 2, spacingHint());
-    
-    topLayout->addWidget(new QLabel(i18n("Root"), page), 0, 1);
-    m_rootNotesList = new QComboBox(page);
-    topLayout->addWidget(m_rootNotesList, 1, 1);
-    
-    topLayout->addWidget(new QLabel(i18n("Extension"), page), 2, 1);
-    m_ext = new KLineEdit(page);
-    topLayout->addWidget(m_ext, 3, 1);
+    QGridLayout *topLayout = new QGridLayout(page, 7, 2, spacingHint());
 
-    topLayout->addItem(new QSpacerItem(1, 1), 4, 1);
+    topLayout->addWidget(new QLabel(i18n("Start fret"), page), 0, 1);
+    m_startFret = new QSpinBox(1, 24, 1, page);
+    topLayout->addWidget(m_startFret, 1, 1);
+    
+    connect(m_startFret, SIGNAL(valueChanged(int)),
+            this, SLOT(slotStartFretChanged(int)));
+    
+    topLayout->addWidget(new QLabel(i18n("Root"), page), 2, 1);
+    m_rootNotesList = new QComboBox(page);
+    topLayout->addWidget(m_rootNotesList, 3, 1);
+    
+    topLayout->addWidget(new QLabel(i18n("Extension"), page), 4, 1);
+    m_ext = new KLineEdit(page);
+    topLayout->addWidget(m_ext, 5, 1);
+
+    topLayout->addItem(new QSpacerItem(1, 1), 6, 1);
 
     m_fingeringBox = new FingeringBox2(true, page);
-    topLayout->addMultiCellWidget(m_fingeringBox, 0, 5, 0, 0);
+    m_fingeringBox->setFingering(m_chord.getSelectedFingering());
+    topLayout->addMultiCellWidget(m_fingeringBox, 0, 7, 0, 0);
 
 }
 
+void
+GuitarChordEditorDialog::slotStartFretChanged(int startFret)
+{
+    m_fingeringBox->setStartFret(startFret);
+}
 
 }
+
+#include "GuitarChordEditorDialog.moc"
+
