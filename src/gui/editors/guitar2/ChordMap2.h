@@ -22,8 +22,8 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef CHORDMAP2_H_
-#define CHORDMAP2_H_
+#ifndef _RG_CHORDMAP2_H_
+#define _RG_CHORDMAP2_H_
 
 #include "Chord2.h"
 
@@ -41,7 +41,10 @@ public:
 	ChordMap2();
     
     void insert(const Chord2&);
+    void substitute(const Chord2& oldChord, const Chord2& newChord);
+    void remove(const Chord2&);
     
+    Chord2 getChord(const QString& root, const QString& ext) const;
     chordarray getChords(const QString& root, const QString& ext = QString::null) const;
     
     QStringList getRootList() const;
@@ -49,11 +52,18 @@ public:
     
     void debugDump() const;
     
+    bool needSave() const { return m_needSave; }
+    void clearNeedSave() { m_needSave = false; }
+    
 protected:
+
+
     typedef std::multiset<Chord2, Chord2::ChordCmp> chordset; 
     chordset m_map;
+    
+    bool m_needSave;
 };
 
 }
 
-#endif /*CHORDMAP2_H_*/
+#endif /*_RG_CHORDMAP2_H_*/

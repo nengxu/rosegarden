@@ -29,12 +29,24 @@ namespace Rosegarden
 {
 
 ChordMap2::ChordMap2()
+    : m_needSave(false)
 {
 }
 
 void ChordMap2::insert(const Chord2& c)
 {
     m_map.insert(c);
+    m_needSave = true;
+}
+
+Chord2
+ChordMap2::getChord(const QString& root, const QString& ext) const
+{
+    chordarray res = getChords(root, ext);
+    if (res.size() > 0)
+        return *(res.begin());
+    else
+        return Chord2();
 }
 
 ChordMap2::chordarray
@@ -100,6 +112,21 @@ ChordMap2::getExtList(const QString& root) const
 
     return extList;
 }
+
+void
+ChordMap2::substitute(const Chord2& oldChord, const Chord2& newChord)
+{
+    remove(oldChord);
+    insert(newChord);
+}
+
+void
+ChordMap2::remove(const Chord2& c)
+{
+    m_map.erase(c);
+    m_needSave = true;    
+}
+
 
 void
 ChordMap2::debugDump() const

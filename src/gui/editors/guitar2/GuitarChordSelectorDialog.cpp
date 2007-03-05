@@ -92,8 +92,14 @@ GuitarChordSelectorDialog::init()
     
     parseChordFiles(chordFiles);
 
-    m_chordMap.debugDump();
+//    m_chordMap.debugDump();
     
+    populate();
+}
+
+void
+GuitarChordSelectorDialog::populate()
+{    
     QStringList rootList = m_chordMap.getRootList();
     if (rootList.count() > 0) {
         m_rootNotesList->insertStringList(rootList);
@@ -101,8 +107,8 @@ GuitarChordSelectorDialog::init()
         QStringList extList = m_chordMap.getExtList(rootList.first());
         populateExtensions(extList);
         
-        ChordMap2::chordarray chords = m_chordMap.getChords(rootList.first(), extList.first());
-        populateFingerings(chords);
+        m_chord = m_chordMap.getChord(rootList.first(), extList.first());
+        populateFingerings(m_chord);
 
         m_chord.setRoot(rootList.first());
         m_chord.setExt(extList.first());
@@ -111,6 +117,21 @@ GuitarChordSelectorDialog::init()
     m_rootNotesList->setCurrentItem(0);
     m_chordExtList->setCurrentItem(0);
     m_fingeringsList->setCurrentItem(0);
+}
+
+void
+GuitarChordSelectorDialog::clear()
+{
+    m_rootNotesList->clear();
+    m_chordExtList->clear();
+    m_fingeringsList->clear();    
+}
+
+void
+GuitarChordSelectorDialog::refresh()
+{
+    clear();
+    populate();
 }
 
 void
@@ -126,9 +147,8 @@ GuitarChordSelectorDialog::slotChordExtHighlighted(int i)
 {
     NOTATION_DEBUG << "GuitarChordSelectorDialog::slotChordExtHighlighted " << i << endl;
 
-    m_chord.setExt(m_chordExtList->text(i));
-    ChordMap2::chordarray chords = m_chordMap.getChords(m_chord.getRoot(), m_chord.getExt());
-    populateFingerings(chords);
+    m_chord = m_chordMap.getChord(m_chord.getRoot(), m_chordExtList->text(i));
+    populateFingerings(m_chord);
     
     m_fingeringsList->setCurrentItem(0);        
 }
@@ -138,41 +158,53 @@ GuitarChordSelectorDialog::slotFingeringHighlighted(int i)
 {
     NOTATION_DEBUG << "GuitarChordSelectorDialog::slotFingeringHighlighted " << i << endl;
     
-    QString f = m_fingeringsList->text(i);
-    QString errString;
-    Fingering2 fingering = Fingering2::parseFingering(f, errString);
-    if (m_chord.getNbFingerings() > 0)
-        m_chord.setFingering(0, fingering);
-    else
-        m_chord.addFingering(fingering);
-
-    m_chord.setSelectedFingeringIdx(0);
+    m_chord.setSelectedFingeringIdx(i);
     
-    m_fingeringBox->setFingering(fingering);
+    m_fingeringBox->setFingering(m_chord.getSelectedFingering());
 }
 
 void
 GuitarChordSelectorDialog::slotNewFingering()
 {
-    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotNewFingering\n";
+    Chord2 newChord;
+    newChord.setRoot(m_chord.getRoot());
+    newChord.setExt(m_chord.getExt());
     
+    GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(newChord, m_chordMap, this);
+    
+    if (chordEditorDialog->exec() == QDialog::Accepted) {
+        m_chordMap.insert(newChord);
+    }    
+
+    delete chordEditorDialog;
+    
+    refresh();
 }
 
 void
 GuitarChordSelectorDialog::slotDeleteFingering()
 {
+    Chord2 oldChord = m_chord;
+    
+    m_chord.removeFingering(m_chord.getSelectedFingeringIdx());
+    m_chordMap.substitute(oldChord, m_chord);
+    refresh();
 }
 
 void
 GuitarChordSelectorDialog::slotEditFingering()
 {
-    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotEditFingering\n";
-    // TODO : an edited chord needs to be erased and stored back in the chord map
-    GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(m_chord, this);
+    Chord2 newChord = m_chord;
+    GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(newChord, m_chordMap, this);
     
     if (chordEditorDialog->exec() == QDialog::Accepted) {
-        
-    }    
+        m_chordMap.substitute(m_chord, newChord);
+        m_chord = newChord;
+    }
+    
+    delete chordEditorDialog;
+
+    refresh();    
 }
 
 void
@@ -184,23 +216,20 @@ GuitarChordSelectorDialog::setChord(const Chord2& chord)
     QStringList extList = m_chordMap.getExtList(chord.getRoot());
     m_chordExtList->insertStringList(extList);
         
-    ChordMap2::chordarray chords = m_chordMap.getChords(chord.getRoot(), extList.first());
-    populateFingerings(chords);
+    Chord2 chordFromMap = m_chordMap.getChord(chord.getRoot(), extList.first());
+    populateFingerings(chordFromMap);
 }
 
 void
-GuitarChordSelectorDialog::populateFingerings(const ChordMap2::chordarray& chords)
+GuitarChordSelectorDialog::populateFingerings(const Chord2& chord)
 {
     m_fingeringsList->clear();
     
-    for(ChordMap2::chordarray::const_iterator i = chords.begin(); i != chords.end(); ++i) {
-        const Chord2& chord = *i;
-        for(unsigned int j = 0; j < chord.getNbFingerings(); ++j) {
-            QString fingeringString = chord.getFingering(j).toString();
-            NOTATION_DEBUG << "GuitarChordSelectorDialog::populateFingerings " << chord << " - fingering : " << fingeringString << endl;
-            QPixmap fingeringPixmap = getFingeringPixmap(chord.getFingering(j));            
-            m_fingeringsList->insertItem(fingeringPixmap, fingeringString);
-        }
+    for(unsigned int j = 0; j < chord.getNbFingerings(); ++j) {
+        QString fingeringString = chord.getFingering(j).toString();
+        NOTATION_DEBUG << "GuitarChordSelectorDialog::populateFingerings " << chord << " - fingering : " << fingeringString << endl;
+        QPixmap fingeringPixmap = getFingeringPixmap(chord.getFingering(j));            
+        m_fingeringsList->insertItem(fingeringPixmap, fingeringString);
     }
 
 }

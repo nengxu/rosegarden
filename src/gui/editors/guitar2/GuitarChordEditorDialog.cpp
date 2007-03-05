@@ -24,6 +24,8 @@
 
 #include "GuitarChordEditorDialog.h"
 #include "FingeringBox2.h"
+#include "Chord2.h"
+#include "ChordMap2.h"
 
 #include <klineedit.h>
 #include <qcombobox.h>
@@ -32,9 +34,10 @@
 namespace Rosegarden
 {
 
-GuitarChordEditorDialog::GuitarChordEditorDialog(const Chord2& chord, QWidget *parent)
+GuitarChordEditorDialog::GuitarChordEditorDialog(Chord2& chord, const ChordMap2& chordMap, QWidget *parent)
     : KDialogBase(parent, "GuitarChordEditor", true, i18n("Guitar Chord Editor"), Ok|Cancel),
-      m_chord(chord)    
+      m_chord(chord),
+      m_chordMap(chordMap)
 {
     QWidget *page = new QWidget(this);
     setMainWidget(page);
@@ -61,6 +64,18 @@ GuitarChordEditorDialog::GuitarChordEditorDialog(const Chord2& chord, QWidget *p
     m_fingeringBox->setFingering(m_chord.getSelectedFingering());
     topLayout->addMultiCellWidget(m_fingeringBox, 0, 7, 0, 0);
 
+    NOTATION_DEBUG << "GuitarChordEditorDialog : chord = " << m_chord
+                   << " - selected fingering idx : " << m_chord.getSelectedFingeringIdx() << endl;
+
+
+    QStringList rootList = m_chordMap.getRootList();
+    if (rootList.count() > 0) {
+        m_rootNotesList->insertStringList(rootList);
+        m_rootNotesList->setCurrentItem(rootList.findIndex(m_chord.getRoot()));
+    }
+    
+    m_ext->setText(m_chord.getExt());
+    
 }
 
 void
@@ -68,6 +83,18 @@ GuitarChordEditorDialog::slotStartFretChanged(int startFret)
 {
     m_fingeringBox->setStartFret(startFret);
 }
+
+void
+GuitarChordEditorDialog::slotOk()
+{
+    if (m_chord.getSelectedFingeringIdx() >= 0)
+        m_chord.setFingering(m_chord.getSelectedFingeringIdx(), m_fingeringBox->getFingering());
+    else
+        m_chord.addFingering(m_fingeringBox->getFingering());
+        
+    KDialogBase::slotOk();
+}
+
 
 }
 

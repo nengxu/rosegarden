@@ -75,7 +75,10 @@ std::string Fingering2::toString() const
     std::stringstream s;
     
     for(std::vector<int>::const_iterator i = m_strings.begin(); i != m_strings.end(); ++i) {
-        s << *i << ' ';
+        if (*i >= 0)
+            s << *i << ' ';
+        else
+            s << "x ";
     }
 
     return s.str();

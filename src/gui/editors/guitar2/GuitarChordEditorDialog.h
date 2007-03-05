@@ -28,6 +28,7 @@
 #include <kdialogbase.h>
 
 #include "Chord2.h"
+#include "ChordMap2.h"
 
 class KLineEdit;
 class QComboBox;
@@ -44,19 +45,22 @@ class GuitarChordEditorDialog : public KDialogBase
     Q_OBJECT
     
 public:
-	GuitarChordEditorDialog(const Chord2&, QWidget *parent=0);
-    const Chord2& getChord() const { return m_chord; }
+	GuitarChordEditorDialog(Chord2&, const ChordMap2& chordMap, QWidget *parent=0);
 
 protected slots:
     void slotStartFretChanged(int);
+    virtual void slotOk();
     
 protected:
+
+    void populateExtensions(const QStringList&);
 
     FingeringBox2* m_fingeringBox;
     QComboBox* m_rootNotesList;
     QSpinBox* m_startFret;
     KLineEdit* m_ext;
-    Chord2 m_chord;    
+    Chord2& m_chord;
+    const ChordMap2& m_chordMap;    
 };
 
 }

@@ -81,9 +81,9 @@ Event* Chord2::getAsEvent(timeT absoluteTime) const
     return e;
 }
 
-void Chord2::setSelectedFingeringIdx(unsigned int i)
+void Chord2::setSelectedFingeringIdx(int i)
 {
-    m_selectedFingeringIdx = std::min(i, m_fingerings.size() - 1);
+    m_selectedFingeringIdx = std::min(i, int(m_fingerings.size()) - 1);
 }
 
 void Chord2::setFingering(unsigned int idx, Fingering2 f)
@@ -102,6 +102,12 @@ void Chord2::addFingering(Fingering2 f)
         m_selectedFingeringIdx = 0;
 }
 
+void Chord2::removeFingering(unsigned int idx)
+{
+    std::vector<Fingering2>::iterator i = m_fingerings.begin();
+    i += idx;
+    m_fingerings.erase(i);
+}
 
 bool operator<(const Chord2& a, const Chord2& b)
 {
