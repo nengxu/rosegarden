@@ -84,4 +84,14 @@ std::string Fingering2::toString() const
     return s.str();
 }
 
+bool operator<(const Fingering2& a, const Fingering2& b)
+{
+    for(unsigned int i = 0; i < Fingering2::DEFAULT_NB_STRINGS; ++i) {
+        if (a.getStringStatus(i) != b.getStringStatus(i)) {
+            return a.getStringStatus(i) < b.getStringStatus(i);
+        }
+    }
+    return false;
+}    
+
 }

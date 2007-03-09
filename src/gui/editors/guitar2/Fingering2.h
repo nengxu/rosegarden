@@ -34,6 +34,7 @@ namespace Rosegarden
 class Fingering2
 {
 public:
+    friend bool operator<(const Fingering2&, const Fingering2&);    
 
     typedef std::vector<int>::iterator iterator;
     typedef std::vector<int>::const_iterator const_iterator;
@@ -48,7 +49,7 @@ public:
      * returns the fret number on which the string is pressed, or one of MUTED and OPEN  
      * 
      */
-    int getStringStatus(int stringNb) { return m_strings[stringNb]; } 
+    int  getStringStatus(int stringNb) const       { return m_strings[stringNb]; } 
     void setStringStatus(int stringNb, int status) { m_strings[stringNb] = status; } 
     unsigned int getStartFret() const;
     
@@ -67,6 +68,9 @@ protected:
 
     std::vector<int> m_strings;
 };
+
+bool operator<(const Fingering2&, const Fingering2&);    
+
 
 }
 

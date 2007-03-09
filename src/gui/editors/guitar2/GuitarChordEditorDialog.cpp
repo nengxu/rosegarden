@@ -55,17 +55,16 @@ GuitarChordEditorDialog::GuitarChordEditorDialog(Chord2& chord, const ChordMap2&
     topLayout->addWidget(m_rootNotesList, 3, 1);
     
     topLayout->addWidget(new QLabel(i18n("Extension"), page), 4, 1);
-    m_ext = new KLineEdit(page);
+    m_ext = new QComboBox(true, page);
     topLayout->addWidget(m_ext, 5, 1);
 
     topLayout->addItem(new QSpacerItem(1, 1), 6, 1);
 
     m_fingeringBox = new FingeringBox2(true, page);
-    m_fingeringBox->setFingering(m_chord.getSelectedFingering());
+    m_fingeringBox->setFingering(m_chord.getFingering());
     topLayout->addMultiCellWidget(m_fingeringBox, 0, 7, 0, 0);
 
-    NOTATION_DEBUG << "GuitarChordEditorDialog : chord = " << m_chord
-                   << " - selected fingering idx : " << m_chord.getSelectedFingeringIdx() << endl;
+    NOTATION_DEBUG << "GuitarChordEditorDialog : chord = " << m_chord << endl;
 
 
     QStringList rootList = m_chordMap.getRootList();
@@ -74,7 +73,11 @@ GuitarChordEditorDialog::GuitarChordEditorDialog(Chord2& chord, const ChordMap2&
         m_rootNotesList->setCurrentItem(rootList.findIndex(m_chord.getRoot()));
     }
     
-    m_ext->setText(m_chord.getExt());
+    QStringList extList = m_chordMap.getExtList(m_chord.getRoot());
+    if (extList.count() > 0) {
+        m_ext->insertStringList(extList);
+        m_ext->setCurrentItem(extList.findIndex(m_chord.getExt()));
+    }
     
 }
 
@@ -87,11 +90,10 @@ GuitarChordEditorDialog::slotStartFretChanged(int startFret)
 void
 GuitarChordEditorDialog::slotOk()
 {
-    if (m_chord.getSelectedFingeringIdx() >= 0)
-        m_chord.setFingering(m_chord.getSelectedFingeringIdx(), m_fingeringBox->getFingering());
-    else
-        m_chord.addFingering(m_fingeringBox->getFingering());
-        
+    m_chord.setFingering(m_fingeringBox->getFingering());
+    m_chord.setExt(m_ext->currentText());
+    m_chord.setRoot(m_rootNotesList->currentText());
+            
     KDialogBase::slotOk();
 }
 

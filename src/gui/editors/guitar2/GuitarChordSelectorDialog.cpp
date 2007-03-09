@@ -26,6 +26,7 @@
 #include "GuitarChordEditorDialog.h"
 #include "ChordXmlHandler.h"
 #include "FingeringBox2.h"
+#include "FingeringListBoxItem.h"
 
 #include "misc/Debug.h"
 #include <qlistbox.h>
@@ -79,8 +80,8 @@ GuitarChordSelectorDialog::GuitarChordSelectorDialog(QWidget *parent)
             this, SLOT(slotRootHighlighted(int)));
     connect(m_chordExtList, SIGNAL(highlighted(int)),
             this, SLOT(slotChordExtHighlighted(int)));
-    connect(m_fingeringsList, SIGNAL(highlighted(int)),
-            this, SLOT(slotFingeringHighlighted(int)));
+    connect(m_fingeringsList, SIGNAL(highlighted(QListBoxItem*)),
+            this, SLOT(slotFingeringHighlighted(QListBoxItem*)));
 }
 
 void
@@ -107,12 +108,14 @@ GuitarChordSelectorDialog::populate()
         QStringList extList = m_chordMap.getExtList(rootList.first());
         populateExtensions(extList);
         
-        m_chord = m_chordMap.getChord(rootList.first(), extList.first());
-        populateFingerings(m_chord);
+        ChordMap2::chordarray chords = m_chordMap.getChords(rootList.first(), extList.first());
+        populateFingerings(chords);
 
         m_chord.setRoot(rootList.first());
         m_chord.setExt(extList.first());
     }
+    
+    m_rootNotesList->sort();
     
     m_rootNotesList->setCurrentItem(0);
     m_chordExtList->setCurrentItem(0);
@@ -140,6 +143,9 @@ GuitarChordSelectorDialog::slotRootHighlighted(int i)
     NOTATION_DEBUG << "GuitarChordSelectorDialog::slotRootHighlighted " << i << endl;
 
     m_chord.setRoot(m_rootNotesList->text(i));
+
+    QStringList extList = m_chordMap.getExtList(m_chord.getRoot());
+    populateExtensions(extList);    
 }
 
 void
@@ -147,20 +153,22 @@ GuitarChordSelectorDialog::slotChordExtHighlighted(int i)
 {
     NOTATION_DEBUG << "GuitarChordSelectorDialog::slotChordExtHighlighted " << i << endl;
 
-    m_chord = m_chordMap.getChord(m_chord.getRoot(), m_chordExtList->text(i));
-    populateFingerings(m_chord);
+    ChordMap2::chordarray chords = m_chordMap.getChords(m_chord.getRoot(), m_chordExtList->text(i));
+    populateFingerings(chords);
     
     m_fingeringsList->setCurrentItem(0);        
 }
 
 void
-GuitarChordSelectorDialog::slotFingeringHighlighted(int i)
+GuitarChordSelectorDialog::slotFingeringHighlighted(QListBoxItem* listBoxItem)
 {
-    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotFingeringHighlighted " << i << endl;
+    NOTATION_DEBUG << "GuitarChordSelectorDialog::slotFingeringHighlighted\n";
     
-    m_chord.setSelectedFingeringIdx(i);
-    
-    m_fingeringBox->setFingering(m_chord.getSelectedFingering());
+    FingeringListBoxItem* fingeringItem = dynamic_cast<FingeringListBoxItem*>(listBoxItem);
+    if (fingeringItem) {
+        m_chord = fingeringItem->getChord();
+        m_fingeringBox->setFingering(m_chord.getFingering());
+    }
 }
 
 void
@@ -174,6 +182,17 @@ GuitarChordSelectorDialog::slotNewFingering()
     
     if (chordEditorDialog->exec() == QDialog::Accepted) {
         m_chordMap.insert(newChord);
+        // populate lists
+        //
+        if (!m_rootNotesList->findItem(newChord.getRoot(), Qt::ExactMatch)) {
+            m_rootNotesList->insertItem(newChord.getRoot());
+            m_rootNotesList->sort();
+        }
+        
+        if (!m_chordExtList->findItem(newChord.getExt(), Qt::ExactMatch)) {
+            m_chordExtList->insertItem(newChord.getExt());
+            m_chordExtList->sort();
+        }
     }    
 
     delete chordEditorDialog;
@@ -184,11 +203,8 @@ GuitarChordSelectorDialog::slotNewFingering()
 void
 GuitarChordSelectorDialog::slotDeleteFingering()
 {
-    Chord2 oldChord = m_chord;
-    
-    m_chord.removeFingering(m_chord.getSelectedFingeringIdx());
-    m_chordMap.substitute(oldChord, m_chord);
-    refresh();
+    m_chordMap.remove(m_chord);
+    delete m_fingeringsList->selectedItem();
 }
 
 void
@@ -198,8 +214,12 @@ GuitarChordSelectorDialog::slotEditFingering()
     GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(newChord, m_chordMap, this);
     
     if (chordEditorDialog->exec() == QDialog::Accepted) {
+        NOTATION_DEBUG << "GuitarChordSelectorDialog::slotEditFingering() - current map state :\n";
+        m_chordMap.debugDump();
         m_chordMap.substitute(m_chord, newChord);
-        m_chord = newChord;
+        NOTATION_DEBUG << "GuitarChordSelectorDialog::slotEditFingering() - new map state :\n";
+        m_chordMap.debugDump();
+        setChord(newChord);
     }
     
     delete chordEditorDialog;
@@ -216,20 +236,21 @@ GuitarChordSelectorDialog::setChord(const Chord2& chord)
     QStringList extList = m_chordMap.getExtList(chord.getRoot());
     m_chordExtList->insertStringList(extList);
         
-    Chord2 chordFromMap = m_chordMap.getChord(chord.getRoot(), extList.first());
-    populateFingerings(chordFromMap);
+    ChordMap2::chordarray similarChords = m_chordMap.getChords(chord.getRoot(), extList.first());
+    populateFingerings(similarChords);
 }
 
 void
-GuitarChordSelectorDialog::populateFingerings(const Chord2& chord)
+GuitarChordSelectorDialog::populateFingerings(const ChordMap2::chordarray& chords)
 {
     m_fingeringsList->clear();
     
-    for(unsigned int j = 0; j < chord.getNbFingerings(); ++j) {
-        QString fingeringString = chord.getFingering(j).toString();
+    for(ChordMap2::chordarray::const_iterator i = chords.begin(); i != chords.end(); ++i) {
+        const Chord2& chord = *i; 
+        QString fingeringString = chord.getFingering().toString();
         NOTATION_DEBUG << "GuitarChordSelectorDialog::populateFingerings " << chord << " - fingering : " << fingeringString << endl;
-        QPixmap fingeringPixmap = getFingeringPixmap(chord.getFingering(j));            
-        m_fingeringsList->insertItem(fingeringPixmap, fingeringString);
+        QPixmap fingeringPixmap = getFingeringPixmap(chord.getFingering());            
+        new FingeringListBoxItem(chord, m_fingeringsList, fingeringPixmap, fingeringString);
     }
 
 }
@@ -281,6 +302,7 @@ GuitarChordSelectorDialog::populateExtensions(const QStringList& extList)
 {
     m_chordExtList->clear();
     m_chordExtList->insertStringList(extList);
+    m_chordExtList->sort();
 } 
 
 void

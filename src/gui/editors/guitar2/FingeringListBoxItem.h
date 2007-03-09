@@ -22,46 +22,25 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef _RG_GUITARCHORDEDITOR2_H_
-#define _RG_GUITARCHORDEDITOR2_H_
 
-#include <kdialogbase.h>
+#ifndef _RG_FINGERINGLISTBOXITEM_H_
+#define _RG_FINGERINGLISTBOXITEM_H_
 
+#include <qlistbox.h>
 #include "Chord2.h"
-#include "ChordMap2.h"
 
-class QComboBox;
-class QSpinBox;
+namespace Rosegarden {
 
-namespace Rosegarden
+class FingeringListBoxItem : public QListBoxPixmap
 {
-
-class FingeringBox2;
-
-
-class GuitarChordEditorDialog : public KDialogBase
-{
-    Q_OBJECT
-    
 public:
-	GuitarChordEditorDialog(Chord2&, const ChordMap2& chordMap, QWidget *parent=0);
-
-protected slots:
-    void slotStartFretChanged(int);
-    virtual void slotOk();
+    FingeringListBoxItem(const Chord2& chord, QListBox* parent, QPixmap pixmap, QString fingeringString);
     
+    const Chord2& getChord() { return m_chord; }
 protected:
-
-    void populateExtensions(const QStringList&);
-
-    FingeringBox2* m_fingeringBox;
-    QComboBox* m_rootNotesList;
-    QSpinBox* m_startFret;
-    QComboBox* m_ext;
-    Chord2& m_chord;
-    const ChordMap2& m_chordMap;    
+    Chord2 m_chord;
 };
 
 }
 
-#endif /*_RG_GUITARCHORDEDITOR2_H_*/
+#endif /*_RG_FINGERINGLISTBOXITEM_H_*/

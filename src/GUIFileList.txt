@@ -506,6 +506,8 @@ SET(gui_SRCS
 	gui/editors/guitar2/Fingering2.cpp
 	gui/editors/guitar2/FingeringBox2.h
 	gui/editors/guitar2/FingeringBox2.cpp
+	gui/editors/guitar2/FingeringListBoxItem.h
+	gui/editors/guitar2/FingeringListBoxItem.cpp
 	gui/editors/guitar2/ChordXmlHandler.h
 	gui/editors/guitar2/ChordXmlHandler.cpp
 	gui/editors/guitar2/ChordMap2.h

@@ -34,6 +34,7 @@
 #include <vector>
 
 class QListBox;
+class QListBoxItem;
 class QPushButton;
 
 namespace Rosegarden
@@ -57,7 +58,7 @@ public:
 protected slots:
     void slotRootHighlighted(int);
     void slotChordExtHighlighted(int);
-    void slotFingeringHighlighted(int);
+    void slotFingeringHighlighted(QListBoxItem*);
     
     void slotNewFingering();
     void slotDeleteFingering();
@@ -67,7 +68,7 @@ protected:
 
     void parseChordFiles(const std::vector<QString>& chordFiles);
     void parseChordFile(const QString& chordFileName);
-    void populateFingerings(const Chord2&);
+    void populateFingerings(const ChordMap2::chordarray&);
     void populateExtensions(const QStringList& extList);
 
     void populate();

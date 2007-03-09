@@ -39,32 +39,25 @@ void ChordMap2::insert(const Chord2& c)
     m_needSave = true;
 }
 
-Chord2
-ChordMap2::getChord(const QString& root, const QString& ext) const
-{
-    chordarray res = getChords(root, ext);
-    if (res.size() > 0)
-        return *(res.begin());
-    else
-        return Chord2();
-}
 
 ChordMap2::chordarray
 ChordMap2::getChords(const QString& root, const QString& ext) const
 {
     chordarray res;
     
-    Chord2 tmp(root);
+    Chord2 tmp(root, ext);
     
     for (chordset::const_iterator i = m_map.lower_bound(tmp); i != m_map.end(); ++i) {
-//        NOTATION_DEBUG << "ChordMap2::getChords : checking chord " << *i << endl;
+        NOTATION_DEBUG << "ChordMap2::getChords : checking chord " << *i << endl;
         
         if (i->getRoot() != root)
             break;
 
         if (/* ext.isNull() || */ i->getExt() == ext) {
-//            NOTATION_DEBUG << "ChordMap2::getChords : adding chord " << *i << endl;
+            NOTATION_DEBUG << "ChordMap2::getChords : adding chord " << *i << endl;
             res.push_back(*i);
+        } else {
+            break;
         }
     }
         

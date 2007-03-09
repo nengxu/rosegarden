@@ -38,14 +38,12 @@ const PropertyName Chord2::FingeringPropertyName = "fingering";
 
 
 Chord2::Chord2()
- : m_selectedFingeringIdx(-1)
 {
 }
 
 Chord2::Chord2(const QString& root, const QString& ext)
     : m_root(root),
-      m_ext(ext),
-      m_selectedFingeringIdx(-1)
+      m_ext(ext)
 {
 }
 
@@ -68,7 +66,7 @@ Chord2::Chord2(const Event& e)
         QString errString;
     
         Fingering2 fingering = Fingering2::parseFingering(qf, errString);    
-        addFingering(fingering);
+        setFingering(fingering);
     }
 }
 
@@ -77,36 +75,8 @@ Event* Chord2::getAsEvent(timeT absoluteTime) const
     Event *e = new Event(EventType, absoluteTime, 0, EventSubOrdering);
     e->set<String>(RootPropertyName, m_root);
     e->set<String>(ExtPropertyName, m_ext);
-    e->set<String>(FingeringPropertyName, getSelectedFingering().toString());
+    e->set<String>(FingeringPropertyName, getFingering().toString());
     return e;
-}
-
-void Chord2::setSelectedFingeringIdx(int i)
-{
-    m_selectedFingeringIdx = std::min(i, int(m_fingerings.size()) - 1);
-}
-
-void Chord2::setFingering(unsigned int idx, Fingering2 f)
-{
-    m_fingerings[idx] = f;
-
-    if (m_selectedFingeringIdx < 0)
-        m_selectedFingeringIdx = 0;
-}
-
-void Chord2::addFingering(Fingering2 f)
-{
-    m_fingerings.push_back(f);
-
-    if (m_selectedFingeringIdx < 0)
-        m_selectedFingeringIdx = 0;
-}
-
-void Chord2::removeFingering(unsigned int idx)
-{
-    std::vector<Fingering2>::iterator i = m_fingerings.begin();
-    i += idx;
-    m_fingerings.erase(i);
 }
 
 bool operator<(const Chord2& a, const Chord2& b)
@@ -119,9 +89,10 @@ bool operator<(const Chord2& a, const Chord2& b)
         if (b.m_ext.isEmpty())
             return false;
         return a.m_ext < b.m_ext;
+    } else {
+        return a.m_fingering < b.m_fingering;
     }
 
-    return false;
 }
 
 }

@@ -65,15 +65,8 @@ public:
     
     bool hasAltBass() const { return m_ext.contains('/'); } 
 
-    Fingering2 getFingering(unsigned int idx) const { return m_fingerings[idx]; }
-    Fingering2 getSelectedFingering() const { return m_selectedFingeringIdx >= 0 ? m_fingerings[m_selectedFingeringIdx] : Fingering2(); }
-    void setFingering(unsigned int idx, Fingering2 f);
-    void addFingering(Fingering2 f);
-    void removeFingering(unsigned int idx);
-    unsigned int getNbFingerings() const { return m_fingerings.size(); }
-
-    int getSelectedFingeringIdx() const { return m_selectedFingeringIdx; } 
-    void setSelectedFingeringIdx(int i); 
+    Fingering2 getFingering() const { return m_fingering; }
+    void setFingering(Fingering2 f) { m_fingering = f; }
 
     struct ChordCmp
     {
@@ -90,8 +83,7 @@ protected:
     QString m_root;
     QString m_ext;
     
-    std::vector<Fingering2> m_fingerings;
-    int m_selectedFingeringIdx;
+    Fingering2 m_fingering;
 };
 
 bool operator<(const Chord2&, const Chord2&);    

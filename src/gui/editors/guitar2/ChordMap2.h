@@ -35,8 +35,13 @@ namespace Rosegarden
 
 class ChordMap2
 {
+    typedef std::set<Chord2, Chord2::ChordCmp> chordset; 
+
 public:
     typedef std::vector<Chord2> chordarray;
+
+    typedef chordset::iterator iterator;
+    typedef chordset::const_iterator const_iterator;
     
 	ChordMap2();
     
@@ -44,8 +49,7 @@ public:
     void substitute(const Chord2& oldChord, const Chord2& newChord);
     void remove(const Chord2&);
     
-    Chord2 getChord(const QString& root, const QString& ext) const;
-    chordarray getChords(const QString& root, const QString& ext = QString::null) const;
+    chordarray getChords(const QString& root, const QString& ext) const;
     
     QStringList getRootList() const;
     QStringList getExtList(const QString& root) const;
@@ -54,11 +58,14 @@ public:
     
     bool needSave() const { return m_needSave; }
     void clearNeedSave() { m_needSave = false; }
+
+    iterator begin() { return m_map.begin(); }
+    iterator end()   { return m_map.end();   }
+    const_iterator begin() const { return m_map.begin(); }
+    const_iterator end()   const { return m_map.end(); }
     
 protected:
 
-
-    typedef std::multiset<Chord2, Chord2::ChordCmp> chordset; 
     chordset m_map;
     
     bool m_needSave;
