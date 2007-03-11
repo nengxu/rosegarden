@@ -80,7 +80,6 @@ bool ChordXmlHandler::endElement(const QString& namespaceURI,
         
         // adding is done after each parsing of fingering
         //
-//        NOTATION_DEBUG << "ChordXmlHandler::endElement : adding chord " << m_currentChord << endl;
 //        m_chordMap.insert(m_currentChord);
 
     }
@@ -93,9 +92,10 @@ bool ChordXmlHandler::characters(const QString& ch)
     QString ch2 = ch.simplifyWhiteSpace();
     
     if (!ch2.isEmpty() && m_inFingering) {
-        if (parseFingering(ch2))
+        if (parseFingering(ch2)) {
             m_chordMap.insert(m_currentChord);
-        else
+            NOTATION_DEBUG << "ChordXmlHandler::endElement : adding chord " << m_currentChord << endl;            
+        } else
             return false;        
     }
 

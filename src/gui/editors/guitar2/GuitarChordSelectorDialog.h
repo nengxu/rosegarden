@@ -64,6 +64,8 @@ protected slots:
     void slotDeleteFingering();
     void slotEditFingering();
 
+    virtual void slotOk();
+
 protected:
 
     void parseChordFiles(const std::vector<QString>& chordFiles);
@@ -75,13 +77,12 @@ protected:
     void clear();
     void refresh();
     
+    bool saveUserChordMap();
+    
     QPixmap getFingeringPixmap(const Fingering2& fingering) const;
          
     //! Find all chord list files on the system
     std::vector<QString> getAvailableChordFiles();
-
-    //! Read directory for guitar chord files.
-    void readDirectory(QString chordDir, std::vector<QString>&);
 
     //! List of Chords
     ChordMap2 m_chordMap;

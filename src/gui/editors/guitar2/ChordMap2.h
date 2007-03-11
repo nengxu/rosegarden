@@ -42,6 +42,10 @@ public:
 
     typedef chordset::iterator iterator;
     typedef chordset::const_iterator const_iterator;
+
+    static int FILE_FORMAT_VERSION_MAJOR;
+    static int FILE_FORMAT_VERSION_MINOR;
+    static int FILE_FORMAT_VERSION_POINT;
     
 	ChordMap2();
     
@@ -58,6 +62,8 @@ public:
     
     bool needSave() const { return m_needSave; }
     void clearNeedSave() { m_needSave = false; }
+
+    bool saveDocument(const QString& filename, QString& errMsg);
 
     iterator begin() { return m_map.begin(); }
     iterator end()   { return m_map.end();   }

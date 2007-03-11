@@ -228,6 +228,17 @@ GuitarChordSelectorDialog::slotEditFingering()
 }
 
 void
+GuitarChordSelectorDialog::slotOk()
+{
+    if (m_chordMap.needSave()) {
+        saveUserChordMap();
+        m_chordMap.clearNeedSave();
+    }
+    
+    KDialogBase::slotOk();
+}
+
+void
 GuitarChordSelectorDialog::setChord(const Chord2& chord)
 {
     m_chord = chord;
@@ -339,43 +350,30 @@ GuitarChordSelectorDialog::getAvailableChordFiles()
     std::vector<QString> names;
 
     // Read config for default directory
-    QString chordDir = KGlobal::dirs()->findResource("appdata", "default_chords/");
+    QStringList chordDictFiles = KGlobal::dirs()->findAllResources("appdata", "chords/*.xml");
 
-    // Read config for user directory
-    QString userDir = KGlobal::dirs()->findResource("appdata", "user_chords/");
-
-    if (!chordDir.isEmpty()) {
-        readDirectory(chordDir, names);
+    for(QStringList::iterator i = chordDictFiles.begin(); i != chordDictFiles.end(); ++i) {
+        NOTATION_DEBUG << "GuitarChordSelectorDialog::getAvailableChordFiles : adding file " << *i << endl;
+        names.push_back(*i);
     }
-
-    if (!userDir.isEmpty()) {
-        readDirectory (userDir, names);
-    }
-
+    
     return names;
 }
 
-void
-GuitarChordSelectorDialog::readDirectory(QString chordDir, std::vector<QString>& names)
+bool
+GuitarChordSelectorDialog::saveUserChordMap()
 {
-    QDir dir( chordDir );
+    // Read config for user directory
+    QString userDir = KGlobal::dirs()->saveLocation("appdata", "chords/");
 
-    dir.setFilter(QDir::Files | QDir::Readable);
-    dir.setNameFilter("*.xml");
+    QString userChordDictPath = userDir + "/chords.xml";
     
-    QStringList files = dir.entryList();
-
-    for (QStringList::Iterator i = files.begin(); i != files.end(); ++i ) {
-        
-        // TODO - temporary hack until I remove Stephen's old files
-        if ((*i) != "chords.xml") {
-//            NOTATION_DEBUG << "GuitarChordSelectorDialog::readDirectory : skip file " << *i << endl;
-            continue;
-        }
-        
-        QFileInfo fileInfo(QString("%1/%2").arg(chordDir).arg(*i) );
-        names.push_back(fileInfo.filePath());
-    }
+    NOTATION_DEBUG << "GuitarChordSelectorDialog::saveUserChordMap() : saving user chord map to " << userChordDictPath << endl;
+    QString errMsg;
+    
+    m_chordMap.saveDocument(userChordDictPath, errMsg);
+    
+    return errMsg.isEmpty();    
 }
 
 

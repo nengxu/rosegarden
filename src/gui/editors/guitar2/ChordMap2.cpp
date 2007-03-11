@@ -25,6 +25,9 @@
 #include "misc/Debug.h"
 #include "ChordMap2.h"
 
+#include <qfile.h>
+#include <qtextstream.h>
+
 namespace Rosegarden
 {
 
@@ -119,6 +122,70 @@ ChordMap2::remove(const Chord2& c)
     m_map.erase(c);
     m_needSave = true;    
 }
+
+bool ChordMap2::saveDocument(const QString& filename, QString& errMsg)
+{
+    QFile file(filename);
+    file.open(IO_WriteOnly);
+   
+    QTextStream outStream(&file);
+    
+    outStream.setEncoding(QTextStream::UnicodeUTF8);
+    
+    outStream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    << "<!DOCTYPE rosegarden-chord-data>\n"
+    << "<rosegarden-chord-data version=\"" << VERSION
+    << "\" format-version-major=\"" << FILE_FORMAT_VERSION_MAJOR
+    << "\" format-version-minor=\"" << FILE_FORMAT_VERSION_MINOR
+    << "\" format-version-point=\"" << FILE_FORMAT_VERSION_POINT
+    << "\">\n";
+    
+    outStream << "<chords>\n";
+    
+    QString currentExt, currentRoot;
+    
+    for(iterator i = begin(); i != end(); ++i) {
+        const Chord2& chord = *i;
+    
+        if (chord.getRoot() != currentRoot) {
+
+            currentRoot = chord.getRoot();
+            
+            // close current chordset (if there was one)
+            if (i != begin())
+                outStream << "\n</chordset>\n";
+
+            // open new chordset            
+            outStream << "<chordset root=\"" << chord.getRoot() << "\">";
+            currentExt = "NEWEXT"; // to make sure we open a new chord right after that
+        }
+    
+        if (chord.getExt() != currentExt) {
+            
+            currentExt = chord.getExt();
+            
+            // close current chord (if there was one)
+            if (i != begin())
+                outStream << "</chord>\n";
+            // open new chord
+            
+            outStream << "<chord ext=\"" << chord.getExt() << "\">\n";
+        }
+        
+        outStream << "<fingering>" << chord.getFingering().toString() << "</fingering>\n";
+    }
+
+    if (!m_map.empty())
+        outStream << "</chord>\n"; // close last written chord
+        
+    outStream << "</chords>\n";    
+    outStream << "</rosegarden-chord-data>\n";
+     
+}
+
+int ChordMap2::FILE_FORMAT_VERSION_MAJOR = 1;
+int ChordMap2::FILE_FORMAT_VERSION_MINOR = 0;
+int ChordMap2::FILE_FORMAT_VERSION_POINT = 0;
 
 
 void

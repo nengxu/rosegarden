@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rosegarden-chord-data>
+<rosegarden-chord-data version="1.0" format-version-major="1" format-version-minor="0" format-version-point="0">
 <chords>
 	<chordset root="C">
 
@@ -99,3 +101,4 @@
 
 	</chordset>
 </chords>
+</rosegarden-chord-data>
