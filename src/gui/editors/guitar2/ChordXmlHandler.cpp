@@ -25,7 +25,7 @@
 namespace Rosegarden
 {
 
-ChordXmlHandler::ChordXmlHandler(ChordMap2& map)
+ChordXmlHandler::ChordXmlHandler(Guitar::ChordMap& map)
     : ProgressReporter(0),
       m_chordMap(map)
 {
@@ -54,7 +54,7 @@ bool ChordXmlHandler::startElement(const QString& namespaceURI,
 
     } else if (lcName == "chord") {
         
-        m_currentChord = Chord2(m_currentRoot);
+        m_currentChord = Guitar::Chord(m_currentRoot);
         
         if (atts.index("ext") >= 0)
             m_currentChord.setExt(atts.value("ext").stripWhiteSpace());
@@ -111,7 +111,7 @@ bool ChordXmlHandler::parseFingering(const QString& ch) {
     
     QString errString;
     
-    Fingering2 fingering = Fingering2::parseFingering(ch, errString);
+    Guitar::Fingering fingering = Guitar::Fingering::parseFingering(ch, errString);
     
     if (m_errorString.isEmpty()) {
         NOTATION_DEBUG << "ChordXmlHandler::parseFingering : fingering " << ch << endl;

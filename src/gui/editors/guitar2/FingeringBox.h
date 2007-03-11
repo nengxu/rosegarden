@@ -24,35 +24,37 @@
 
 
 
-#ifndef _RG_FINGERINGBOX2_H_
-#define _RG_FINGERINGBOX2_H_
+#ifndef _RG_FINGERINGBOX_H_
+#define _RG_FINGERINGBOX_H_
 
 #include <qframe.h>
 
-#include "gui/editors/guitar/NoteSymbols.h"
-#include "Fingering2.h"
+#include "NoteSymbols.h"
+#include "Fingering.h"
 
 namespace Rosegarden
 {
 
-class Fingering2;
+class Fingering;
 
-class FingeringBox2 : public QFrame
+class FingeringBox : public QFrame
 {
     static const unsigned int IMG_WIDTH  = 200;
     static const unsigned int IMG_HEIGHT = 200;
     
 public:
-	FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name = 0);
-    FingeringBox2(bool editable, QWidget *parent, const char* name = 0);
+	FingeringBox(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name = 0);
+    FingeringBox(bool editable, QWidget *parent, const char* name = 0);
 
     void setStartFret(unsigned int f) { m_startFret = f; update(); }
     unsigned int getStartFret() const { return m_startFret; }
     
-    void setFingering(const Fingering2&);
-    const Fingering2& getFingering() { return m_fingering; }
+    void setFingering(const Guitar::Fingering&);
+    const Guitar::Fingering& getFingering() { return m_fingering; }
     
     const Guitar::NoteSymbols& getNoteSymbols() const { return m_noteSymbols; }
+    
+    static const unsigned int DEFAULT_NB_DISPLAYED_FRETS = 4;
     
 protected:
     void init();
@@ -86,7 +88,7 @@ protected:
     bool m_editable;
 
     //! Handle to the present fingering
-    Fingering2 m_fingering;
+    Guitar::Fingering m_fingering;
 
     //! String number where a mouse press event was located
     unsigned int m_press_string_num;

@@ -23,9 +23,9 @@
 */
 
 #include "GuitarChordEditorDialog.h"
-#include "FingeringBox2.h"
-#include "Chord2.h"
-#include "ChordMap2.h"
+#include "FingeringBox.h"
+#include "Chord.h"
+#include "ChordMap.h"
 
 #include <klineedit.h>
 #include <qcombobox.h>
@@ -34,7 +34,7 @@
 namespace Rosegarden
 {
 
-GuitarChordEditorDialog::GuitarChordEditorDialog(Chord2& chord, const ChordMap2& chordMap, QWidget *parent)
+GuitarChordEditorDialog::GuitarChordEditorDialog(Guitar::Chord& chord, const Guitar::ChordMap& chordMap, QWidget *parent)
     : KDialogBase(parent, "GuitarChordEditor", true, i18n("Guitar Chord Editor"), Ok|Cancel),
       m_chord(chord),
       m_chordMap(chordMap)
@@ -60,7 +60,7 @@ GuitarChordEditorDialog::GuitarChordEditorDialog(Chord2& chord, const ChordMap2&
 
     topLayout->addItem(new QSpacerItem(1, 1), 6, 1);
 
-    m_fingeringBox = new FingeringBox2(true, page);
+    m_fingeringBox = new FingeringBox(true, page);
     m_fingeringBox->setFingering(m_chord.getFingering());
     topLayout->addMultiCellWidget(m_fingeringBox, 0, 7, 0, 0);
 

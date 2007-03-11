@@ -23,15 +23,15 @@
 */
 
 
-#include "FingeringBox2.h"
-#include "Fingering2.h"
+#include "FingeringBox.h"
+#include "Fingering.h"
 
 #include "misc/Debug.h"
 
 namespace Rosegarden
 {
 
-FingeringBox2::FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name)
+FingeringBox::FingeringBox(unsigned int nbFrets, unsigned int nbStrings, bool editable, QWidget *parent, const char* name)
     : QFrame(parent, name),
     m_nbFretsDisplayed(nbFrets),
     m_startFret(1),
@@ -44,11 +44,11 @@ FingeringBox2::FingeringBox2(unsigned int nbFrets, unsigned int nbStrings, bool 
     init();    
 }
 
-FingeringBox2::FingeringBox2(bool editable, QWidget *parent, const char* name)
+FingeringBox::FingeringBox(bool editable, QWidget *parent, const char* name)
     : QFrame(parent, name),
-    m_nbFretsDisplayed(4),
+    m_nbFretsDisplayed(DEFAULT_NB_DISPLAYED_FRETS),
     m_startFret(1),
-    m_nbStrings(Fingering2::DEFAULT_NB_STRINGS),
+    m_nbStrings(Guitar::Fingering::DEFAULT_NB_STRINGS),
     m_editable(editable),
     m_noteSymbols(m_nbStrings, m_nbFretsDisplayed)
 {
@@ -56,7 +56,7 @@ FingeringBox2::FingeringBox2(bool editable, QWidget *parent, const char* name)
 }
 
 void
-FingeringBox2::init()
+FingeringBox::init()
 {
     setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
     setFixedSize(IMG_WIDTH, IMG_HEIGHT);
@@ -67,9 +67,9 @@ FingeringBox2::init()
 }
 
 void
-FingeringBox2::drawContents(QPainter* p)
+FingeringBox::drawContents(QPainter* p)
 {
-//    NOTATION_DEBUG << "FingeringBox2::drawContents()" << endl;
+//    NOTATION_DEBUG << "FingeringBox::drawContents()" << endl;
     
     // For all strings on guitar
     //   check state of string
@@ -89,17 +89,17 @@ FingeringBox2::drawContents(QPainter* p)
     
     // draw notes
     //
-    for (Fingering2::const_iterator pos = m_fingering.begin();
+    for (Guitar::Fingering::const_iterator pos = m_fingering.begin();
          pos != m_fingering.end();
          ++pos, ++stringNb) {
                 
         switch (*pos) {
-        case Fingering2::OPEN:
+        case Guitar::Fingering::OPEN:
 //                NOTATION_DEBUG << "Fingering::drawContents - drawing Open symbol on string " << stringNb << endl;
                 m_noteSymbols.drawOpenSymbol(p, stringNb);
                 break;
 
-        case Fingering2::MUTED:
+        case Guitar::Fingering::MUTED:
 //                NOTATION_DEBUG << "Fingering::drawContents - drawing Mute symbol on string" << stringNb << endl;
                 m_noteSymbols.drawMuteSymbol(p, stringNb);
                 break;
@@ -133,14 +133,14 @@ FingeringBox2::drawContents(QPainter* p)
 }
 
 void
-FingeringBox2::setFingering(const Fingering2& f) {
+FingeringBox::setFingering(const Guitar::Fingering& f) {
     m_fingering = f;
     m_startFret = m_fingering.getStartFret();
     update();
 }
 
 unsigned int
-FingeringBox2::getStringNumber(const QPoint& pos)
+FingeringBox::getStringNumber(const QPoint& pos)
 {
     PositionPair result = m_noteSymbols.getStringNumber(maximumHeight(),
                                                         pos.x(),
@@ -149,14 +149,14 @@ FingeringBox2::getStringNumber(const QPoint& pos)
 
     if(result.first){
         stringNum = result.second;
-//        RG_DEBUG << "FingeringBox2::getStringNumber : res = " << stringNum << endl; 
+//        RG_DEBUG << "FingeringBox::getStringNumber : res = " << stringNum << endl; 
     }
 
     return stringNum;
 }
 
 unsigned int
-FingeringBox2::getFretNumber(const QPoint& pos)
+FingeringBox::getFretNumber(const QPoint& pos)
 {
     unsigned int fretNum = 0;
 
@@ -168,9 +168,9 @@ FingeringBox2::getFretNumber(const QPoint& pos)
 
         if(result.first) {
             fretNum = result.second + (m_startFret - 1);
-//            RG_DEBUG << "FingeringBox2::getFretNumber : res = " << fretNum << " startFret = " << m_startFret << endl; 
+//            RG_DEBUG << "FingeringBox::getFretNumber : res = " << fretNum << " startFret = " << m_startFret << endl; 
         } else {
-//            RG_DEBUG << "FingeringBox2::getFretNumber : no res\n";
+//            RG_DEBUG << "FingeringBox::getFretNumber : no res\n";
         }
     }
 
@@ -178,7 +178,7 @@ FingeringBox2::getFretNumber(const QPoint& pos)
 }
 
 void
-FingeringBox2::mousePressEvent(QMouseEvent *event)
+FingeringBox::mousePressEvent(QMouseEvent *event)
 {
     if (!m_editable)
         return;
@@ -194,7 +194,7 @@ FingeringBox2::mousePressEvent(QMouseEvent *event)
 }
 
 void
-FingeringBox2::mouseReleaseEvent(QMouseEvent *event)
+FingeringBox::mouseReleaseEvent(QMouseEvent *event)
 {
     if(!m_editable)
         return ;
@@ -206,7 +206,7 @@ FingeringBox2::mouseReleaseEvent(QMouseEvent *event)
 }
 
 void
-FingeringBox2::processMouseRelease(unsigned int release_string_num,
+FingeringBox::processMouseRelease(unsigned int release_string_num,
                                    unsigned int release_fret_num)
 {
     if(m_press_fret_num == release_fret_num) {
@@ -221,10 +221,10 @@ FingeringBox2::processMouseRelease(unsigned int release_string_num,
                     
                     int stringStatus = m_fingering.getStringStatus(m_press_string_num);
 
-                    if (stringStatus == Fingering2::OPEN)
-                        aVal = Fingering2::MUTED;
-                    else if (stringStatus > Fingering2::OPEN)
-                        aVal = Fingering2::OPEN;
+                    if (stringStatus == Guitar::Fingering::OPEN)
+                        aVal = Guitar::Fingering::MUTED;
+                    else if (stringStatus > Guitar::Fingering::OPEN)
+                        aVal = Guitar::Fingering::OPEN;
 
                 }
                 
@@ -250,7 +250,7 @@ FingeringBox2::processMouseRelease(unsigned int release_string_num,
 
 
 void
-FingeringBox2::mouseMoveEvent( QMouseEvent *event )
+FingeringBox::mouseMoveEvent( QMouseEvent *event )
 {
     if (!m_editable)
         return;
@@ -285,7 +285,7 @@ FingeringBox2::mouseMoveEvent( QMouseEvent *event )
 }
 
 void
-FingeringBox2::leaveEvent(QEvent*)
+FingeringBox::leaveEvent(QEvent*)
 {
     update();
 }

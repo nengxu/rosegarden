@@ -23,7 +23,7 @@
 */
 
 #include "misc/Debug.h"
-#include "ChordMap2.h"
+#include "ChordMap.h"
 
 #include <qfile.h>
 #include <qtextstream.h>
@@ -31,24 +31,27 @@
 namespace Rosegarden
 {
 
-ChordMap2::ChordMap2()
+namespace Guitar
+{
+    
+ChordMap::ChordMap()
     : m_needSave(false)
 {
 }
 
-void ChordMap2::insert(const Chord2& c)
+void ChordMap::insert(const Chord& c)
 {
     m_map.insert(c);
     m_needSave = true;
 }
 
 
-ChordMap2::chordarray
-ChordMap2::getChords(const QString& root, const QString& ext) const
+ChordMap::chordarray
+ChordMap::getChords(const QString& root, const QString& ext) const
 {
     chordarray res;
     
-    Chord2 tmp(root, ext);
+    Chord tmp(root, ext);
     
     for (chordset::const_iterator i = m_map.lower_bound(tmp); i != m_map.end(); ++i) {
         NOTATION_DEBUG << "ChordMap2::getChords : checking chord " << *i << endl;
@@ -68,13 +71,13 @@ ChordMap2::getChords(const QString& root, const QString& ext) const
 }
     
 QStringList
-ChordMap2::getRootList() const
+ChordMap::getRootList() const
 {
     QStringList rootNotes;
     QString currentRoot;
     
     for(chordset::const_iterator i = m_map.begin(); i != m_map.end(); ++i) {
-        const Chord2& chord = *i;
+        const Chord& chord = *i;
         if (chord.getRoot() != currentRoot) {
             rootNotes.push_back(chord.getRoot());
             currentRoot = chord.getRoot();
@@ -85,22 +88,22 @@ ChordMap2::getRootList() const
 }
 
 QStringList
-ChordMap2::getExtList(const QString& root) const
+ChordMap::getExtList(const QString& root) const
 {
     QStringList extList;
     QString currentExt = "ZZ";
     
-    Chord2 tmp(root);
+    Chord tmp(root);
     
     for(chordset::const_iterator i = m_map.lower_bound(tmp); i != m_map.end(); ++i) {
-        const Chord2& chord = *i;
-//        NOTATION_DEBUG << "ChordMap2::getExtList : chord = " << chord << endl;
+        const Chord& chord = *i;
+//        NOTATION_DEBUG << "ChordMap::getExtList : chord = " << chord << endl;
          
         if (chord.getRoot() != root)
             break;
             
         if (chord.getExt() != currentExt) {
-//            NOTATION_DEBUG << "ChordMap2::getExtList : adding ext " << chord.getExt() << " for root " << root << endl;
+//            NOTATION_DEBUG << "ChordMap::getExtList : adding ext " << chord.getExt() << " for root " << root << endl;
             extList.push_back(chord.getExt());
             currentExt = chord.getExt();
         }        
@@ -110,20 +113,20 @@ ChordMap2::getExtList(const QString& root) const
 }
 
 void
-ChordMap2::substitute(const Chord2& oldChord, const Chord2& newChord)
+ChordMap::substitute(const Chord& oldChord, const Chord& newChord)
 {
     remove(oldChord);
     insert(newChord);
 }
 
 void
-ChordMap2::remove(const Chord2& c)
+ChordMap::remove(const Chord& c)
 {
     m_map.erase(c);
     m_needSave = true;    
 }
 
-bool ChordMap2::saveDocument(const QString& filename, QString& errMsg)
+bool ChordMap::saveDocument(const QString& filename, QString& errMsg)
 {
     QFile file(filename);
     file.open(IO_WriteOnly);
@@ -145,7 +148,7 @@ bool ChordMap2::saveDocument(const QString& filename, QString& errMsg)
     QString currentExt, currentRoot;
     
     for(iterator i = begin(); i != end(); ++i) {
-        const Chord2& chord = *i;
+        const Chord& chord = *i;
     
         if (chord.getRoot() != currentRoot) {
 
@@ -183,18 +186,20 @@ bool ChordMap2::saveDocument(const QString& filename, QString& errMsg)
      
 }
 
-int ChordMap2::FILE_FORMAT_VERSION_MAJOR = 1;
-int ChordMap2::FILE_FORMAT_VERSION_MINOR = 0;
-int ChordMap2::FILE_FORMAT_VERSION_POINT = 0;
+int ChordMap::FILE_FORMAT_VERSION_MAJOR = 1;
+int ChordMap::FILE_FORMAT_VERSION_MINOR = 0;
+int ChordMap::FILE_FORMAT_VERSION_POINT = 0;
 
 
 void
-ChordMap2::debugDump() const
+ChordMap::debugDump() const
 {
     for(chordset::const_iterator i = m_map.begin(); i != m_map.end(); ++i) {
-        Chord2 chord = *i;
+        Chord chord = *i;
         NOTATION_DEBUG << "ChordMap2::debugDump " << chord << endl;
     } 
+}
+
 }
 
 }

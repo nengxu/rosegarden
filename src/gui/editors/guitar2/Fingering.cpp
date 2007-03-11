@@ -22,20 +22,24 @@
     COPYING included with this distribution for more information.
 */
 
-#include "Fingering2.h"
+#include "Fingering.h"
 #include <qstringlist.h>
 #include <sstream>
+#include <algorithm>
 
 namespace Rosegarden
 {
 
-Fingering2::Fingering2(unsigned int nbStrings) :
+namespace Guitar
+{
+    
+Fingering::Fingering(unsigned int nbStrings) :
     m_strings(nbStrings)
 {
 }
 
 unsigned int
-Fingering2::getStartFret() const
+Fingering::getStartFret() const
 {
     int min = 999;
     for(std::vector<int>::const_iterator i = m_strings.begin(); i != m_strings.end(); ++i) {
@@ -46,22 +50,52 @@ Fingering2::getStartFret() const
     return min == 999 ? 1 : min;
 }
 
-Fingering2
-Fingering2::parseFingering(const QString& ch, QString& errorString)
+bool
+Fingering::hasBarre() const
+{
+    int lastStringStatus = m_strings[getNbStrings() - 1];
+    
+    return ((m_strings[0] > OPEN && m_strings[0] == lastStringStatus) ||
+            (m_strings[1] > OPEN && m_strings[1] == lastStringStatus) ||
+            (m_strings[2] > OPEN && m_strings[2] == lastStringStatus));
+}
+
+Fingering::Barre
+Fingering::getBarre() const
+{
+    int lastStringStatus = m_strings[getNbStrings() - 1];
+
+    Barre res;
+    
+    res.fret = lastStringStatus;
+    
+    for(unsigned int i = 0; i < 3; ++i) {
+        if (m_strings[i] > OPEN && m_strings[i] == lastStringStatus)
+            res.start = i;
+            break;
+    }
+
+    res.end = 5;
+    
+    return res;        
+}
+
+Fingering
+Fingering::parseFingering(const QString& ch, QString& errorString)
 {
     QStringList tokens = QStringList::split(' ', ch);
 
     unsigned int idx = 0;
-    Fingering2 fingering;
+    Fingering fingering;
     
-    for(QStringList::iterator i = tokens.begin(); i != tokens.end(); ++i, ++idx) {
+    for(QStringList::iterator i = tokens.begin(); i != tokens.end() && idx < fingering.getNbStrings(); ++i, ++idx) {
         QString t = *i;
         bool b;
         unsigned int fn = t.toUInt(&b);
         if (b)
             fingering[idx] = fn;
         else if (t.lower() == 'x')
-            fingering[idx] = Fingering2::MUTED;
+            fingering[idx] = MUTED;
         else {
             errorString = i18n("couldn't parse fingering '%1' in '%2'").arg(t).arg(ch);            
         }
@@ -70,7 +104,8 @@ Fingering2::parseFingering(const QString& ch, QString& errorString)
     return fingering;
 }
 
-std::string Fingering2::toString() const
+
+std::string Fingering::toString() const
 {
     std::stringstream s;
     
@@ -84,14 +119,16 @@ std::string Fingering2::toString() const
     return s.str();
 }
 
-bool operator<(const Fingering2& a, const Fingering2& b)
+bool operator<(const Fingering& a, const Fingering& b)
 {
-    for(unsigned int i = 0; i < Fingering2::DEFAULT_NB_STRINGS; ++i) {
+    for(unsigned int i = 0; i < Fingering::DEFAULT_NB_STRINGS; ++i) {
         if (a.getStringStatus(i) != b.getStringStatus(i)) {
             return a.getStringStatus(i) < b.getStringStatus(i);
         }
     }
     return false;
 }    
+
+}
 
 }

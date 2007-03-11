@@ -22,7 +22,7 @@
     COPYING included with this distribution for more information.
 */
 
-#include "Chord2.h"
+#include "Chord.h"
 #include "base/Event.h"
 
 #include <qstring.h>
@@ -30,24 +30,26 @@
 namespace Rosegarden
 {
 
-const std::string Chord2::EventType              = "guitarchord";
-const short Chord2::EventSubOrdering             = -60;
-const PropertyName Chord2::RootPropertyName      = "root";
-const PropertyName Chord2::ExtPropertyName       = "ext";
-const PropertyName Chord2::FingeringPropertyName = "fingering";
+namespace Guitar
+{
+const std::string Chord::EventType              = "guitarchord";
+const short Chord::EventSubOrdering             = -60;
+const PropertyName Chord::RootPropertyName      = "root";
+const PropertyName Chord::ExtPropertyName       = "ext";
+const PropertyName Chord::FingeringPropertyName = "fingering";
 
 
-Chord2::Chord2()
+Chord::Chord()
 {
 }
 
-Chord2::Chord2(const QString& root, const QString& ext)
+Chord::Chord(const QString& root, const QString& ext)
     : m_root(root),
       m_ext(ext)
 {
 }
 
-Chord2::Chord2(const Event& e)
+Chord::Chord(const Event& e)
 {
     std::string f;
     bool ok;
@@ -65,12 +67,12 @@ Chord2::Chord2(const Event& e)
         QString qf(f);
         QString errString;
     
-        Fingering2 fingering = Fingering2::parseFingering(qf, errString);    
+        Fingering fingering = Fingering::parseFingering(qf, errString);    
         setFingering(fingering);
     }
 }
 
-Event* Chord2::getAsEvent(timeT absoluteTime) const
+Event* Chord::getAsEvent(timeT absoluteTime) const
 {
     Event *e = new Event(EventType, absoluteTime, 0, EventSubOrdering);
     e->set<String>(RootPropertyName, m_root);
@@ -79,7 +81,7 @@ Event* Chord2::getAsEvent(timeT absoluteTime) const
     return e;
 }
 
-bool operator<(const Chord2& a, const Chord2& b)
+bool operator<(const Chord& a, const Chord& b)
 {
     if (a.m_root != b.m_root) {
         return a.m_root < b.m_root;
@@ -92,6 +94,8 @@ bool operator<(const Chord2& a, const Chord2& b)
     } else {
         return a.m_fingering < b.m_fingering;
     }
+
+}
 
 }
 

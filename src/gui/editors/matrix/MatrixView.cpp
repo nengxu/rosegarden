@@ -67,7 +67,7 @@
 #include "gui/dialogs/EventParameterDialog.h"
 #include "gui/dialogs/QuantizeDialog.h"
 #include "gui/dialogs/TriggerSegmentDialog.h"
-#include "gui/editors/guitar/Chord.h"
+#include "gui/editors/guitar2/Chord.h"
 #include "gui/editors/notation/NotationElement.h"
 #include "gui/editors/notation/NotationStrings.h"
 #include "gui/editors/notation/NotePixmapFactory.h"

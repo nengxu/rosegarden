@@ -28,7 +28,7 @@
 
 #include "document/BasicCommand.h"
 #include "base/Event.h"
-#include "gui/editors/guitar2/Chord2.h"
+#include "gui/editors/guitar2/Chord.h"
 
 
 namespace Rosegarden
@@ -43,7 +43,7 @@ class FretboardInsertionCommand : public BasicCommand
 public:
     FretboardInsertionCommand(Segment &segment,
                               timeT time,
-                              const Chord2& chord);
+                              const Guitar::Chord& chord);
     virtual ~FretboardInsertionCommand();
 
     Event *getLastInsertedEvent() { return m_lastInsertedEvent; }
@@ -51,7 +51,7 @@ public:
 protected:
     virtual void modifySegment();
 
-    Chord2 m_chord;
+    Guitar::Chord m_chord;
     Event *m_lastInsertedEvent;
 };
 

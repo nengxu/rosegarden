@@ -25,7 +25,7 @@
 #include "GuitarChordSelectorDialog.h"
 #include "GuitarChordEditorDialog.h"
 #include "ChordXmlHandler.h"
-#include "FingeringBox2.h"
+#include "FingeringBox.h"
 #include "FingeringListBoxItem.h"
 
 #include "misc/Debug.h"
@@ -73,7 +73,7 @@ GuitarChordSelectorDialog::GuitarChordSelectorDialog(QWidget *parent)
     m_fingeringsList = new QListBox(page);
     topLayout->addMultiCellWidget(m_fingeringsList, 1, 2, 3, 3);
     
-    m_fingeringBox = new FingeringBox2(false, page);
+    m_fingeringBox = new FingeringBox(false, page);
     topLayout->addMultiCellWidget(m_fingeringBox, 2, 2, 0, 1);
     
     connect(m_rootNotesList, SIGNAL(highlighted(int)),
@@ -108,7 +108,7 @@ GuitarChordSelectorDialog::populate()
         QStringList extList = m_chordMap.getExtList(rootList.first());
         populateExtensions(extList);
         
-        ChordMap2::chordarray chords = m_chordMap.getChords(rootList.first(), extList.first());
+        Guitar::ChordMap::chordarray chords = m_chordMap.getChords(rootList.first(), extList.first());
         populateFingerings(chords);
 
         m_chord.setRoot(rootList.first());
@@ -153,7 +153,7 @@ GuitarChordSelectorDialog::slotChordExtHighlighted(int i)
 {
     NOTATION_DEBUG << "GuitarChordSelectorDialog::slotChordExtHighlighted " << i << endl;
 
-    ChordMap2::chordarray chords = m_chordMap.getChords(m_chord.getRoot(), m_chordExtList->text(i));
+    Guitar::ChordMap::chordarray chords = m_chordMap.getChords(m_chord.getRoot(), m_chordExtList->text(i));
     populateFingerings(chords);
     
     m_fingeringsList->setCurrentItem(0);        
@@ -174,7 +174,7 @@ GuitarChordSelectorDialog::slotFingeringHighlighted(QListBoxItem* listBoxItem)
 void
 GuitarChordSelectorDialog::slotNewFingering()
 {
-    Chord2 newChord;
+    Guitar::Chord newChord;
     newChord.setRoot(m_chord.getRoot());
     newChord.setExt(m_chord.getExt());
     
@@ -210,7 +210,7 @@ GuitarChordSelectorDialog::slotDeleteFingering()
 void
 GuitarChordSelectorDialog::slotEditFingering()
 {
-    Chord2 newChord = m_chord;
+    Guitar::Chord newChord = m_chord;
     GuitarChordEditorDialog* chordEditorDialog = new GuitarChordEditorDialog(newChord, m_chordMap, this);
     
     if (chordEditorDialog->exec() == QDialog::Accepted) {
@@ -239,7 +239,7 @@ GuitarChordSelectorDialog::slotOk()
 }
 
 void
-GuitarChordSelectorDialog::setChord(const Chord2& chord)
+GuitarChordSelectorDialog::setChord(const Guitar::Chord& chord)
 {
     m_chord = chord;
     
@@ -247,17 +247,17 @@ GuitarChordSelectorDialog::setChord(const Chord2& chord)
     QStringList extList = m_chordMap.getExtList(chord.getRoot());
     m_chordExtList->insertStringList(extList);
         
-    ChordMap2::chordarray similarChords = m_chordMap.getChords(chord.getRoot(), extList.first());
+    Guitar::ChordMap::chordarray similarChords = m_chordMap.getChords(chord.getRoot(), extList.first());
     populateFingerings(similarChords);
 }
 
 void
-GuitarChordSelectorDialog::populateFingerings(const ChordMap2::chordarray& chords)
+GuitarChordSelectorDialog::populateFingerings(const Guitar::ChordMap::chordarray& chords)
 {
     m_fingeringsList->clear();
     
-    for(ChordMap2::chordarray::const_iterator i = chords.begin(); i != chords.end(); ++i) {
-        const Chord2& chord = *i; 
+    for(Guitar::ChordMap::chordarray::const_iterator i = chords.begin(); i != chords.end(); ++i) {
+        const Guitar::Chord& chord = *i; 
         QString fingeringString = chord.getFingering().toString();
         NOTATION_DEBUG << "GuitarChordSelectorDialog::populateFingerings " << chord << " - fingering : " << fingeringString << endl;
         QPixmap fingeringPixmap = getFingeringPixmap(chord.getFingering());            
@@ -266,44 +266,21 @@ GuitarChordSelectorDialog::populateFingerings(const ChordMap2::chordarray& chord
 
 }
 
+
 QPixmap
-GuitarChordSelectorDialog::getFingeringPixmap(const Fingering2& fingering) const
+GuitarChordSelectorDialog::getFingeringPixmap(const Guitar::Fingering& fingering) const
 {
     QPixmap pixmap(FINGERING_PIXMAP_WIDTH, FINGERING_PIXMAP_HEIGHT);
     pixmap.fill();
     
-    unsigned int startFret = fingering.getStartFret();
     QPainter pp(&pixmap);    
     QPainter *p = &pp;
     
     p->setViewport(FINGERING_PIXMAP_H_MARGIN, FINGERING_PIXMAP_W_MARGIN,
                    FINGERING_PIXMAP_WIDTH  - FINGERING_PIXMAP_W_MARGIN,
                    FINGERING_PIXMAP_HEIGHT - FINGERING_PIXMAP_H_MARGIN);
-    
-    const Guitar::NoteSymbols& noteSymbols = m_fingeringBox->getNoteSymbols();    
-    noteSymbols.drawFrets(p);
-    noteSymbols.drawStrings(p);
 
-    unsigned int stringNb = 0;
-    
-    for (Fingering2::const_iterator pos = fingering.begin();
-         pos != fingering.end();
-         ++pos, ++stringNb) {
-                
-        switch (*pos) {
-        case Fingering2::OPEN:
-                noteSymbols.drawOpenSymbol(p, stringNb);
-                break;
-
-        case Fingering2::MUTED:
-                noteSymbols.drawMuteSymbol(p, stringNb);
-                break;
-
-        default:
-                noteSymbols.drawNoteSymbol(p, stringNb, *pos - (startFret - 1), false);
-                break;
-        }
-    }
+    Guitar::NoteSymbols::drawFingeringPixmap(fingering, m_fingeringBox->getNoteSymbols(), p);
     
     return pixmap;
 }

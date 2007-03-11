@@ -27,18 +27,18 @@
 #define _RG_FINGERINGLISTBOXITEM_H_
 
 #include <qlistbox.h>
-#include "Chord2.h"
+#include "Chord.h"
 
 namespace Rosegarden {
 
 class FingeringListBoxItem : public QListBoxPixmap
 {
 public:
-    FingeringListBoxItem(const Chord2& chord, QListBox* parent, QPixmap pixmap, QString fingeringString);
+    FingeringListBoxItem(const Guitar::Chord& chord, QListBox* parent, QPixmap pixmap, QString fingeringString);
     
-    const Chord2& getChord() { return m_chord; }
+    const Guitar::Chord& getChord() { return m_chord; }
 protected:
-    Chord2 m_chord;
+    Guitar::Chord m_chord;
 };
 
 }

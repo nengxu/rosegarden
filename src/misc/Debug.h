@@ -42,7 +42,7 @@ class QPen;
 class QBrush;
 #endif
 
-namespace Rosegarden { class Event; class Segment; class RealTime; class Colour; class Chord2; }
+namespace Rosegarden { class Event; class Segment; class RealTime; class Colour; namespace Guitar { class Chord; } }
 
 #define KDEBUG_AREA                 200000
 #define KDEBUG_AREA_NOTATION        200001
@@ -74,7 +74,7 @@ kdbgstream&
 operator<<(kdbgstream&, const Rosegarden::Colour&);
 
 kdbgstream&
-operator<<(kdbgstream&, const Rosegarden::Chord2&);
+operator<<(kdbgstream&, const Rosegarden::Guitar::Chord&);
 
 #else
 
@@ -94,7 +94,7 @@ inline kndbgstream&
 operator<<(kndbgstream &s, const Rosegarden::Colour&) { return s; }
 
 inline kndbgstream&
-operator<<(kndbgstream &s, const Rosegarden::Chord2&) { return s; }
+operator<<(kndbgstream &s, const Rosegarden::Chord&) { return s; }
 
 #endif
 

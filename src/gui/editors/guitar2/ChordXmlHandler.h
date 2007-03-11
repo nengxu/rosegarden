@@ -27,8 +27,8 @@
 #define _RG_CHORDXMLHANDLER_H_
 
 #include "gui/general/ProgressReporter.h"
-#include "Chord2.h"
-#include "ChordMap2.h"
+#include "Chord.h"
+#include "ChordMap.h"
 
 #include <qxml.h>
 
@@ -39,7 +39,7 @@ namespace Rosegarden
 class ChordXmlHandler : public ProgressReporter, public QXmlDefaultHandler
 {
 public:
-	ChordXmlHandler(ChordMap2&);
+	ChordXmlHandler(Guitar::ChordMap&);
     virtual ~ChordXmlHandler();
     
     /// overloaded handler functions
@@ -66,11 +66,11 @@ protected:
 
     bool parseFingering(const QString& ch);
 
-    Chord2 m_currentChord;
+    Guitar::Chord m_currentChord;
     QString m_currentRoot;
     QString m_errorString;
     bool m_inFingering;
-    ChordMap2& m_chordMap;
+    Guitar::ChordMap& m_chordMap;
 };
 
 }

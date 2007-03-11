@@ -35,7 +35,9 @@
 #include "base/Exception.h"
 #include "base/NotationTypes.h"
 #include "base/Profiler.h"
-#include "gui/editors/guitar/Fingering.h"
+#include "gui/editors/guitar2/Fingering.h"
+#include "gui/editors/guitar2/FingeringBox.h"
+#include "gui/editors/guitar2/NoteSymbols.h"
 #include "gui/general/GUIPalette.h"
 #include "gui/general/PixmapFunctions.h"
 #include "gui/general/Spline.h"
@@ -2886,7 +2888,7 @@ NotePixmapFactory::makeTextPixmap(const Text &text)
 }
 
 QCanvasPixmap*
-NotePixmapFactory::makeFretboardPixmap(const Guitar::Fingering &arrangement,
+NotePixmapFactory::makeFretboardPixmap(const Guitar::Fingering &fingering,
                                        int x,
                                        int y)
 {
@@ -2902,14 +2904,15 @@ NotePixmapFactory::makeFretboardPixmap(const Guitar::Fingering &arrangement,
         << std::endl;
     */
 
-    createPixmapAndMask (fretboardWidth, fretboardHeight);
+    createPixmapAndMask(fretboardWidth, fretboardHeight);
 
     // m_generatedPixmap
     m_p->painter().setBrush(Qt::black);
 
-    arrangement.drawContents(&(m_p->painter()));
+    Guitar::NoteSymbols ns(Guitar::Fingering::DEFAULT_NB_STRINGS, FingeringBox::DEFAULT_NB_DISPLAYED_FRETS);
+    Guitar::NoteSymbols::drawFingeringPixmap(fingering, ns, &(m_p->painter()));
 
-    return makeCanvasPixmap( QPoint ( x, y ), true );
+    return makeCanvasPixmap(QPoint (x, y), true);
 }
 
 void

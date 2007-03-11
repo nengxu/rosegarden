@@ -1,4 +1,30 @@
+/* -*- c-basic-offset: 4 indent-tabs-mode: nil -*- vi:set ts=8 sts=4 sw=4: */
+
+/*
+    Rosegarden
+    A MIDI and audio sequencer and musical notation editor.
+
+    This program is Copyright 2000-2007
+        Guillaume Laurent   <glaurent@telegraph-road.org>,
+        Chris Cannam        <cannam@all-day-breakfast.com>,
+        Richard Bown        <richard.bown@ferventsoftware.com>
+
+    The moral rights of Guillaume Laurent, Chris Cannam, and Richard
+    Bown to claim authorship of this work have been asserted.
+
+    This file contains code from 
+    Other copyrights also apply to some parts of this work.  Please
+    see the AUTHORS file and individual file headers for details.
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of the
+    License, or (at your option) any later version.  See the file
+    COPYING included with this distribution for more information.
+*/
+
 #include "NoteSymbols.h"
+#include "Fingering.h"
 #include "misc/Debug.h"
 
 namespace Rosegarden
@@ -397,6 +423,38 @@ NoteSymbols::getFretNumber ( int imgHeight,
     //    std::cout << "  fret #: " << result << std::endl;
     return std::make_pair( valueOk, result );
 }
+
+void
+NoteSymbols::drawFingeringPixmap(const Guitar::Fingering& fingering, const Guitar::NoteSymbols& noteSymbols, QPainter *p)
+{
+    unsigned int startFret = fingering.getStartFret();
+    
+    noteSymbols.drawFrets(p);
+    noteSymbols.drawStrings(p);
+
+    unsigned int stringNb = 0;
+    
+    for (Fingering::const_iterator pos = fingering.begin();
+         pos != fingering.end();
+         ++pos, ++stringNb) {
+                
+        switch (*pos) {
+        case Fingering::OPEN:
+                noteSymbols.drawOpenSymbol(p, stringNb);
+                break;
+
+        case Fingering::MUTED:
+                noteSymbols.drawMuteSymbol(p, stringNb);
+                break;
+
+        default:
+                noteSymbols.drawNoteSymbol(p, stringNb, *pos - (startFret - 1), false);
+                break;
+        }
+    }
+    
+}
+
 
 float const NoteSymbols::LEFT_BORDER_PERCENTAGE = 0.1;
 float const NoteSymbols::RIGHT_BORDER_PERCENTAGE = 0.1;

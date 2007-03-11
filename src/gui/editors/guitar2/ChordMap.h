@@ -22,10 +22,10 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef _RG_CHORDMAP2_H_
-#define _RG_CHORDMAP2_H_
+#ifndef _RG_CHORDMAP_H_
+#define _RG_CHORDMAP_H_
 
-#include "Chord2.h"
+#include "Chord.h"
 
 #include <qstringlist.h>
 #include <set>
@@ -33,12 +33,15 @@
 namespace Rosegarden
 {
 
-class ChordMap2
+namespace Guitar
 {
-    typedef std::set<Chord2, Chord2::ChordCmp> chordset; 
+
+class ChordMap
+{
+    typedef std::set<Chord, Chord::ChordCmp> chordset; 
 
 public:
-    typedef std::vector<Chord2> chordarray;
+    typedef std::vector<Chord> chordarray;
 
     typedef chordset::iterator iterator;
     typedef chordset::const_iterator const_iterator;
@@ -47,11 +50,11 @@ public:
     static int FILE_FORMAT_VERSION_MINOR;
     static int FILE_FORMAT_VERSION_POINT;
     
-	ChordMap2();
+	ChordMap();
     
-    void insert(const Chord2&);
-    void substitute(const Chord2& oldChord, const Chord2& newChord);
-    void remove(const Chord2&);
+    void insert(const Chord&);
+    void substitute(const Chord& oldChord, const Chord& newChord);
+    void remove(const Chord&);
     
     chordarray getChords(const QString& root, const QString& ext) const;
     
@@ -76,6 +79,8 @@ protected:
     
     bool m_needSave;
 };
+
+}
 
 }
 

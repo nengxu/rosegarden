@@ -26,8 +26,8 @@
 #ifndef _RG_GUITARCHORDSELECTORDIALOG_H_
 #define _RG_GUITARCHORDSELECTORDIALOG_H_
 
-#include "Chord2.h"
-#include "ChordMap2.h"
+#include "Chord.h"
+#include "ChordMap.h"
 
 #include <kdialogbase.h>
 #include <qstring.h>
@@ -40,7 +40,7 @@ class QPushButton;
 namespace Rosegarden
 {
 
-class FingeringBox2;
+class FingeringBox;
 
 class GuitarChordSelectorDialog : public KDialogBase
 {
@@ -51,9 +51,9 @@ public:
 
     void init();
 
-    const Chord2& getChord() const { return m_chord; }
+    const Guitar::Chord& getChord() const { return m_chord; }
 
-    void setChord(const Chord2&);
+    void setChord(const Guitar::Chord&);
 
 protected slots:
     void slotRootHighlighted(int);
@@ -70,7 +70,7 @@ protected:
 
     void parseChordFiles(const std::vector<QString>& chordFiles);
     void parseChordFile(const QString& chordFileName);
-    void populateFingerings(const ChordMap2::chordarray&);
+    void populateFingerings(const Guitar::ChordMap::chordarray&);
     void populateExtensions(const QStringList& extList);
 
     void populate();
@@ -79,22 +79,22 @@ protected:
     
     bool saveUserChordMap();
     
-    QPixmap getFingeringPixmap(const Fingering2& fingering) const;
+    QPixmap getFingeringPixmap(const Guitar::Fingering& fingering) const;
          
     //! Find all chord list files on the system
     std::vector<QString> getAvailableChordFiles();
 
     //! List of Chords
-    ChordMap2 m_chordMap;
+    Guitar::ChordMap m_chordMap;
 
     /// selected chord
-    Chord2 m_chord;
+    Guitar::Chord m_chord;
     
     // Chord data
     QListBox* m_rootNotesList;
     QListBox* m_chordExtList;
     QListBox* m_fingeringsList;
-    FingeringBox2* m_fingeringBox;
+    FingeringBox* m_fingeringBox;
 
     QPushButton* m_newFingeringButton;
     QPushButton* m_deleteFingeringButton;

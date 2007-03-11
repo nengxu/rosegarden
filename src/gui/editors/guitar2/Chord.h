@@ -22,10 +22,10 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef _RG_CHORD2_H_
-#define _RG_CHORD2_H_
+#ifndef _RG_CHORD_H_
+#define _RG_CHORD_H_
 
-#include "Fingering2.h"
+#include "Fingering.h"
 #include "base/Event.h"
 #include "misc/Debug.h"
 
@@ -37,9 +37,12 @@ namespace Rosegarden
 
 class Event;
 
-class Chord2
+namespace Guitar
 {
-    friend bool operator<(const Chord2&, const Chord2&);
+    
+class Chord
+{
+    friend bool operator<(const Chord&, const Chord&);
     
 public:
     static const std::string EventType;
@@ -48,9 +51,9 @@ public:
     static const PropertyName ExtPropertyName;
     static const PropertyName FingeringPropertyName;
 
-	Chord2();
-    Chord2(const QString& root, const QString& ext = QString::null);
-    Chord2(const Event&);
+	Chord();
+    Chord(const QString& root, const QString& ext = QString::null);
+    Chord(const Event&);
 
     Event* getAsEvent(timeT absoluteTime) const;
         
@@ -65,15 +68,15 @@ public:
     
     bool hasAltBass() const { return m_ext.contains('/'); } 
 
-    Fingering2 getFingering() const { return m_fingering; }
-    void setFingering(Fingering2 f) { m_fingering = f; }
+    Fingering getFingering() const { return m_fingering; }
+    void setFingering(Fingering f) { m_fingering = f; }
 
     struct ChordCmp
     {
-        bool operator()(const Chord2 &e1, const Chord2 &e2) const {
+        bool operator()(const Chord &e1, const Chord &e2) const {
             return e1 < e2;
         }
-        bool operator()(const Chord2 *e1, const Chord2 *e2) const {
+        bool operator()(const Chord *e1, const Chord *e2) const {
             return *e1 < *e2;
         }
     };
@@ -83,11 +86,12 @@ protected:
     QString m_root;
     QString m_ext;
     
-    Fingering2 m_fingering;
+    Fingering m_fingering;
 };
 
-bool operator<(const Chord2&, const Chord2&);    
+bool operator<(const Chord&, const Chord&);    
 
+}
 
 }
 

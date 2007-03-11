@@ -107,7 +107,7 @@ void FretboardInserter::handleLeftButtonPress(timeT,
 
     Staff *staff = m_nParentView->getStaff(staffNo);
 
-    if (element && element->event()->isa(Chord2::EventType)) {
+    if (element && element->event()->isa(Guitar::Chord::EventType)) {
         handleSelectedFretboard (element, staff);
     } else {
         createNewFretboard (element, staff, e);
@@ -120,7 +120,7 @@ bool FretboardInserter::processDialog( Staff* staff,
     bool result = false;
 
     if (m_guitarChordSelector->exec() == QDialog::Accepted) {
-        Chord2 chord = m_guitarChordSelector->getChord();
+        Guitar::Chord chord = m_guitarChordSelector->getChord();
 
         FretboardInsertionCommand *command =
             new FretboardInsertionCommand
@@ -143,7 +143,7 @@ void FretboardInserter::handleSelectedFretboard (ViewElement* element, Staff *st
 
     // edit an existing fretboard, if that's what we clicked on
     try {
-        Chord2 chord(*(element->event()));
+        Guitar::Chord chord(*(element->event()));
 
         m_guitarChordSelector->setChord(chord);
         

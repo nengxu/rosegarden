@@ -27,8 +27,8 @@
 
 #include <kdialogbase.h>
 
-#include "Chord2.h"
-#include "ChordMap2.h"
+#include "Chord.h"
+#include "ChordMap.h"
 
 class QComboBox;
 class QSpinBox;
@@ -36,7 +36,7 @@ class QSpinBox;
 namespace Rosegarden
 {
 
-class FingeringBox2;
+class FingeringBox;
 
 
 class GuitarChordEditorDialog : public KDialogBase
@@ -44,7 +44,7 @@ class GuitarChordEditorDialog : public KDialogBase
     Q_OBJECT
     
 public:
-	GuitarChordEditorDialog(Chord2&, const ChordMap2& chordMap, QWidget *parent=0);
+	GuitarChordEditorDialog(Guitar::Chord&, const Guitar::ChordMap& chordMap, QWidget *parent=0);
 
 protected slots:
     void slotStartFretChanged(int);
@@ -54,12 +54,12 @@ protected:
 
     void populateExtensions(const QStringList&);
 
-    FingeringBox2* m_fingeringBox;
+    FingeringBox* m_fingeringBox;
     QComboBox* m_rootNotesList;
     QSpinBox* m_startFret;
     QComboBox* m_ext;
-    Chord2& m_chord;
-    const ChordMap2& m_chordMap;    
+    Guitar::Chord& m_chord;
+    const Guitar::ChordMap& m_chordMap;    
 };
 
 }
