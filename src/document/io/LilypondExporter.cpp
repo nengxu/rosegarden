@@ -59,7 +59,7 @@
 #include "gui/application/RosegardenApplication.h"
 #include "gui/application/RosegardenGUIView.h"
 #include "gui/editors/notation/NotationProperties.h"
-#include "gui/editors/guitar2/Chord.h"
+#include "gui/editors/guitar/Chord.h"
 #include "gui/general/ProgressReporter.h"
 #include "gui/widgets/CurrentProgressDialog.h"
 #include <kconfig.h>

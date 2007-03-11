@@ -34,7 +34,7 @@
 #include "commands/notation/FretboardInsertionCommand.h"
 #include "gui/general/EditTool.h"
 #include "gui/general/LinedStaff.h"
-#include "gui/editors/guitar2/GuitarChordSelectorDialog.h"
+#include "gui/editors/guitar/GuitarChordSelectorDialog.h"
 #include "misc/Debug.h"
 #include "NotationElement.h"
 #include "NotationTool.h"

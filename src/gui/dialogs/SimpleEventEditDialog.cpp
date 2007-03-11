@@ -31,7 +31,7 @@
 #include "base/MidiTypes.h"
 #include "base/NotationTypes.h"
 #include "document/RosegardenGUIDoc.h"
-#include "gui/editors/guitar2/Chord.h"
+#include "gui/editors/guitar/Chord.h"
 #include "misc/Strings.h"
 #include "PitchDialog.h"
 #include "TimeDialog.h"

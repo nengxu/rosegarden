@@ -39,8 +39,8 @@
 #include "base/Segment.h"
 #include "base/RealTime.h"
 #include "base/Colour.h"
-#include "gui/editors/guitar2/Chord.h"
-#include "gui/editors/guitar2/Fingering.h"
+#include "gui/editors/guitar/Chord.h"
+#include "gui/editors/guitar/Fingering.h"
 
 #ifndef NDEBUG
 

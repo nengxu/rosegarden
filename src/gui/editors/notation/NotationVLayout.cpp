@@ -34,7 +34,7 @@
 #include "base/NotationQuantizer.h"
 #include "base/Staff.h"
 #include "gui/general/ProgressReporter.h"
-#include "gui/editors/guitar2/Chord.h"
+#include "gui/editors/guitar/Chord.h"
 #include "NotationChord.h"
 #include "NotationElement.h"
 #include "NotationProperties.h"
