@@ -25,7 +25,7 @@
 #include <vector>
 #include <algorithm>
 
-//#define NO_TIMING 1
+#define NO_TIMING 1 // force disable of profiling
 
 #ifdef NDEBUG
 #define NO_TIMING 1
