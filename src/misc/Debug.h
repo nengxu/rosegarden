@@ -94,7 +94,7 @@ inline kndbgstream&
 operator<<(kndbgstream &s, const Rosegarden::Colour&) { return s; }
 
 inline kndbgstream&
-operator<<(kndbgstream &s, const Rosegarden::Chord&) { return s; }
+operator<<(kndbgstream &s, const Rosegarden::Guitar::Chord&) { return s; }
 
 #endif
 
