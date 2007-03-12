@@ -53,6 +53,7 @@ class Text;
 class NoteStyle;
 class NotePixmapParameters;
 class NoteFont;
+class Fingering;
 class NotePixmapPainter;
 class NotePixmapCache;
 class Clef;
@@ -99,7 +100,7 @@ public:
     QCanvasPixmap* makePedalUpPixmap();
     QCanvasPixmap* makeUnknownPixmap();
     QCanvasPixmap* makeTextPixmap(const Text &text);
-    QCanvasPixmap* makeFretboardPixmap(const Guitar::Fingering &fingering,
+    QCanvasPixmap* makeFretboardPixmap(const Guitar::Fingering &arrangement,
                                        int x, int y);
 
     // Printing methods -- draw direct to a paint device:

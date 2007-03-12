@@ -1,31 +1,4 @@
-/* -*- c-basic-offset: 4 indent-tabs-mode: nil -*- vi:set ts=8 sts=4 sw=4: */
-
-/*
-    Rosegarden
-    A MIDI and audio sequencer and musical notation editor.
-
-    This program is Copyright 2000-2007
-        Guillaume Laurent   <glaurent@telegraph-road.org>,
-        Chris Cannam        <cannam@all-day-breakfast.com>,
-        Richard Bown        <richard.bown@ferventsoftware.com>
-
-    The moral rights of Guillaume Laurent, Chris Cannam, and Richard
-    Bown to claim authorship of this work have been asserted.
-
-    This file contains code from 
-    Other copyrights also apply to some parts of this work.  Please
-    see the AUTHORS file and individual file headers for details.
-
-    This program is free software; you can redistribute it and/or
-    modify it under the terms of the GNU General Public License as
-    published by the Free Software Foundation; either version 2 of the
-    License, or (at your option) any later version.  See the file
-    COPYING included with this distribution for more information.
-*/
-
 #include "NoteSymbols.h"
-#include "Fingering.h"
-#include "misc/Debug.h"
 
 namespace Rosegarden
 {
@@ -33,7 +6,7 @@ namespace Rosegarden
 namespace Guitar
 {
 NoteSymbols::posPair
-NoteSymbols::getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfStrings ) const
+NoteSymbols::getX ( int imgWidth, unsigned int position, unsigned int string_num )
 {
     /*
             std::cout << "NoteSymbols::getX - input values" << std::endl
@@ -42,13 +15,13 @@ NoteSymbols::getX ( int imgWidth, unsigned int stringNb, unsigned int nbOfString
             << "  scale:    " << scale << std::endl;
     */
     unsigned int lBorder = getLeftBorder( imgWidth );
-    unsigned int fretboardWidth = getFretboardWidth( imgWidth );
-    unsigned int columnWidth = fretboardWidth / nbOfStrings;
-    return std::make_pair( ( stringNb * columnWidth + lBorder ), columnWidth );
+    unsigned int fretboard = getFretboardWidth( imgWidth );
+    unsigned int columnWidth = fretboard / string_num;
+    return std::make_pair( ( position * columnWidth + lBorder ), columnWidth );
 }
 
 NoteSymbols::posPair
-NoteSymbols::getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets ) const
+NoteSymbols::getY ( int imgHeight, unsigned int fret_pos, unsigned int maxFretNum )
 {
     /*
             std::cout << "NoteSymbols::getY - input values" << std::endl
@@ -57,18 +30,20 @@ NoteSymbols::getY ( int imgHeight, unsigned int fretNb, unsigned int nbOfFrets )
             << "  scale:    " << scale << std::endl;
     */
     unsigned int tBorder = getTopBorder( imgHeight );
-    unsigned int fretboardHeight = getFretboardHeight( imgHeight );
-    unsigned int rowHeight = fretboardHeight / nbOfFrets;
-    return std::make_pair( ( ( fretNb * rowHeight ) + tBorder ), rowHeight );
+    unsigned int yFretboard = getFretboardHeight( imgHeight );
+    unsigned int rowHeight = yFretboard / maxFretNum;
+    return std::make_pair( ( ( fret_pos * rowHeight ) + tBorder ), rowHeight );
 }
 
 void
 NoteSymbols::drawMuteSymbol ( QPainter* p,
-                              unsigned int position ) const
+                              unsigned int position,
+                              unsigned int fretDisplayed,
+                              unsigned int string_num )
 {
     QRect v = p->viewport();
 
-    posPair x_pos = getX ( v.width(), position, m_nbOfStrings );
+    posPair x_pos = getX ( v.width(), position, string_num );
     unsigned int y_pos = getTopBorder( v.height() ) / 2;
     double columnWidth = x_pos.second;
     unsigned int width = static_cast<unsigned int>( columnWidth * 0.7 );
@@ -90,10 +65,12 @@ NoteSymbols::drawMuteSymbol ( QPainter* p,
 
 void
 NoteSymbols::drawOpenSymbol ( QPainter* p,
-                              unsigned int position ) const
+                              unsigned int position,
+                              unsigned int fretDisplayed,
+                              unsigned int string_num )
 {
     QRect v = p->viewport();
-    posPair x_pos = getX ( v.width(), position, m_nbOfStrings );
+    posPair x_pos = getX ( v.width(), position, string_num );
     unsigned int y_pos = getTopBorder( v.height() ) / 2;
     double columnWidth = x_pos.second;
     unsigned int radius = static_cast<unsigned int>( columnWidth * 0.7 );
@@ -110,75 +87,61 @@ NoteSymbols::drawOpenSymbol ( QPainter* p,
 
 void
 NoteSymbols::drawNoteSymbol ( QPainter* p,
-                              unsigned int stringNb,
-                              int fretNb,
-                              bool transient ) const
+                              unsigned int position,
+                              int fret,
+                              unsigned int string_num,
+                              unsigned int fretDisplayed )
 {
-//    NOTATION_DEBUG << "NoteSymbols::drawNoteSymbol - string: " << stringNb << ", fret:" << fretNb << endl;
+    //std::cout << "NoteSymbols::drawNoteSymbol - string: " << position << ", fret:" << fret
+    //<< std::endl;
 
     QRect v = p->viewport();
-    posPair x_pos = getX ( v.width(), stringNb, m_nbOfStrings );
-    posPair y_pos = getY ( v.height(), fretNb, m_nbOfFrets );
+    posPair x_pos = getX ( v.width(), position, string_num );
+    posPair y_pos = getY ( v.height(), fret, fretDisplayed );
     double columnWidth = x_pos.second;
-    unsigned int radius;
+    unsigned int radius = static_cast<unsigned int>( columnWidth * 0.7 );
 
-    if (transient) {
-        radius =  static_cast<unsigned int>( columnWidth /* * 0.9 */ );
-        p->setBrush( Qt::NoBrush );
-    } else {
-        radius =  static_cast<unsigned int>( columnWidth * 0.7 );
-        p->setBrush( Qt::SolidPattern );
-    }
-
-    int x = x_pos.first - ( radius / 2 ),
-        y = y_pos.first + ( (y_pos.second - radius) / 2) - y_pos.second + TOP_FRETBOARD_MARGIN; 
-
-//        y = y_pos.first - (radius / 2) - y_pos.second + TOP_FRETBOARD_MARGIN;
-
-//    RG_DEBUG << "NoteSymbols::drawNoteSymbol : rect = " << QRect(x,y, radius, radius) << endl;
-
-    p->drawEllipse( x,
-                    y,
+    p->setBrush( Qt::SolidPattern );
+    p->drawEllipse( x_pos.first - ( radius / 2 ),
+                    y_pos.first + ( y_pos.second / 4 ),
                     radius,
                     radius );
-                    
-//    p->save();
-//    p->setPen(Qt::red);
-//    p->drawRect( x, y, radius, radius );
-//    p->restore();
 }
 
 void
 NoteSymbols::drawBarreSymbol ( QPainter* p,
-                               int fretNb,
+                               int fret,
                                unsigned int start,
-                               unsigned int end ) const
+                               unsigned int end,
+                               unsigned int string_num,
+                               unsigned int fretDisplayed )
 {
 
     //std::cout << "NoteSymbols::drawBarreSymbol - start: " << start << ", end:" << end << std::endl;
 
-    drawNoteSymbol ( p, start, fretNb );
+    drawNoteSymbol ( p, start, fret, string_num, fretDisplayed );
 
     if ( ( end - start ) >= 1 ) {
         QRect v = p->viewport();
-        posPair startXPos = getX ( v.width(), start, m_nbOfStrings );
-        posPair endXPos = getX ( v.width(), end, m_nbOfStrings );
-        posPair y_pos = getY ( v.height(), fretNb, m_nbOfFrets );
+        posPair startXPos = getX ( v.width(), start, string_num );
+        posPair endXPos = getX ( v.width(), end, string_num );
+        posPair y_pos = getY ( v.height(), fret, fretDisplayed );
         double columnWidth = startXPos.second;
         unsigned int thickness = static_cast<unsigned int>( columnWidth * 0.7 );
 
         p->drawRect( startXPos.first,
-                     y_pos.first + ( y_pos.second / 4 ) + TOP_FRETBOARD_MARGIN,
+                     y_pos.first + ( y_pos.second / 4 ),
                      endXPos.first - startXPos.first,
                      thickness );
     }
 
-    drawNoteSymbol ( p, end, fretNb );
+    drawNoteSymbol ( p, end, fret, string_num, fretDisplayed );
 }
 
 void
 NoteSymbols::drawFretNumber ( QPainter* p,
-                              unsigned int fret_num ) const
+                              unsigned int fret_num,
+                              unsigned int fretsDisplayed )
 {
     if ( fret_num > 1 ) {
         QRect v = p->viewport();
@@ -189,7 +152,7 @@ NoteSymbols::drawFretNumber ( QPainter* p,
         tmp.setNum( fret_num );
 
         // Use NoteSymbols to grab X and Y for first fret
-        posPair y_pos = getY( imgHeight, 0, m_nbOfFrets );
+        posPair y_pos = getY( imgHeight, 0, fretsDisplayed );
 
         p->drawText( getLeftBorder( imgWidth ) / 4,
                      y_pos.first + ( y_pos.second / 2 ),
@@ -198,7 +161,9 @@ NoteSymbols::drawFretNumber ( QPainter* p,
 }
 
 void
-NoteSymbols::drawFrets ( QPainter* p ) const
+NoteSymbols::drawFretHorizontalLines ( QPainter* p,
+                                       unsigned int fretsDisplayed,
+                                       unsigned int maxStringNum )
 {
     /*
             std::cout << "NoteSymbols::drawFretHorizontalLines" << std::endl
@@ -209,105 +174,59 @@ NoteSymbols::drawFrets ( QPainter* p ) const
 
     QRect v = p->viewport();
     unsigned int imgWidth = v.width();
-    unsigned int imgHeight = v.height();
     //unsigned int endXPos = getFretboardWidth(imgWidth) + getLeftBorder(imgWidth);
-    posPair endXPos = getX ( imgWidth, m_nbOfStrings - 1, m_nbOfStrings );
+    posPair endXPos = getX ( imgWidth, maxStringNum - 1, maxStringNum );
 
-    unsigned int yFretboard = getFretboardHeight( imgHeight );
-    unsigned int rowHeight = yFretboard / m_nbOfFrets;
-
-    QPen pen;
-    pen.setWidth(imgHeight >= 100 ? FRET_PEN_WIDTH : FRET_PEN_WIDTH / 2);  
-    p->save();
-    p->setPen(pen);
-    unsigned int y_pos = (getY ( imgHeight, 0, m_nbOfFrets )).first + TOP_FRETBOARD_MARGIN;
-    
-//    NOTATION_DEBUG << "NoteSymbols::drawFrets : " << m_nbOfFrets << endl;
-    
     // Horizontal lines
-    for ( unsigned int i = 0; i <= m_nbOfFrets; ++i ) {
+    for ( unsigned int i = 0; i <= fretsDisplayed; ++i ) {
+        posPair y_pos = getY ( imgWidth, i, fretsDisplayed );
 
         /* This code borrowed from KGuitar 0.5 */
         p->drawLine( getLeftBorder( imgWidth ),
-                     y_pos,
+                     y_pos.first,
                      endXPos.first,
-                     y_pos);
-//        NOTATION_DEBUG << "NoteSymbols::drawFrets : " << QPoint(getLeftBorder(imgWidth), y_pos)
-//                       << " to " << QPoint(endXPos.first, y_pos) << endl;
-                     
-
-       y_pos += rowHeight;
+                     y_pos.first );
     }
-
-    p->restore();
-
 }
 
 void
-NoteSymbols::drawStrings ( QPainter* p ) const
+NoteSymbols::drawFretVerticalLines ( QPainter* p,
+                                     unsigned int fretsDisplayed,
+                                     unsigned int maxStringNum )
 {
     // Vertical lines
     QRect v = p->viewport();
     int imgHeight = v.height();
     int imgWidth = v.width();
 
-    unsigned int startPos = getTopBorder( imgHeight ) + TOP_FRETBOARD_MARGIN;
-    unsigned int endPos = (getY ( imgHeight, m_nbOfFrets, m_nbOfFrets )).first + TOP_FRETBOARD_MARGIN;
+    unsigned int startPos = getTopBorder( imgHeight );
+    posPair endPos = getY ( imgHeight, fretsDisplayed, fretsDisplayed );
 
-    unsigned int fretboard = getFretboardWidth( imgWidth );
-    unsigned int columnWidth = fretboard / m_nbOfStrings;
-
-    unsigned int x_pos = (getX ( imgWidth, 0, m_nbOfStrings )).first;
-
-    QPen pen;
-    pen.setWidth(imgWidth >= 100 ? STRING_PEN_WIDTH : STRING_PEN_WIDTH / 2);  
-    p->save();
-    p->setPen(pen);
-
-    for ( unsigned int i = 0; i < m_nbOfStrings; ++i ) {
+    for ( unsigned int i = 0; i < maxStringNum; ++i ) {
+        posPair x_pos = getX ( imgWidth, i, maxStringNum );
 
         /* This code borrowed from KGuitar 0.5 */
-        p->drawLine( x_pos,
+        p->drawLine( x_pos.first,
                      startPos,
-                     x_pos,
-                     endPos );
-                     
-       x_pos += columnWidth;
+                     x_pos.first,
+                     endPos.first );
     }
-
-    p->restore();
-    
-}
-
-QRect NoteSymbols::getTransientNoteSymbolRect(QSize fretboardSize,
-                                              unsigned int stringNb,
-                                              int fretNb) const
-{
-    posPair x_pos = getX ( fretboardSize.width(), stringNb, m_nbOfStrings );
-    posPair y_pos = getY ( fretboardSize.height(), fretNb, m_nbOfFrets );
-    double columnWidth = x_pos.second;
-    unsigned int radius =  static_cast<unsigned int>( columnWidth /* * 0.9 */ );
-
-    int x = x_pos.first - ( radius / 2 ),
-        y = y_pos.first + ( (y_pos.second - radius) / 2) - y_pos.second + TOP_FRETBOARD_MARGIN; 
-
-    return QRect(x, y, radius, radius);
 }
 
 unsigned int
-NoteSymbols::getTopBorder ( unsigned int imgHeight ) const
+NoteSymbols::getTopBorder ( unsigned int imgHeight )
 {
     return static_cast<unsigned int>( TOP_BORDER_PERCENTAGE * imgHeight );
 }
 
 unsigned int
-NoteSymbols::getBottomBorder ( unsigned int imgHeight ) const
+NoteSymbols::getBottomBorder ( unsigned int imgHeight )
 {
     return static_cast<unsigned int>( imgHeight * BOTTOM_BORDER_PERCENTAGE );
 }
 
 unsigned int
-NoteSymbols::getLeftBorder ( unsigned int imgWidth ) const
+NoteSymbols::getLeftBorder ( unsigned int imgWidth )
 {
     unsigned int left = static_cast<unsigned int>( imgWidth * LEFT_BORDER_PERCENTAGE );
     if ( left < 15 ) {
@@ -317,19 +236,19 @@ NoteSymbols::getLeftBorder ( unsigned int imgWidth ) const
 }
 
 unsigned int
-NoteSymbols::getRightBorder ( unsigned int imgWidth ) const
+NoteSymbols::getRightBorder ( unsigned int imgWidth )
 {
     return static_cast<unsigned int>( imgWidth * RIGHT_BORDER_PERCENTAGE );
 }
 
 unsigned int
-NoteSymbols::getFretboardWidth ( int imgWidth ) const
+NoteSymbols::getFretboardWidth ( int imgWidth )
 {
     return static_cast<unsigned int>( imgWidth * FRETBOARD_WIDTH_PERCENTAGE );
 }
 
 unsigned int
-NoteSymbols::getFretboardHeight ( int imgHeight ) const
+NoteSymbols::getFretboardHeight ( int imgHeight )
 {
     return static_cast<unsigned int>( imgHeight * FRETBOARD_HEIGHT_PERCENTAGE );
 }
@@ -337,10 +256,10 @@ NoteSymbols::getFretboardHeight ( int imgHeight ) const
 std::pair<bool, unsigned int>
 NoteSymbols::getStringNumber ( int imgWidth,
                                unsigned int x_pos,
-                               unsigned int maxStringNum ) const
+                               unsigned int maxStringNum )
 {
     /*
-        std::cout << "NoteSymbols::getNumberOfStrings - input values" << std::endl
+        std::cout << "NoteSymbols::getStringNumber - input values" << std::endl
         << "  X position: " << x_pos << std::endl
         << "  string #: " << maxStringNum << std::endl
         << "  image width:    " << imgWidth << std::endl;
@@ -380,17 +299,17 @@ NoteSymbols::getStringNumber ( int imgWidth,
         }
     }
 
-    //std::cout << "NoteSymbols::getNumberOfStrings - string: #" << result << std::endl;
+    //std::cout << "NoteSymbols::getStringNumber - string: #" << result << std::endl;
     return std::make_pair( valueOk, result );
 }
 
 std::pair<bool, unsigned int>
 NoteSymbols::getFretNumber ( int imgHeight,
                              unsigned int y_pos,
-                             unsigned int maxFretNum ) const
+                             unsigned int maxFretNum )
 {
     /*
-        std::cout << "NoteSymbols::getNumberOfFrets - input values" << std::endl
+        std::cout << "NoteSymbols::getFretNumber - input values" << std::endl
         << "  Y position: " << y_pos << std::endl
         << "  max frets:   " << maxFretNum << std::endl
         << "  image height:    " << imgHeight << std::endl;
@@ -414,7 +333,7 @@ NoteSymbols::getFretNumber ( int imgHeight,
             max_pos = getY ( imgHeight, i + 1, maxFretNum );
 
             if ( ( y_pos >= min_pos.first ) && y_pos <= max_pos.first - 1 ) {
-                result = i + 1;
+                result = i;
                 valueOk = true;
                 break;
             }
@@ -424,47 +343,13 @@ NoteSymbols::getFretNumber ( int imgHeight,
     return std::make_pair( valueOk, result );
 }
 
-void
-NoteSymbols::drawFingeringPixmap(const Guitar::Fingering& fingering, const Guitar::NoteSymbols& noteSymbols, QPainter *p)
-{
-    unsigned int startFret = fingering.getStartFret();
-    
-    noteSymbols.drawFrets(p);
-    noteSymbols.drawStrings(p);
-
-    unsigned int stringNb = 0;
-    
-    for (Fingering::const_iterator pos = fingering.begin();
-         pos != fingering.end();
-         ++pos, ++stringNb) {
-                
-        switch (*pos) {
-        case Fingering::OPEN:
-                noteSymbols.drawOpenSymbol(p, stringNb);
-                break;
-
-        case Fingering::MUTED:
-                noteSymbols.drawMuteSymbol(p, stringNb);
-                break;
-
-        default:
-                noteSymbols.drawNoteSymbol(p, stringNb, *pos - (startFret - 1), false);
-                break;
-        }
-    }
-    
-}
-
-
 float const NoteSymbols::LEFT_BORDER_PERCENTAGE = 0.1;
 float const NoteSymbols::RIGHT_BORDER_PERCENTAGE = 0.1;
 float const NoteSymbols::FRETBOARD_WIDTH_PERCENTAGE = 0.8;
 float const NoteSymbols::TOP_BORDER_PERCENTAGE = 0.1;
 float const NoteSymbols::BOTTOM_BORDER_PERCENTAGE = 0.1;
 float const NoteSymbols::FRETBOARD_HEIGHT_PERCENTAGE = 0.8;
-int   const NoteSymbols::TOP_FRETBOARD_MARGIN = 5;
-int   const NoteSymbols::FRET_PEN_WIDTH = 2;
-int   const NoteSymbols::STRING_PEN_WIDTH = 2;
+
 
 } /* namespace Guitar */
 

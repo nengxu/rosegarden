@@ -34,8 +34,6 @@
 #include "commands/notation/FretboardInsertionCommand.h"
 #include "gui/general/EditTool.h"
 #include "gui/general/LinedStaff.h"
-#include "gui/editors/guitar/GuitarChordSelectorDialog.h"
-#include "misc/Debug.h"
 #include "NotationElement.h"
 #include "NotationTool.h"
 #include "NotationView.h"
@@ -51,7 +49,7 @@ namespace Rosegarden
 
 FretboardInserter::FretboardInserter(NotationView* view)
         : NotationTool("FretboardInserter", view),
-        m_guitarChordSelector(0)
+        m_guitarChord_ref (m_nParentView)
 {
     QIconSet icon = QIconSet(NotePixmapFactory::toQPixmap(NotePixmapFactory::
                              makeToolbarPixmap("select")));
@@ -72,8 +70,7 @@ FretboardInserter::FretboardInserter(NotationView* view)
                 SLOT(slotNoteSelected()), actionCollection(),
                 "notes");
 
-    m_guitarChordSelector = new GuitarChordSelectorDialog(m_nParentView);
-    m_guitarChordSelector->init();
+    m_guitarChord_ref.init();
     createMenu("fretboardinserter.rc");
 }
 
@@ -99,7 +96,7 @@ void FretboardInserter::handleLeftButtonPress(timeT,
         QMouseEvent* e,
         ViewElement *element)
 {
-    NOTATION_DEBUG << "FretboardInserter::handleLeftButtonPress" << endl;
+    std::cout << "FretboardInserter::handleLeftButtonPress" << std::endl;
 
     if (staffNo < 0) {
         return ;
@@ -107,7 +104,7 @@ void FretboardInserter::handleLeftButtonPress(timeT,
 
     Staff *staff = m_nParentView->getStaff(staffNo);
 
-    if (element && element->event()->isa(Guitar::Chord::EventType)) {
+    if (element && element->event()->isa(Guitar::Fingering::EventType)) {
         handleSelectedFretboard (element, staff);
     } else {
         createNewFretboard (element, staff, e);
@@ -119,12 +116,12 @@ bool FretboardInserter::processDialog( Staff* staff,
 {
     bool result = false;
 
-    if (m_guitarChordSelector->exec() == QDialog::Accepted) {
-        Guitar::Chord chord = m_guitarChordSelector->getChord();
+    if (m_guitarChord_ref.exec() == QDialog::Accepted) {
+        Guitar::Fingering m_chord = m_guitarChord_ref.getArrangement();
 
         FretboardInsertionCommand *command =
             new FretboardInsertionCommand
-            (staff->getSegment(), insertionTime, chord);
+            (staff->getSegment(), insertionTime, m_chord);
 
         m_nParentView->addCommandToHistory(command);
         result = true;
@@ -135,7 +132,7 @@ bool FretboardInserter::processDialog( Staff* staff,
 
 void FretboardInserter::handleSelectedFretboard (ViewElement* element, Staff *staff)
 {
-    NOTATION_DEBUG << "FretboardInserter::handleSelectedFretboard" << endl;
+    std::cout << "FretboardInserter::handleSelectedFretboard" << std::endl;
 
 
     // Get time of where fretboard is inserted
@@ -143,10 +140,9 @@ void FretboardInserter::handleSelectedFretboard (ViewElement* element, Staff *st
 
     // edit an existing fretboard, if that's what we clicked on
     try {
-        Guitar::Chord chord(*(element->event()));
+        Guitar::Fingering existingFret (*element->event());
 
-        m_guitarChordSelector->setChord(chord);
-        
+        m_guitarChord_ref.setArrangement( &existingFret );
         if ( processDialog( staff, insertionTime ) ) {
             // Erase old fretboard
             EraseEventCommand *command =
@@ -161,7 +157,7 @@ void FretboardInserter::handleSelectedFretboard (ViewElement* element, Staff *st
 
 void FretboardInserter::createNewFretboard (ViewElement* element, Staff *staff, QMouseEvent* e)
 {
-    NOTATION_DEBUG << "FretboardInserter::createNewFretboard" << endl;
+    std::cout << "FretboardInserter::createNewFretboard" << std::endl;
     Event *clef = 0, *key = 0;
 
     LinedStaff *s = dynamic_cast<LinedStaff *>(staff);

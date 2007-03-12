@@ -34,6 +34,7 @@
 #include "base/NotationQuantizer.h"
 #include "base/Segment.h"
 #include "base/SegmentNotationHelper.h"
+#include "gui/editors/guitar/Chord.h"
 #include <qstring.h>
 
 

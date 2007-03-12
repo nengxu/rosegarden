@@ -1,20 +1,17 @@
-/* -*- c-basic-offset: 4 indent-tabs-mode: nil -*- vi:set ts=8 sts=4 sw=4: */
+// -*- c-basic-offset: 4 -*-
 
 /*
     Rosegarden
-    A MIDI and audio sequencer and musical notation editor.
-
+    A sequencer and musical notation editor.
+ 
     This program is Copyright 2000-2007
         Guillaume Laurent   <glaurent@telegraph-road.org>,
         Chris Cannam        <cannam@all-day-breakfast.com>,
-        Richard Bown        <richard.bown@ferventsoftware.com>
-
-    The moral rights of Guillaume Laurent, Chris Cannam, and Richard
-    Bown to claim authorship of this work have been asserted.
-
-    Other copyrights also apply to some parts of this work.  Please
-    see the AUTHORS file and individual file headers for details.
-
+        Richard Bown        <bownie@bownie.com>
+ 
+    The moral right of the authors to claim authorship of this work
+    has been asserted.
+ 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of the
@@ -22,77 +19,69 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef _RG_CHORD_H_
-#define _RG_CHORD_H_
+#ifndef GUITAR_CHORD_H_
+#define GUITAR_CHORD_H_
 
+#include "ChordName.h"
 #include "Fingering.h"
-#include "base/Event.h"
-#include "misc/Debug.h"
 
-#include <vector>
-#include <qstring.h>
+#include <qdom.h>
 
 namespace Rosegarden
 {
 
-class Event;
-
 namespace Guitar
 {
-    
-class Chord
-{
-    friend bool operator<(const Chord&, const Chord&);
-    
-public:
-    static const std::string EventType;
-    static const short EventSubOrdering;
-    static const PropertyName RootPropertyName;
-    static const PropertyName ExtPropertyName;
-    static const PropertyName FingeringPropertyName;
-
-	Chord();
-    Chord(const QString& root, const QString& ext = QString::null);
-    Chord(const Event&);
-
-    Event* getAsEvent(timeT absoluteTime) const;
-        
-    bool isEmpty() const   { return m_root.isEmpty(); }
-    bool operator!() const { return !m_root; }
-    
-    QString getRoot() const { return m_root; }
-    void setRoot(QString r) { m_root = r; } 
-
-    QString getExt() const { return m_ext; }
-    void setExt(QString r) { m_ext = r; } 
-    
-    bool hasAltBass() const { return m_ext.contains('/'); } 
-
-    Fingering getFingering() const { return m_fingering; }
-    void setFingering(Fingering f) { m_fingering = f; }
-
-    struct ChordCmp
+    class Chord
     {
-        bool operator()(const Chord &e1, const Chord &e2) const {
-            return e1 < e2;
-        }
-        bool operator()(const Chord *e1, const Chord *e2) const {
-            return *e1 < *e2;
-        }
+    public:
+
+        typedef QMap<ChordName,Chord*> Chord_Map;
+
+        //! Constructor
+        Chord ();
+
+        //! Constructor used by chordConverter
+        Chord (ChordName*);
+
+        //! Constructor
+        Chord (ChordName*, Fingering*);
+
+        //! Copy Constructor
+        Chord (Chord const& rhs);
+
+        //! Destructor
+        virtual ~Chord();
+
+        //! Return the ChordName object describing this Chord
+        ChordName* getName ();
+
+        //! Return the Fingering object describing the finger positions of this Chord
+        Fingering* getArrangement ();
+
+        //! Create Chord object from XML data
+        void load (QDomNode const& obj);
+
+        //! Save Chord object as XML data
+        void save (QDomNode& obj);
+
+        bool operator== (Chord const& rhs) const;
+
+        std::string toString (void) const;
+
+    private:
+
+        //! Name for this Chord
+        ChordName* m_name;
+
+        //! Fingering positions for this Chord
+        Fingering* m_arrangement;
+
+        //! Used to mark a chord when saving it to file
+        bool m_written;
     };
-        
-protected:
-
-    QString m_root;
-    QString m_ext;
-    
-    Fingering m_fingering;
-};
-
-bool operator<(const Chord&, const Chord&);    
-
 }
 
 }
 
-#endif /*_RG_CHORD2_H_*/
+# endif /* GUITAR_CHORD_H_ */

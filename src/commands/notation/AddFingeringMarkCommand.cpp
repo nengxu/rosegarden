@@ -32,6 +32,8 @@
 #include "base/Selection.h"
 #include "base/Sets.h"
 #include "document/BasicSelectionCommand.h"
+#include "gui/editors/guitar/Chord.h"
+#include "gui/editors/guitar/Fingering.h"
 #include <qstring.h>
 
 

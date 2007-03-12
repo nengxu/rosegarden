@@ -48,7 +48,7 @@
 #include "base/Track.h"
 #include "base/ViewElement.h"
 #include "document/RosegardenGUIDoc.h"
-#include "gui/editors/guitar/Chord.h"
+#include "gui/editors/guitar/Fingering.h"
 #include "gui/general/LinedStaff.h"
 #include "gui/general/PixmapFunctions.h"
 #include "gui/general/ProgressReporter.h"
@@ -1254,12 +1254,12 @@ NotationStaff::renderSingleElement(ViewElementList::iterator &vli,
                     pixmap = m_notePixmapFactory->makeUnknownPixmap();
                 }
             }
-        } else if (elt->event()->isa(Guitar::Chord::EventType)) {
+        } else if (elt->event()->isa(Guitar::Fingering::EventType)) {
 
             // Create a fretboard pixmap
             try {
 
-                Guitar::Chord chord (*elt->event());
+                Guitar::Fingering arrangement (*elt->event());
 
                 /* UNUSED - for printing, just use a large pixmap as below
                 		    if (m_printPainter) {
@@ -1278,7 +1278,7 @@ NotationStaff::renderSingleElement(ViewElementList::iterator &vli,
                 		    } else {
                 			*/
 
-                pixmap = m_notePixmapFactory->makeFretboardPixmap (chord.getFingering(),
+                pixmap = m_notePixmapFactory->makeFretboardPixmap (arrangement,
                          int(coords.first),
                          coords.second);
                 //		    }

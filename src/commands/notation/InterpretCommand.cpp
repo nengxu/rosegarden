@@ -35,6 +35,7 @@
 #include "base/BaseProperties.h"
 #include "base/Selection.h"
 #include "document/BasicSelectionCommand.h"
+#include "gui/editors/guitar/Chord.h"
 #include <qstring.h>
 
 
