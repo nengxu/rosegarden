@@ -24,18 +24,19 @@ fi
 type -path lilypond
 if [ "$?" != "0" ]; then
     echo "rosegarden-lilypondview: LilyPond unavailable" 1>&2
-    echo "Required: lilypond"
+    echo "Required: LilyPond"
 else
     lilypond_version="`lilypond --version | grep LilyPond | head -1 | sed 's/^.* //'`"
     case "$lilypond_version" in
 	1.*|2.[0-5].*)
-	    echo "rosegarden-lilypondview: Unsupported LilyPond version ($lilypond_version)" 1>&2;;
+	    echo "rosegarden-lilypondview: Unsupported LilyPond version ($lilypond_version)" 1>&2
+	    echo "Required: LilyPond v2.6 or newer";;
 	*)
 	    prog_lilypond=lilypond;;
     esac
 fi
 
-for x in kghostview ggv ghostview; do
+for x in kghostview evince ggv ghostview; do
     if [ -x "`type -path $x`" ]; then
 	prog_ghostview=$x
 	break;
@@ -45,7 +46,7 @@ done
 reqd=
 
 if [ -z "$prog_ghostview" ]; then
-    reqd="kghostview OR ggv OR ghostview, $reqd"
+    reqd="kghostview OR ghostview OR ggv OR evince, $reqd"
     echo "rosegarden-lilypondview: No PostScript viewer found" 1>&2
 fi
 
@@ -155,8 +156,15 @@ echo "LilyPond version is $lilypond_version, file version is $fileversion"
 	cat </dev/null >"$logfile"
 
 	if [ -n "$convert" ]; then
-	    echo "File version is $fileversion against LilyPond version $version -- converting..." 1>&2
+	    echo "File version is $fileversion against LilyPond version $lilypond_version -- converting..." 1>&2
 	    for srcfile in "$base" $includes; do
+	        if [ ! -f "$srcfile" ]; then continue; fi
+		case "$fileversion" in
+		    1.*|2.[012345].*)
+		    	grep -v override-auto-beam-setting "$srcfile" > "${srcfile}_tmp"
+			mv "${srcfile}_tmp" "$srcfile"
+			;;
+		esac
 		if [ -n "$graphical" ]; then
 		    convert-ly "$srcfile" > "${srcfile}_converted" 2> "$logfile" && mv "${srcfile}_converted" "$srcfile"
 		else

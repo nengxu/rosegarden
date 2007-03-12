@@ -376,10 +376,6 @@ LilypondExporter::write()
 
     switch (m_languageLevel) {
 
-        // 0 -> Lilypond 2.6
-        // 1 -> Lilypond 2.8
-        // 2 -> Lilypond 2.10
-
     case 0:
         str << "\\version \"2.6.0\"" << std::endl;
         break;
@@ -390,6 +386,10 @@ LilypondExporter::write()
 
     case 2:
         str << "\\version \"2.10.0\"" << std::endl;
+        break;
+
+    case 3:
+        str << "\\version \"2.12.0\"" << std::endl;
         break;
 
     default:
@@ -726,16 +726,20 @@ LilypondExporter::write()
                 }
             }
 
+	    // Check whether the track is a non-midi track.
+	    InstrumentId instrumentId = track->getInstrument();
+	    bool isMidiTrack = (instrumentId >= MidiInstrumentBase && instrumentId < SoftSynthInstrumentBase);
     
     	    // The meaning of exportSelection meaning is to export:
     	    // 0 -> All tracks
     	    // 1 -> Non-muted tracks
     	    // 2 -> Selected track
     	    // 3 -> Selected segments
-            if ((m_exportSelection == 0) || 
+            if (isMidiTrack && ( // Skip non-midi tracks.
+		(m_exportSelection == 0) || 
                 ((m_exportSelection == 1) && (!track->isMuted())) ||
                 ((m_exportSelection == 2) && (track->getId() == m_composition->getSelectedTrack())) ||
-                ((m_exportSelection == 3) && (currentSegmentSelected))) {
+                ((m_exportSelection == 3) && (currentSegmentSelected)))) {
                 if ((int) (*i)->getTrack() != lastTrackIndex) {
                     if (lastTrackIndex != -1) {
                         // close the old track (Staff context)
@@ -934,7 +938,7 @@ LilypondExporter::write()
 		// Sync the code below with LyricEditDialog::unparse() !!
 		//
                 if (m_exportLyrics) {
-		    QString text;
+		    QString text = "";
 		
 		    timeT lastTime = (*i)->getStartTime();
 		    int lastBarNo = m_composition->getBarNumber(lastTime);
@@ -1060,6 +1064,8 @@ LilypondExporter::calculateDuration(Segment *s,
     RG_DEBUG << "LilypondExporter::calculateDuration: first duration, absTime: "
     << duration << ", " << absTime << endl;
 
+    timeT durationCorrection = 0;
+
     if ((*i)->isa(Note::EventType) || (*i)->isa(Note::EventRestType)) {
         try {
             // tuplet compensation, etc
@@ -1067,13 +1073,15 @@ LilypondExporter::calculateDuration(Segment *s,
                               <Int>(NOTE_TYPE);
             int dots = (*i)->get
                        <Int>(NOTE_DOTS);
-            duration = Note(type, dots).getDuration();
+            durationCorrection = Note(type, dots).getDuration() - duration;
         } catch (Exception e) { // no properties
         }
     }
 
+    duration += durationCorrection;
+
     RG_DEBUG << "LilypondExporter::calculateDuration: now duration is "
-    << duration << endl;
+    << duration << " after correction of " << durationCorrection << endl;
 
     soundingDuration = duration * tupletRatio.first / tupletRatio.second;
 
@@ -1084,7 +1092,7 @@ LilypondExporter::calculateDuration(Segment *s,
         overlong = true;
     }
 
-    RG_DEBUG << "LilypondExporter::calculateDuration: first toNext is "
+    RG_DEBUG << "LilypondExporter::calculateDuration: time to barEnd is "
     << toNext << endl;
 
     // Examine the following event, and truncate our duration
@@ -1118,7 +1126,14 @@ LilypondExporter::calculateDuration(Segment *s,
     }
 
     if (s->isBeforeEndMarker(nextElt)) {
+	RG_DEBUG << "LilypondExporter::calculateDuration: inside conditional " << endl;
         toNext = (*nextElt)->getNotationAbsoluteTime() - absTime;
+	// if the note was lengthened, assume it was lengthened to the left
+	// when truncating to the beginning of the next note
+	if (durationCorrection > 0)
+	{
+	    toNext += durationCorrection;
+	}
         if (soundingDuration > toNext) {
             soundingDuration = toNext;
             duration = soundingDuration * tupletRatio.second / tupletRatio.first;
@@ -1487,14 +1502,24 @@ LilypondExporter::writeBar(Segment *s,
 
                 if (clef.getClefType() == Clef::Treble) {
                     str << "treble";
+                } else if (clef.getClefType() == Clef::French) {
+                    str << "french";
                 } else if (clef.getClefType() == Clef::Soprano) {
                     str << "soprano";
-                } else if (clef.getClefType() == Clef::Tenor) {
-                    str << "tenor";
+                } else if (clef.getClefType() == Clef::Mezzosoprano) {
+                    str << "mezzosoprano";
                 } else if (clef.getClefType() == Clef::Alto) {
                     str << "alto";
+                } else if (clef.getClefType() == Clef::Tenor) {
+                    str << "tenor";
+                } else if (clef.getClefType() == Clef::Baritone) {
+                    str << "baritone";
+                } else if (clef.getClefType() == Clef::Varbaritone) {
+                    str << "varbaritone";
                 } else if (clef.getClefType() == Clef::Bass) {
                     str << "bass";
+                } else if (clef.getClefType() == Clef::Subbass) {
+                    str << "subbass";
                 }
 
                 // Transpose the clef one or two octaves up or down, if specified.

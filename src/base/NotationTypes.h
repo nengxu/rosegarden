@@ -106,6 +106,16 @@ namespace Accidentals
      * the Key and Pitch classes.
      */
     extern int getPitchOffset(const Accidental &accidental);
+
+
+    /**
+     * Get the Accidental corresponding to a change in pitch: flat
+     * for -1, double-sharp for 2, natural for 0 etc.
+     *
+     * Useful for tying to code that represents accidentals by 
+     * their pitch change.
+     */
+    extern Accidental getAccidental(int pitchChange);
 }
 
 
@@ -236,10 +246,15 @@ public:
     typedef Exception BadClefName;
 
     static const std::string Treble;
+    static const std::string French;
     static const std::string Soprano;
-    static const std::string Tenor;
+    static const std::string Mezzosoprano;
     static const std::string Alto;
+    static const std::string Tenor;
+    static const std::string Baritone;
+    static const std::string Varbaritone;
     static const std::string Bass;
+    static const std::string Subbass;
 
     /**
      * Construct the default clef (treble).
@@ -282,7 +297,7 @@ public:
     static bool isValid(const Event &e);
 
     /**
-     * Return the basic clef type (Treble, Soprano, Tenor, Alto, Bass)
+     * Return the basic clef type (Treble, French, Soprano, Mezzosoprano, Alto, Tenor, Baritone, Varbaritone, Bass, Subbass)
      */
     std::string getClefType() const { return m_clef; }
 
@@ -746,6 +761,14 @@ public:
           int octaveBase = -2);
 
     /**
+     * Construct a Pitch based on (MIDI) octave, note in the C major scale and 
+     * performance pitch. The accidental is calculated based on these
+     * properties.
+     */
+    Pitch(int noteInCMajor, int octave, int pitch,
+          int octaveBase = -2);
+
+    /**
      * Construct a Pitch based on octave and note name.  The lowest
      * permissible octave number is octaveBase, and middle C is in
      * octave octaveBase + 5.  noteName must be a character in the
@@ -784,7 +807,7 @@ public:
      * This version of the function exists to avoid breaking old code.
      */
     Accidental getAccidental(bool useSharps) const;
-    
+
     /**
      * Return the accidental for this pitch, using a key.  This should be used
      * if you need an explicit accidental returned for E#, Fb, B# or Cb, which

@@ -59,6 +59,7 @@ namespace Accidentals
     const Accidental Natural = "natural";
     const Accidental DoubleSharp = "double-sharp";
     const Accidental DoubleFlat = "double-flat";
+    const Accidental UnsupportedAccidental = "(unsupported)";
 
     AccidentalList getStandardAccidentals() {
 
@@ -80,6 +81,16 @@ namespace Accidentals
 	else if (acc == Flat) return -1;
 	else if (acc == DoubleFlat) return -2;
 	else return 0;
+    }
+
+    Accidental getAccidental(int pitchChange) {
+        if (pitchChange == -2) return DoubleFlat;
+        if (pitchChange == -1) return Flat;
+        if (pitchChange == 0) return NoAccidental;
+        if (pitchChange == 1) return Sharp;
+        if (pitchChange == 2) return DoubleSharp;
+
+	return UnsupportedAccidental;
     }
 }
 
@@ -259,10 +270,15 @@ const int Clef::EventSubOrdering = -250;
 const PropertyName Clef::ClefPropertyName = "clef";
 const PropertyName Clef::OctaveOffsetPropertyName = "octaveoffset";
 const string Clef::Treble = "treble";
+const string Clef::French = "french";
 const string Clef::Soprano = "soprano";
-const string Clef::Tenor = "tenor";
+const string Clef::Mezzosoprano = "mezzosoprano";
 const string Clef::Alto = "alto";
+const string Clef::Tenor = "tenor";
+const string Clef::Baritone = "baritone";
+const string Clef::Varbaritone = "varbaritone";
 const string Clef::Bass = "bass";
+const string Clef::Subbass = "subbass";
 
 const Clef Clef::DefaultClef = Clef("treble");
 
@@ -280,7 +296,7 @@ Clef::Clef(const Event &e) :
     std::string s;
     e.get<String>(ClefPropertyName, s);
 
-    if (s != Treble && s != Soprano && s != Tenor && s != Alto && s != Bass) {
+    if (s != Treble && s != Soprano && s != French && s != Mezzosoprano && s != Alto && s != Tenor && s != Baritone && s != Bass && s != Varbaritone && s != Subbass) {
 	std::cerr << BadClefName("No such clef as \"" + s + "\"").getMessage()
 		  << std::endl;
 	    return;
@@ -296,7 +312,7 @@ Clef::Clef(const Event &e) :
 Clef::Clef(const std::string &s, int octaveOffset)
     // throw (BadClefName)
 {
-    if (s != Treble && s != Soprano && s != Tenor && s != Alto && s != Bass) {
+    if (s != Treble && s != Soprano && s != French && s != Mezzosoprano && s != Alto && s != Tenor && s != Baritone && s != Bass && s != Varbaritone && s != Subbass) {
         throw BadClefName("No such clef as \"" + s + "\"");
     }
     m_clef = s;
@@ -318,7 +334,7 @@ bool Clef::isValid(const Event &e)
 
     std::string s;
     e.get<String>(ClefPropertyName, s);
-    if (s != Treble && s != Soprano && s != Tenor && s != Alto && s != Bass) return false;
+    if (s != Treble && s != Soprano && s != French && s != Mezzosoprano && s != Alto && s != Tenor && s != Baritone && s != Bass && s != Varbaritone && s != Subbass) return false;
 
     return true;
 }
@@ -331,26 +347,38 @@ int Clef::getTranspose() const
 
 int Clef::getOctave() const
 {
-    if (m_clef == Treble) return 0 + m_octaveOffset;
-    else if (m_clef == Bass) return -2 + m_octaveOffset;
+    if (m_clef == Treble || m_clef == French) return 0 + m_octaveOffset;
+    else if (m_clef == Bass || m_clef == Varbaritone || m_clef == Subbass) return -2 + m_octaveOffset;
     else return -1 + m_octaveOffset;
 }
 
 int Clef::getPitchOffset() const
 {
     if (m_clef == Treble) return 0;
+    else if (m_clef == French) return -2;
     else if (m_clef == Soprano) return -5;
-    else if (m_clef == Tenor) return 1;
+    else if (m_clef == Mezzosoprano) return -3;
     else if (m_clef == Alto) return -1;
+    else if (m_clef == Tenor) return 1;
+    else if (m_clef == Baritone) return 3;
+    else if (m_clef == Varbaritone) return -4;
+    else if (m_clef == Bass) return -2;
+    else if (m_clef == Subbass) return 0;
     else return -2;
 }
 
 int Clef::getAxisHeight() const
 {
-    if (m_clef == Treble) return 2;		
-    else if (m_clef == Soprano) return 0;	
-    else if (m_clef == Tenor) return 6;		
-    else if (m_clef == Alto) return 4;		
+    if (m_clef == Treble) return 2;
+    else if (m_clef == French) return 0;
+    else if (m_clef == Soprano) return 0;
+    else if (m_clef == Mezzosoprano) return 2;
+    else if (m_clef == Alto) return 4;
+    else if (m_clef == Tenor) return 6;
+    else if (m_clef == Baritone) return 8;
+    else if (m_clef == Varbaritone) return 4;
+    else if (m_clef == Bass) return 6;		
+    else if (m_clef == Subbass) return 8;		
     else return 6;
 }
 
@@ -359,9 +387,14 @@ Clef::getClefs()
 {
     ClefList clefs;
     clefs.push_back(Clef(Bass));
-    clefs.push_back(Clef(Soprano));
+    clefs.push_back(Clef(Varbaritone));
+    clefs.push_back(Clef(Subbass));
+    clefs.push_back(Clef(Baritone));
     clefs.push_back(Clef(Tenor));
     clefs.push_back(Clef(Alto));
+    clefs.push_back(Clef(Mezzosoprano));
+    clefs.push_back(Clef(Soprano));
+    clefs.push_back(Clef(French));
     clefs.push_back(Clef(Treble));
     return clefs;
 }
@@ -1311,6 +1344,17 @@ Pitch::Pitch(int noteInScale, int octave, const Key &key,
 
     m_pitch += Accidentals::getPitchOffset(m_accidental);
 }
+
+Pitch::Pitch(int noteInCMajor, int octave, int pitch,
+	     int octaveBase) :
+    m_pitch(pitch)
+{
+    static int Cmajor[] = { 0, 2, 4, 5, 7, 9, 11 };
+    
+    int natural = (octave - octaveBase) * 12 + Cmajor[noteInCMajor];
+    m_accidental = Accidentals::getAccidental(pitch - natural);
+}
+
 
 Pitch::Pitch(char noteName, int octave, const Key &key,
 	     const Accidental &explicitAccidental, int octaveBase) :

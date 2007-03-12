@@ -193,7 +193,7 @@ void SegmentPencil::handleMouseButtonRelease(QMouseEvent* e)
                             (segment->getStartTime()));
             break;
         case GuitarClef:
-            segment->insert(Clef(Clef::Treble, -2).getAsEvent
+            segment->insert(Clef(Clef::Treble, -1).getAsEvent
                             (segment->getStartTime()));
             break;
         case ContrabassClef:
@@ -208,8 +208,16 @@ void SegmentPencil::handleMouseButtonRelease(QMouseEvent* e)
             segment->insert(Clef(Clef::Bass, 1).getAsEvent
                             (segment->getStartTime()));
             break;
+        case FrenchClef:
+            segment->insert(Clef(Clef::French).getAsEvent
+                            (segment->getStartTime()));
+            break;
         case SopranoClef:
             segment->insert(Clef(Clef::Soprano).getAsEvent
+                            (segment->getStartTime()));
+            break;
+        case MezzosopranoClef:
+            segment->insert(Clef(Clef::Mezzosoprano).getAsEvent
                             (segment->getStartTime()));
             break;
         case AltoClef:
@@ -218,6 +226,18 @@ void SegmentPencil::handleMouseButtonRelease(QMouseEvent* e)
             break;
         case TenorClef:
             segment->insert(Clef(Clef::Tenor).getAsEvent
+                            (segment->getStartTime()));
+            break;
+        case BaritoneClef:
+            segment->insert(Clef(Clef::Baritone).getAsEvent
+                            (segment->getStartTime()));
+            break;
+        case VarbaritoneClef:
+            segment->insert(Clef(Clef::Varbaritone).getAsEvent
+                            (segment->getStartTime()));
+            break;
+        case SubbassClef:
+            segment->insert(Clef(Clef::Subbass).getAsEvent
                             (segment->getStartTime()));
             break;
         default:

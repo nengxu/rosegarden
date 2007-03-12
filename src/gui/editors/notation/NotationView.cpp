@@ -1562,18 +1562,18 @@ void NotationView::setupActions()
                                   actionCollection(), "treble_clef");
     noteAction->setExclusiveGroup("notes");
 
-    // Tenor
-    icon = QIconSet(NotePixmapFactory::toQPixmap(NotePixmapFactory::makeToolbarPixmap("clef-tenor")));
-    noteAction = new KRadioAction(i18n("Te&nor Clef"), icon, 0, this,
-                                  SLOT(slotTenorClef()),
-                                  actionCollection(), "tenor_clef");
-    noteAction->setExclusiveGroup("notes");
-
     // Alto
     icon = QIconSet(NotePixmapFactory::toQPixmap(NotePixmapFactory::makeToolbarPixmap("clef-alto")));
     noteAction = new KRadioAction(i18n("&Alto Clef"), icon, 0, this,
                                   SLOT(slotAltoClef()),
                                   actionCollection(), "alto_clef");
+    noteAction->setExclusiveGroup("notes");
+
+    // Tenor
+    icon = QIconSet(NotePixmapFactory::toQPixmap(NotePixmapFactory::makeToolbarPixmap("clef-tenor")));
+    noteAction = new KRadioAction(i18n("Te&nor Clef"), icon, 0, this,
+                                  SLOT(slotTenorClef()),
+                                  actionCollection(), "tenor_clef");
     noteAction->setExclusiveGroup("notes");
 
     // Bass
@@ -6318,16 +6318,6 @@ void NotationView::slotTrebleClef()
     setMenuStates();
 }
 
-void NotationView::slotTenorClef()
-{
-    m_currentNotePixmap->setPixmap
-        (NotePixmapFactory::toQPixmap(NotePixmapFactory::makeToolbarPixmap("clef-tenor")));
-    setTool(m_toolBox->getTool(ClefInserter::ToolName));
-
-    dynamic_cast<ClefInserter*>(m_tool)->setClef(Clef::Tenor);
-    setMenuStates();
-}
-
 void NotationView::slotAltoClef()
 {
     m_currentNotePixmap->setPixmap
@@ -6335,6 +6325,16 @@ void NotationView::slotAltoClef()
     setTool(m_toolBox->getTool(ClefInserter::ToolName));
 
     dynamic_cast<ClefInserter*>(m_tool)->setClef(Clef::Alto);
+    setMenuStates();
+}
+
+void NotationView::slotTenorClef()
+{
+    m_currentNotePixmap->setPixmap
+        (NotePixmapFactory::toQPixmap(NotePixmapFactory::makeToolbarPixmap("clef-tenor")));
+    setTool(m_toolBox->getTool(ClefInserter::ToolName));
+
+    dynamic_cast<ClefInserter*>(m_tool)->setClef(Clef::Tenor);
     setMenuStates();
 }
 

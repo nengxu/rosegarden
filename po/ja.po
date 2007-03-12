@@ -1,3 +1,4 @@
+# translation of ja.po to
 # translation of jan.po to Japanese
 # translation of ja.po to Japanese
 # This file is distributed under the same license as the PACKAGE package.
@@ -6,12 +7,12 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: jan\n"
+"Project-Id-Version: ja\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-01-24 14:50+0000\n"
-"PO-Revision-Date: 2007-01-26 11:37+0900\n"
+"PO-Revision-Date: 2007-03-05 22:27+0900\n"
 "Last-Translator: oota toshiya <ribbon@users.sourceforge.net>\n"
-"Language-Team: Japanese\n"
+"Language-Team:  <ribbon@users.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -62,7 +63,7 @@ msgstr "セグメントの消去"
 
 #: ../src/commands/segment/PasteToTriggerSegmentCommand.cpp:47
 msgid "Paste as New Triggered Segment"
-msgstr ""
+msgstr "新しいトリガされたセグメントとして貼り付け"
 
 #: ../src/commands/segment/SegmentColourMapCommand.h:52
 msgid "Change Segment Color Map..."
@@ -94,7 +95,7 @@ msgstr "%1 (分割)"
 
 #: ../src/commands/segment/SegmentLabelCommand.cpp:40
 msgid "Label Segments"
-msgstr ""
+msgstr "セグメントにラベル付加"
 
 #: ../src/commands/segment/OpenOrCloseRangeCommand.cpp:43
 msgid "Open or Close Range"
@@ -120,7 +121,7 @@ msgstr "不明な音ファイル"
 
 #: ../src/commands/segment/CreateTempoMapFromSegmentCommand.cpp:40
 msgid "Set Tempos from Beat Segment"
-msgstr ""
+msgstr "ビートセグメントからのテンポのセット"
 
 #: ../src/commands/segment/SegmentSplitByRecordingSrcCommand.h:52
 msgid "Split by &Recording Source..."
@@ -146,11 +147,11 @@ msgstr "ピッチで分割"
 
 #: ../src/commands/segment/SegmentSplitByPitchCommand.cpp:171
 msgid "%1 (upper)"
-msgstr ""
+msgstr "%1 (上側)"
 
 #: ../src/commands/segment/SegmentSplitByPitchCommand.cpp:173
 msgid "%1 (lower)"
-msgstr ""
+msgstr "%1 (下側)"
 
 #: ../src/commands/segment/SegmentSingleRepeatToCopyCommand.cpp:39
 msgid "Turn Single Repeat into Copy"
@@ -163,7 +164,7 @@ msgstr "テンポの変更(&m)"
 #: ../src/commands/segment/CutRangeCommand.cpp:41
 #: ../src/gui/application/RosegardenGUIApp.cpp:794
 msgid "Cut Range"
-msgstr ""
+msgstr "レンジのカット"
 
 #: ../src/commands/segment/AudioSegmentAutoSplitCommand.h:57
 #: ../src/commands/segment/SegmentAutoSplitCommand.h:53
@@ -172,17 +173,17 @@ msgstr ""
 
 #: ../src/commands/segment/SetTriggerSegmentBaseVelocityCommand.cpp:39
 msgid "Set Base Velocity"
-msgstr ""
+msgstr "ベースベロシティのセット"
 
 #: ../src/commands/segment/SegmentSplitByRecordingSrcCommand.cpp:42
 #: ../src/gui/dialogs/SplitByRecordingSrcDialog.cpp:48
 msgid "Split by Recording Source"
-msgstr ""
+msgstr "録音ソースによって分割"
 
 #: ../src/commands/segment/DeleteRangeCommand.cpp:43
 #: ../src/commands/segment/EraseSegmentsStartingInRangeCommand.cpp:39
 msgid "Delete Range"
-msgstr ""
+msgstr "レンジの削除"
 
 #: ../src/commands/segment/ChangeCompositionLengthCommand.h:53
 msgid "Change &Composition Start and End..."
@@ -207,15 +208,15 @@ msgstr "%1 (自動分割 %2)"
 
 #: ../src/commands/segment/AddTimeSignatureCommand.h:52
 msgid "Add Time Si&gnature Change..."
-msgstr ""
+msgstr "拍子記号の追加　(&g)"
 
 #: ../src/commands/segment/DeleteTriggerSegmentCommand.cpp:40
 msgid "Delete Triggered Segment"
-msgstr ""
+msgstr "トリガされたセグメントの削除"
 
 #: ../src/commands/segment/AddTriggerSegmentCommand.cpp:42
 msgid "Add Triggered Segment"
-msgstr ""
+msgstr "トリガされたセグメントの追加"
 
 #: ../src/commands/segment/AudioSegmentRescaleCommand.cpp:126
 #: ../src/commands/segment/SegmentRescaleCommand.cpp:102
@@ -237,7 +238,7 @@ msgstr ""
 
 #: ../src/commands/segment/RemoveTimeSignatureCommand.h:58
 msgid "Remove &Time Signature Change..."
-msgstr ""
+msgstr "拍子記号の削除(&T)"
 
 #: ../src/commands/segment/AddTracksCommand.h:53
 msgid "Add Tracks..."
@@ -249,11 +250,11 @@ msgstr "既定値のテンポを変更(&D)..."
 
 #: ../src/commands/segment/SegmentSplitByPitchCommand.h:61
 msgid "Split by &Pitch..."
-msgstr ""
+msgstr "ピッチによって分割(&P)"
 
 #: ../src/commands/segment/SetTriggerSegmentBasePitchCommand.cpp:39
 msgid "Set Base Pitch"
-msgstr ""
+msgstr "ベースピッチの設定"
 
 #: ../src/commands/segment/SegmentSplitCommand.cpp:42
 msgid "Split Segment"
@@ -274,7 +275,7 @@ msgstr "結合(&J)"
 
 #: ../src/commands/segment/PasteConductorDataCommand.cpp:41
 msgid "Paste Tempos and Time Signatures"
-msgstr ""
+msgstr "テンポと拍子記号の貼り付け"
 
 #: ../src/commands/segment/AudioSegmentDistributeCommand.h:66
 msgid "Distribute Audio Segments over MIDI"
@@ -376,7 +377,7 @@ msgstr "複写の幅"
 
 #: ../src/commands/edit/CollapseNotesCommand.h:50
 msgid "Collapse &Equal-Pitch Notes"
-msgstr ""
+msgstr "同じピッチの音符への非正規化 (&E)"
 
 #: ../src/commands/edit/TransposeCommand.h:51
 msgid "&Up a Semitone"
@@ -569,7 +570,7 @@ msgstr ""
 
 #: ../src/commands/notation/BeamCommand.h:49
 msgid "&Beam Group"
-msgstr ""
+msgstr "連桁化(&B)"
 
 #: ../src/commands/notation/AddTextMarkCommand.h:51
 msgid "Add Te&xt Mark..."
@@ -593,19 +594,19 @@ msgstr ""
 
 #: ../src/commands/notation/ChangeStemsCommand.h:51
 msgid "Stems &Up"
-msgstr ""
+msgstr "符幹を上に(&U)"
 
 #: ../src/commands/notation/ChangeStemsCommand.h:51
 msgid "Stems &Down"
-msgstr ""
+msgstr "符幹を下に(&D)"
 
 #: ../src/commands/notation/MakeAccidentalsCautionaryCommand.cpp:43
 msgid "Use &Cautionary Accidentals"
-msgstr ""
+msgstr "括弧内に臨時記号を配置(&C)"
 
 #: ../src/commands/notation/MakeAccidentalsCautionaryCommand.cpp:45
 msgid "Cancel C&autionary Accidentals"
-msgstr ""
+msgstr "括弧付き臨時記号の括弧解除(&a)"
 
 #: ../src/commands/notation/SetVisibilityCommand.h:50
 msgid "Set Visibility"
@@ -613,7 +614,7 @@ msgstr ""
 
 #: ../src/commands/notation/ChangeStyleCommand.h:53
 msgid "Change &Note Style"
-msgstr ""
+msgstr "音符スタイルの変更(&N)"
 
 #: ../src/commands/notation/TextInsertionCommand.cpp:41
 msgid "Insert Text"
@@ -649,19 +650,19 @@ msgstr ""
 
 #: ../src/commands/notation/AddIndicationCommand.cpp:149
 msgid "Add Double-Octave Up"
-msgstr ""
+msgstr "クィンデチマ・アルタ"
 
 #: ../src/commands/notation/AddIndicationCommand.cpp:151
 msgid "Add Octave &Up"
-msgstr ""
+msgstr "オッターヴァ・アルタ(&U)"
 
 #: ../src/commands/notation/AddIndicationCommand.cpp:153
 msgid "Add Octave &Down"
-msgstr ""
+msgstr "オッターヴァ・バッサ(&D)"
 
 #: ../src/commands/notation/AddIndicationCommand.cpp:155
 msgid "Add Double Octave Down"
-msgstr ""
+msgstr "クィンデチマ・バッサ"
 
 #: ../src/commands/notation/AddIndicationCommand.cpp:160
 msgid "Add &Crescendo"
@@ -689,7 +690,7 @@ msgstr "和音化(&C)"
 
 #: ../src/commands/notation/MultiKeyInsertionCommand.h:60
 msgid "Change all to &Key %1..."
-msgstr ""
+msgstr "すべてをキー%1に変更(&K)..."
 
 #: ../src/commands/notation/KeyInsertionCommand.h:62
 #: ../src/commands/notation/MultiKeyInsertionCommand.h:62
@@ -698,7 +699,7 @@ msgstr "キーチェンジの追加(&K)"
 
 #: ../src/commands/notation/RestoreStemsCommand.h:49
 msgid "&Restore Computed Stems"
-msgstr ""
+msgstr "計算された符幹をリストア(&R)"
 
 #: ../src/commands/notation/MakeNotesViableCommand.h:55
 #: ../src/commands/notation/MakeRegionViableCommand.h:52
@@ -735,7 +736,7 @@ msgstr "すべてのマークを削除(&R)"
 
 #: ../src/commands/notation/AutoBeamCommand.h:52
 msgid "&Auto-Beam"
-msgstr ""
+msgstr "自動連桁(&A)"
 
 #: ../src/commands/notation/UntieNotesCommand.h:49
 msgid "&Untie"
@@ -767,11 +768,11 @@ msgstr "トリル(&l)"
 
 #: ../src/commands/notation/AddMarkCommand.cpp:58
 msgid "Trill &with Line"
-msgstr ""
+msgstr "波線付きのトリル(&w)"
 
 #: ../src/commands/notation/AddMarkCommand.cpp:60
 msgid "Trill Line"
-msgstr ""
+msgstr "トリル用波線の追加"
 
 #: ../src/commands/notation/AddMarkCommand.cpp:62
 msgid "&Turn"
@@ -819,7 +820,7 @@ msgstr "長い反転したモルデント(&g)"
 
 #: ../src/commands/notation/AddMarkCommand.cpp:84
 msgid "&%1%2"
-msgstr ""
+msgstr "&%1%2"
 
 #: ../src/commands/notation/AddMarkCommand.cpp:89
 #, c-format
@@ -832,7 +833,7 @@ msgstr "高解像度"
 
 #: ../src/commands/notation/KeyInsertionCommand.h:60
 msgid "Change to &Key %1..."
-msgstr ""
+msgstr "キー%1に変更(&K)"
 
 #: ../src/commands/notation/RemoveFingeringMarksCommand.h:49
 msgid "&Remove Fingerings"
@@ -840,7 +841,7 @@ msgstr "指使い削除(&R)"
 
 #: ../src/commands/notation/BreakCommand.h:49
 msgid "&Unbeam"
-msgstr ""
+msgstr "連桁解除(&U)"
 
 #: ../src/commands/notation/UnGraceCommand.h:48
 msgid "Ung&race"
@@ -869,11 +870,11 @@ msgstr ""
 
 #: ../src/gui/dialogs/SplitByPitchDialog.cpp:63
 msgid "Duplicate non-note events"
-msgstr ""
+msgstr "非音符イベントの複製"
 
 #: ../src/gui/dialogs/SplitByPitchDialog.cpp:66
 msgid "Clef handling:"
-msgstr ""
+msgstr "音部記号の操作"
 
 #: ../src/gui/dialogs/SplitByPitchDialog.cpp:69
 msgid "Leave clefs alone"
@@ -881,11 +882,11 @@ msgstr ""
 
 #: ../src/gui/dialogs/SplitByPitchDialog.cpp:70
 msgid "Guess new clefs"
-msgstr ""
+msgstr "新しい音部記号の推測"
 
 #: ../src/gui/dialogs/SplitByPitchDialog.cpp:71
 msgid "Use treble and bass clefs"
-msgstr ""
+msgstr "ト音およびヘ音記号の使用"
 
 #: ../src/gui/dialogs/RescaleDialog.cpp:51 rc.cpp:136 rc.cpp:218
 #, no-c-format
@@ -922,11 +923,11 @@ msgstr "ステータスが無効"
 
 #: ../src/gui/dialogs/ShowSequencerStatusDialog.cpp:57
 msgid "Sequencer is not running or is not responding."
-msgstr ""
+msgstr "シーケンサは動いていないか反応しない。"
 
 #: ../src/gui/dialogs/ShowSequencerStatusDialog.cpp:64
 msgid "Sequencer is not returning a valid status report."
-msgstr ""
+msgstr "シーケンサが有効なステータスレポートを返さなかった。"
 
 #: ../src/gui/dialogs/DocumentConfigureDialog.cpp:47
 msgid "Document Properties"
@@ -935,7 +936,7 @@ msgstr "文書のプロパティ"
 #: ../src/gui/dialogs/MakeOrnamentDialog.cpp:45
 #: ../src/gui/editors/notation/NotationView.cpp:5569
 msgid "Make Ornament"
-msgstr "オルタメントの作成"
+msgstr "装飾音の作成"
 
 #: ../src/gui/configuration/DocumentMetaConfigurationPage.cpp:114
 #: ../src/gui/configuration/DocumentMetaConfigurationPage.cpp:125
@@ -954,6 +955,8 @@ msgid ""
 "and the triggered segment that stores\n"
 "the ornament's notes."
 msgstr ""
+"名前は装飾音と装飾された音を格納するためのトリガされた\n"
+"セグメントの両方を識別するために使われる。"
 
 #: ../src/gui/dialogs/MakeOrnamentDialog.cpp:54
 msgid "Name:  "
@@ -1075,31 +1078,31 @@ msgstr "説明:  "
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:165
 msgid "  ,"
-msgstr ""
+msgstr "  ,"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:166
 msgid "D.C. al Fine"
-msgstr ""
+msgstr "D.C. al Fine"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:167
 msgid "D.S. al Fine"
-msgstr ""
+msgstr "D.S. al Fine"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:168
 msgid "Fine"
-msgstr ""
+msgstr "Fine"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:169
 msgid "D.S. al Coda"
-msgstr ""
+msgstr "D.S. al Coda"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:170
 msgid "to Coda"
-msgstr ""
+msgstr "to Coda"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:171
 msgid "Coda"
-msgstr ""
+msgstr "Coda"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:175
 msgid "Local Direction:  "
@@ -1107,150 +1110,150 @@ msgstr ""
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:179
 msgid "accel."
-msgstr ""
+msgstr "accel."
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:180
 msgid "ritard."
-msgstr ""
+msgstr "ritard."
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:181
 msgid "ralletando"
-msgstr ""
+msgstr "ralletando"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:182
 msgid "a tempo"
-msgstr ""
+msgstr "a tempo"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:183
 msgid "legato"
-msgstr ""
+msgstr "legato"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:184
 msgid "simile"
-msgstr ""
+msgstr "simile"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:185
 msgid "pizz."
-msgstr ""
+msgstr "pizz."
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:186
 msgid "arco"
-msgstr ""
+msgstr "arco"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:187
 msgid "non vib."
-msgstr ""
+msgstr "non vib."
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:188
 msgid "sul pont."
-msgstr ""
+msgstr "sul pont."
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:189
 #: ../src/gui/dialogs/TextEventDialog.cpp:191
 msgid "sul tasto"
-msgstr ""
+msgstr "sul tasto"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:190
 msgid "con legno"
-msgstr ""
+msgstr "con legno"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:192
 msgid "sul G"
-msgstr ""
+msgstr "sul G"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:193
 msgid "ordinario"
-msgstr ""
+msgstr "ordinario"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:194
 msgid "Muta in "
-msgstr ""
+msgstr "Muta in "
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:195
 msgid "volti subito "
-msgstr ""
+msgstr "volti subito "
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:196
 msgid "soli"
-msgstr ""
+msgstr "soli"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:197
 msgid "div."
-msgstr ""
+msgstr "div."
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:201
 msgid "Tempo:  "
-msgstr "テンポ:   "
+msgstr "Tempo:  "
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:205
 #: ../src/gui/dialogs/TextEventDialog.cpp:229
 msgid "Grave"
-msgstr ""
+msgstr "Grave"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:206
 #: ../src/gui/dialogs/TextEventDialog.cpp:230
 msgid "Adagio"
-msgstr ""
+msgstr "Adagio"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:207
 #: ../src/gui/dialogs/TextEventDialog.cpp:231
 msgid "Largo"
-msgstr ""
+msgstr "Largo"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:208
 #: ../src/gui/dialogs/TextEventDialog.cpp:232
 msgid "Lento"
-msgstr ""
+msgstr "Lento"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:209
 #: ../src/gui/dialogs/TextEventDialog.cpp:233
 msgid "Andante"
-msgstr ""
+msgstr "Andante"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:210
 #: ../src/gui/dialogs/TextEventDialog.cpp:234
 msgid "Moderato"
-msgstr ""
+msgstr "Moderato"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:211
 #: ../src/gui/dialogs/TextEventDialog.cpp:235
 msgid "Allegretto"
-msgstr ""
+msgstr "Allegretto"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:212
 #: ../src/gui/dialogs/TextEventDialog.cpp:236
 msgid "Allegro"
-msgstr ""
+msgstr "Allegro"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:213
 #: ../src/gui/dialogs/TextEventDialog.cpp:237
 msgid "Vivace"
-msgstr ""
+msgstr "Vivace"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:214
 #: ../src/gui/dialogs/TextEventDialog.cpp:238
 msgid "Presto"
-msgstr ""
+msgstr "Presto"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:215
 #: ../src/gui/dialogs/TextEventDialog.cpp:239
 msgid "Prestissimo"
-msgstr ""
+msgstr "Prestissimo"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:216
 #: ../src/gui/dialogs/TextEventDialog.cpp:240
 msgid "Maestoso"
-msgstr ""
+msgstr "Maestoso"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:217
 #: ../src/gui/dialogs/TextEventDialog.cpp:241
 msgid "Sostenuto"
-msgstr ""
+msgstr "Sostenuto"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:218
 #: ../src/gui/dialogs/TextEventDialog.cpp:242
 msgid "Tempo Primo"
-msgstr ""
+msgstr "Tempo Primo"
 
 #: ../src/gui/dialogs/TextEventDialog.cpp:225
 msgid "Local Tempo:  "
@@ -1270,7 +1273,7 @@ msgstr "イベントフィルタ"
 
 #: ../src/gui/dialogs/EventFilterDialog.cpp:86
 msgid "Note Events"
-msgstr ""
+msgstr "音符のイベント"
 
 #: ../src/gui/dialogs/EventFilterDialog.cpp:90
 msgid "lowest:"
@@ -1301,13 +1304,13 @@ msgstr ""
 #: ../src/gui/dialogs/EventFilterDialog.cpp:114
 #: ../src/gui/dialogs/EventFilterDialog.cpp:121
 msgid "include"
-msgstr ""
+msgstr "含む"
 
 #: ../src/gui/dialogs/EventFilterDialog.cpp:108
 #: ../src/gui/dialogs/EventFilterDialog.cpp:115
 #: ../src/gui/dialogs/EventFilterDialog.cpp:122
 msgid "exclude"
-msgstr ""
+msgstr "含まない"
 
 #: ../src/gui/dialogs/EventFilterDialog.cpp:136
 #: ../src/gui/dialogs/EventFilterDialog.cpp:155
@@ -1360,7 +1363,7 @@ msgstr "最高のピッチ:"
 #: ../src/gui/editors/notation/NotationView.cpp:1463
 #: ../src/gui/editors/notation/NotationView.cpp:5609
 msgid "Use Ornament"
-msgstr "オルタメントの使用"
+msgstr "装飾音の使用"
 
 #: ../src/gui/configuration/GeneralConfigurationPage.cpp:120
 #: ../src/gui/configuration/GeneralConfigurationPage.cpp:162
@@ -1368,7 +1371,7 @@ msgstr "オルタメントの使用"
 #: ../src/gui/configuration/NotationConfigurationPage.h:65
 #: ../src/gui/dialogs/UseOrnamentDialog.cpp:63
 msgid "Notation"
-msgstr ""
+msgstr "楽譜"
 
 #: ../src/gui/dialogs/UseOrnamentDialog.cpp:68
 msgid "Display as:  "
@@ -1380,7 +1383,7 @@ msgstr "トリル"
 
 #: ../src/gui/dialogs/UseOrnamentDialog.cpp:84
 msgid "Trill with line"
-msgstr ""
+msgstr "波線を伴うトリル"
 
 #: ../src/gui/dialogs/UseOrnamentDialog.cpp:84
 msgid "Trill line only"
@@ -1755,11 +1758,11 @@ msgstr ""
 #: ../src/gui/dialogs/TimeSignatureDialog.cpp:59
 #: ../src/gui/editors/tempo/TempoView.cpp:92
 msgid "Time Signature"
-msgstr ""
+msgstr "拍子記号"
 
 #: ../src/gui/dialogs/TimeSignatureDialog.cpp:82
 msgid "Time signature"
-msgstr ""
+msgstr "拍子記号"
 
 #: ../src/gui/dialogs/TimeSignatureDialog.cpp:116
 msgid "Time where signature takes effect"
@@ -1801,7 +1804,7 @@ msgstr ""
 
 #: ../src/gui/dialogs/TimeSignatureDialog.cpp:176
 msgid "Make the time signature hidden"
-msgstr ""
+msgstr "拍子記号を不可視にする"
 
 #: ../src/gui/dialogs/TimeSignatureDialog.cpp:181
 msgid "Make subsequent bar lines hidden"
@@ -1845,7 +1848,7 @@ msgstr ""
 
 #: ../src/gui/dialogs/FileMergeDialog.cpp:61
 msgid "The file has different time signatures or tempos."
-msgstr ""
+msgstr "ファイルは異なった拍子記号かテンポを持っている"
 
 #: ../src/gui/dialogs/FileMergeDialog.cpp:62
 msgid "Import these as well"
@@ -1920,7 +1923,7 @@ msgstr "データのセーブ"
 
 #: ../src/gui/dialogs/SimpleEventEditDialog.cpp:192
 msgid "Notation Properties"
-msgstr ""
+msgstr "楽譜のプロパティ"
 
 #: ../src/gui/dialogs/SimpleEventEditDialog.cpp:198
 msgid "Lock to changes in performed values"
@@ -1928,7 +1931,7 @@ msgstr ""
 
 #: ../src/gui/dialogs/SimpleEventEditDialog.cpp:205
 msgid "Notation time:"
-msgstr ""
+msgstr "楽譜の時間"
 
 #: ../src/gui/dialogs/SimpleEventEditDialog.cpp:217
 msgid "Notation duration:"
@@ -2106,7 +2109,7 @@ msgstr "現在のピッチを調整"
 
 #: ../src/gui/dialogs/ClefDialog.cpp:99
 msgid "Transpose into appropriate octave"
-msgstr ""
+msgstr "適切な位置に音符を配置"
 
 #: ../src/gui/dialogs/ClefDialog.cpp:231
 msgid "%1 down an octave"
@@ -2130,7 +2133,7 @@ msgstr "ト音記号"
 
 #: ../src/gui/dialogs/ClefDialog.cpp:251
 msgid "Soprano"
-msgstr ""
+msgstr "ソプラノ記号"
 
 #: ../src/gui/dialogs/ClefDialog.cpp:253
 msgid "Alto"
@@ -2394,7 +2397,7 @@ msgstr ""
 
 #: ../src/gui/dialogs/TempoDialog.cpp:240
 msgid "%1.%2 s,"
-msgstr ""
+msgstr "%1.%2 s,"
 
 #: ../src/gui/dialogs/TempoDialog.cpp:246
 #, c-format
@@ -2420,7 +2423,7 @@ msgstr "ほかにテンポチェンジはない。"
 
 #: ../src/gui/dialogs/TempoDialog.cpp:312
 msgid " bpm"
-msgstr ""
+msgstr " bpm"
 
 #: ../src/gui/dialogs/UnusedAudioSelectionDialog.cpp:46
 msgid "Select Unused Audio Files"
@@ -2471,7 +2474,7 @@ msgstr "再生プレビュー(&P)"
 
 #: ../src/gui/dialogs/AudioManagerDialog.cpp:151
 msgid "&Insert into Selected Audio Track"
-msgstr ""
+msgstr "選択されたオーディオトラックに挿入(&I)"
 
 #: ../src/gui/dialogs/AudioManagerDialog.cpp:155
 msgid "Unload &all Audio Files"
@@ -2641,7 +2644,7 @@ msgstr ""
 #: ../src/gui/dialogs/TransportDialog.cpp:89 rc.cpp:250
 #, no-c-format
 msgid "Rosegarden Transport"
-msgstr ""
+msgstr "Rosegarden Transport"
 
 #: ../src/gui/dialogs/TransportDialog.cpp:846
 #: ../src/gui/dialogs/TransportDialog.cpp:906
@@ -2697,7 +2700,7 @@ msgstr "選択されたデバイスのみエクスポート"
 
 #: ../src/gui/dialogs/ExportDeviceDialog.cpp:51
 msgid "         (\"%1\")"
-msgstr ""
+msgstr "         (\"%1\")"
 
 #: ../src/gui/dialogs/CompositionLengthDialog.cpp:44
 msgid "Change Composition Length"
@@ -2709,11 +2712,11 @@ msgstr ""
 
 #: ../src/gui/dialogs/CompositionLengthDialog.cpp:54
 msgid "Start Bar"
-msgstr ""
+msgstr "開始バー"
 
 #: ../src/gui/dialogs/CompositionLengthDialog.cpp:62
 msgid "End Bar"
-msgstr ""
+msgstr "終了バー"
 
 #: ../src/gui/dialogs/AudioSplitDialog.cpp:57
 msgid "Autosplit Audio Segment"
@@ -2777,7 +2780,7 @@ msgstr "入出力ポートカウント。"
 #: ../src/gui/dialogs/AudioPluginDialog.cpp:131
 #: ../src/gui/dialogs/AudioPluginDialog.cpp:373
 msgid "<id>"
-msgstr ""
+msgstr "<id>"
 
 #: ../src/gui/dialogs/AudioPluginDialog.cpp:134
 msgid "Unique ID of plugin."
@@ -2824,7 +2827,7 @@ msgstr "このプラグインはここで編集するためには多すぎるコ
 #: ../src/gui/dialogs/AudioPluginDialog.cpp:420
 #, c-format
 msgid "Id: %1"
-msgstr ""
+msgstr "Id: %1"
 
 #: ../src/gui/dialogs/AudioPluginDialog.cpp:472
 msgid "mono"
@@ -3002,7 +3005,7 @@ msgstr "セグメントを選択"
 
 #: ../src/gui/dialogs/LilypondOptionsDialog.cpp:127
 msgid "Export Document Properties as \\header block"
-msgstr ""
+msgstr "\\header block　としてドキュメントプロパティをエクスポート"
 
 #: ../src/gui/dialogs/LilypondOptionsDialog.cpp:132
 msgid "Export beamings"
@@ -3014,7 +3017,7 @@ msgstr ""
 
 #: ../src/gui/dialogs/LilypondOptionsDialog.cpp:142
 msgid "Export \\lyric blocks"
-msgstr ""
+msgstr "\\lyricブロックのエクスポート"
 
 #: ../src/gui/dialogs/LilypondOptionsDialog.cpp:150
 msgid "Add staff group bracket"
@@ -3077,7 +3080,7 @@ msgstr "長調"
 #: ../src/gui/dialogs/KeySignatureDialog.cpp:107
 #: ../src/gui/dialogs/KeySignatureDialog.cpp:356
 msgid "Minor"
-msgstr "単調"
+msgstr "短調"
 
 #: ../src/gui/dialogs/KeySignatureDialog.cpp:120
 msgid "Transpose key according to segment transposition"
@@ -3097,7 +3100,7 @@ msgstr "この時点ですべてのセグメントに適用"
 
 #: ../src/gui/dialogs/KeySignatureDialog.cpp:148
 msgid "Maintain current accidentals"
-msgstr ""
+msgstr "現在の臨時記号の操作"
 
 #: ../src/gui/dialogs/KeySignatureDialog.cpp:151
 msgid "Transpose into this key"
@@ -3281,7 +3284,7 @@ msgstr "エディタを表示(&E)"
 #: ../src/gui/application/RosegardenGUIApp.cpp:659
 #: ../src/gui/editors/notation/NotationView.cpp:2100
 msgid "Show Trans&port Toolbar"
-msgstr "移調ツールバーを表示(&p)"
+msgstr "録音再生ツールバーを表示(&p)"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:663
 msgid "Show &Zoom Toolbar"
@@ -3346,7 +3349,7 @@ msgstr "ハーモナイズ(&H)"
 #: ../src/gui/application/RosegardenGUIApp.cpp:788
 #: ../src/gui/rulers/TempoRuler.cpp:165
 msgid "Open Tempo and Time Signature Editor"
-msgstr ""
+msgstr "テンポと拍子記号エディタをオープン"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:810
 msgid "Insert Range..."
@@ -3386,7 +3389,7 @@ msgstr "パーカッションマトリクスエディタでオープン(&P) "
 #: ../src/gui/application/RosegardenGUIApp.cpp:864
 #: ../src/gui/general/EditViewBase.cpp:218
 msgid "Open in &Notation Editor"
-msgstr "作譜エディタ(&N)"
+msgstr "楽譜エディタ(&N)でオープン"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:870
 #: ../src/gui/general/EditViewBase.cpp:224
@@ -3598,7 +3601,7 @@ msgstr ""
 #: ../src/gui/studio/AudioMixerWindow.cpp:145
 #: ../src/gui/studio/MidiMixerWindow.cpp:121
 msgid "Panic"
-msgstr ""
+msgstr "パニック"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:1151
 msgid "Segment Debug Dump "
@@ -3646,6 +3649,8 @@ msgid ""
 "Malformed URL\n"
 "%1"
 msgstr ""
+"不正な形式のURL\n"
+"%1"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:2104
 #: ../src/gui/application/RosegardenGUIApp.cpp:2165
@@ -3777,6 +3782,9 @@ msgid ""
 "before %1.\n"
 "Would you like to set it now?"
 msgstr ""
+"オーディオファイルのパスが存在しないか書き込み不可。\n"
+"ドキュメントプロパティ中で、%1の前に、正しいディレクトリにオーディオファイルパスを設定しなければならない。\n"
+"今設定しますか?"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:2694
 #: ../src/gui/application/RosegardenGUIApp.cpp:5128
@@ -3850,7 +3858,7 @@ msgstr "エディタツールバーをON/OFF..."
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:3199
 msgid "Toggle the transport toolbar..."
-msgstr "移調ツールバーをON/OFF..."
+msgstr "録音再生ツールバーをON/OFF..."
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:3209
 msgid "Toggle the zoom toolbar..."
@@ -3858,7 +3866,7 @@ msgstr "ズームツールバーをON/OFF..."
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:3219
 msgid "Toggle the Transport"
-msgstr ""
+msgstr "録音再生のトグル"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:3302
 #: ../src/gui/general/EditViewBase.cpp:487
@@ -3989,6 +3997,8 @@ msgid ""
 "p><p>Notation previews through LilyPond will not be available.</p><p>To fix "
 "this, you should install the following additional programs:</p>"
 msgstr ""
+"<h3>LilyPondプレビューが無効</h3><p>Rosegardenは1つ以上の、LilyPondプレビューワをサポートするために必要な追加のプログラムを見つけられなかった。</"
+"p><p>LilyPond経由での楽譜プレビューは無効である。</p><p>これを修正するために、以下の追加のプログラムをインストールすべきである:</p>"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:4449
 msgid "LilyPond previews not available"
@@ -4212,11 +4222,11 @@ msgstr "演奏リスト"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:7344
 msgid "http://rosegarden.sourceforge.net/tutorial/en/chapter-0.html"
-msgstr ""
+msgstr "http://rosegarden.sourceforge.net/tutorial/en/chapter-0.html"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:7351
 msgid "http://rosegarden.sourceforge.net/tutorial/bug-guidelines.html"
-msgstr ""
+msgstr "http://rosegarden.sourceforge.net/tutorial/bug-guidelines.html"
 
 #: ../src/gui/application/RosegardenGUIApp.cpp:7427
 msgid "Queueing MIDI panic events for tranmission..."
@@ -4473,7 +4483,7 @@ msgstr "SCons/bksys構築システム"
 
 #: ../src/gui/application/main.cpp:444
 msgid "icons, icons, icons"
-msgstr ""
+msgstr "icons, icons, icons"
 
 #: ../src/gui/application/main.cpp:445 ../src/gui/application/main.cpp:446
 #: ../src/gui/application/main.cpp:447 ../src/gui/application/main.cpp:448
@@ -4492,6 +4502,11 @@ msgid ""
 "2006,\n"
 "may he rest in peace)"
 msgstr ""
+"1.2.3 起動画面の写真 (Michael'の rose garden)\n"
+"新しい起動画面の写真(Michael McIntyre'の\n"
+"instruments along with a rose from the garden of Hassell Arnold Hale, 1916-"
+"2006,\n"
+"may he rest in peace)"
 
 #: ../src/gui/application/main.cpp:452
 msgid ""
@@ -4527,7 +4542,7 @@ msgstr ""
 
 #: ../src/gui/application/RosegardenGUIView.cpp:326
 msgid "Selection must contain only audio or non-audio segments"
-msgstr ""
+msgstr "選択対象はオーディオまたは非オーディオセグメントのみを含まなければならない"
 
 #: ../src/gui/application/RosegardenGUIView.cpp:408
 #: ../src/gui/application/RosegardenGUIView.cpp:551
@@ -4541,6 +4556,8 @@ msgid ""
 "You've not yet defined an audio editor for Rosegarden to use.\n"
 "See Settings -> Configure Rosegarden -> General -> External Editors."
 msgstr ""
+"Rosegardenが使うためのオーディオエディタをまだ定義していない。\n"
+"設定->Rosegardenを設定->一般->外部エディタ　を参照。"
 
 #: ../src/gui/application/RosegardenGUIView.cpp:1523
 #: ../src/gui/application/RosegardenGUIView.cpp:1528
@@ -4573,7 +4590,7 @@ msgstr ""
 
 #: ../src/gui/seqmanager/SequenceManager.cpp:1028
 msgid "Run out of processor power for real-time audio processing.  Cannot continue."
-msgstr ""
+msgstr "リアルタイムにオーディオ処理を行うための処理能力が足らない。続行不可能。"
 
 #: ../src/gui/seqmanager/SequenceManager.cpp:1054
 msgid ""
@@ -4588,7 +4605,7 @@ msgstr "JACK オーディオサブシステムはサンプルフレームを失�
 
 #: ../src/gui/seqmanager/SequenceManager.cpp:1093
 msgid "Failed to read audio data from disc in time to service the audio subsystem."
-msgstr ""
+msgstr "オーディオサブシステムをサービスするためにディスクからオーディオデータを読み出すのに失敗。"
 
 #: ../src/gui/seqmanager/SequenceManager.cpp:1097
 msgid ""
@@ -4653,7 +4670,7 @@ msgid ""
 "not running.</p><p>If you want to be able to play or record audio files or "
 "use plugins, you should exit Rosegarden and start the JACK server before "
 "running Rosegarden again.</p>"
-msgstr ""
+msgstr "<h3>JACKオーディオサーバへ接続失敗。</h3><p>RosegardenはJACKオーディオサーバに接続できなかった。おそらくJACKサーバが動作していない</p><p>もしもオーディオファイルの再生かプラグインを使いたいならば、Rosegardenを終了して、Rosegardenを再起動する前にJAサーバを起動する。</p>"
 
 #: ../src/gui/seqmanager/SequenceManager.cpp:1298
 msgid "Failed to connect to JACK"
@@ -4718,7 +4735,7 @@ msgstr ""
 #: ../src/gui/widgets/AudioRouteMenu.cpp:234
 #, c-format
 msgid "In %1"
-msgstr ""
+msgstr "%1中"
 
 #: ../src/gui/studio/AudioMixerWindow.cpp:583
 #: ../src/gui/widgets/AudioRouteMenu.cpp:236
@@ -4763,7 +4780,7 @@ msgstr "ノート:"
 
 #: ../src/gui/widgets/TimeWidget.cpp:108 ../src/gui/widgets/TimeWidget.cpp:145
 msgid "<inexact>"
-msgstr ""
+msgstr "<inexact>"
 
 #: ../src/gui/widgets/TimeWidget.cpp:151
 msgid "Units:"
@@ -4795,7 +4812,7 @@ msgstr "ビート:"
 
 #: ../src/gui/widgets/TimeWidget.cpp:230
 msgid "%1:"
-msgstr ""
+msgstr "%1:"
 
 #: ../src/gui/widgets/TimeWidget.cpp:254
 msgid "Seconds:"
@@ -4819,11 +4836,11 @@ msgstr "(%1.%2 bpmで開始)"
 
 #: ../src/gui/widgets/TimeWidget.cpp:464
 msgid "(%1.%2 qpm, %2.%3 bpm)"
-msgstr ""
+msgstr "(%1.%2 qpm, %2.%3 bpm)"
 
 #: ../src/gui/widgets/TimeWidget.cpp:470
 msgid "(%1.%2 bpm)"
-msgstr ""
+msgstr "(%1.%2 bpm)"
 
 #: ../src/gui/studio/AudioMixerWindow.cpp:387
 #: ../src/gui/studio/AudioMixerWindow.cpp:518
@@ -4921,7 +4938,7 @@ msgstr "新しい値の入力"
 
 #: ../src/gui/widgets/QuantizeParameters.cpp:80
 msgid "Quantizer"
-msgstr ""
+msgstr "Quantizer"
 
 #: ../src/gui/widgets/QuantizeParameters.cpp:86
 msgid "Quantizer type:"
@@ -4945,7 +4962,7 @@ msgstr ""
 
 #: ../src/gui/widgets/QuantizeParameters.cpp:104
 msgid "Notation parameters"
-msgstr "ノーテーションパラメータ"
+msgstr "楽譜パラメータ"
 
 #: ../src/gui/widgets/QuantizeParameters.cpp:109
 #: ../src/gui/widgets/QuantizeParameters.cpp:150
@@ -5022,7 +5039,7 @@ msgstr "詳細オプションの表示"
 
 #: ../src/gui/widgets/QuantizeParameters.cpp:192
 msgid "Re-beam"
-msgstr ""
+msgstr "再連桁化"
 
 #: ../src/gui/widgets/QuantizeParameters.cpp:194
 msgid "Add articulations (staccato, tenuto, slurs)"
@@ -5098,7 +5115,7 @@ msgstr ""
 
 #: ../src/gui/configuration/GeneralConfigurationPage.cpp:114
 msgid "Main window"
-msgstr ""
+msgstr "メインウィンドウ"
 
 #: ../src/gui/configuration/GeneralConfigurationPage.cpp:135
 msgid "Vertically stacked"
@@ -5592,7 +5609,7 @@ msgstr "サウンドフォントパス"
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:77
 msgid "Notation font"
-msgstr "音フォント"
+msgstr "楽譜フォント"
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:78
 msgid "Other fonts"
@@ -5637,7 +5654,7 @@ msgstr "テキストフォント"
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:188
 msgid "Time Signature font"
-msgstr ""
+msgstr "拍子記号フォント"
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:214
 msgid "Default layout mode"
@@ -5705,7 +5722,7 @@ msgstr ""
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:348
 msgid "Auto-beam on insert when appropriate"
-msgstr ""
+msgstr "挿入時適切に自動連桁化"
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:355
 #: ../src/gui/editors/notation/NotationEraser.cpp:54
@@ -5770,7 +5787,7 @@ msgstr "常時キャンセル"
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:420
 msgid "Accidentals"
-msgstr ""
+msgstr "臨時記号"
 
 #: ../src/gui/configuration/NotationConfigurationPage.cpp:425
 msgid ""
@@ -6001,7 +6018,7 @@ msgstr ""
 #: ../src/gui/studio/BankEditorDialog.cpp:1623
 #: ../src/gui/studio/DeviceManagerDialog.cpp:770
 msgid "Export Device as..."
-msgstr ""
+msgstr "エクスポートデバイス.."
 
 #: ../src/gui/studio/BankEditorDialog.cpp:1694
 msgid ""
@@ -6188,7 +6205,7 @@ msgid ""
 "_n: 1 Input\n"
 "%n Inputs"
 msgstr ""
-"1 入力\n"
+"_n:1 入力\n"
 "%n 入力"
 
 #: ../src/gui/studio/AudioMixerWindow.cpp:190
@@ -6201,7 +6218,7 @@ msgid ""
 "_n: 1 Submaster\n"
 "%n Submasters"
 msgstr ""
-"1 サブマスタ\n"
+"_n:1 サブマスタ\n"
 "%n サブマスタ"
 
 #: ../src/gui/studio/AudioMixerWindow.cpp:275
@@ -6471,7 +6488,7 @@ msgid ""
 "_n: %1 on 1 track\n"
 "%1 on %n tracks"
 msgstr ""
-"%1 上の 1 トラック\n"
+"_n:%1 上の 1 トラック\n"
 "%1 上の %n トラック"
 
 #: ../src/gui/editors/segment/TriggerSegmentManager.cpp:284
@@ -7037,12 +7054,12 @@ msgstr "リサイズツールに切り替え"
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:446
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:579
 msgid "Click and drag to select; middle-click and drag to draw new note"
-msgstr ""
+msgstr "選択のためにクリックとドラッグ;中ボタンクリックとドラッグで新しい音符を描画"
 
 #: ../src/gui/editors/matrix/MatrixResizer.cpp:324
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:597
 msgid "Click and drag to resize selected notes"
-msgstr ""
+msgstr "選択された音符をリサイズするためにクリックとドラッグ"
 
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:599
 msgid "Click and drag to resize note"
@@ -7051,7 +7068,7 @@ msgstr "音符の再サイズのためにクリックとドラッグ"
 #: ../src/gui/editors/matrix/MatrixMover.cpp:464
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:604
 msgid "Click and drag to move selected notes; hold Ctrl as well to copy"
-msgstr ""
+msgstr "クリックとドラッグで選択された音符の移動;Ctrlキーを押すとコピー"
 
 #: ../src/gui/editors/matrix/MatrixMover.cpp:466
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:606
@@ -7060,11 +7077,11 @@ msgstr "選択された音符のコピーのためにクリックとドラッグ
 
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:610
 msgid "Click and drag to move note; hold Ctrl as well to copy"
-msgstr ""
+msgstr "クリックとドラッグで音符の移動;Ctrlキーを押すとコピー"
 
 #: ../src/gui/editors/matrix/MatrixSelector.cpp:612
 msgid "Click and drag to copy note"
-msgstr ""
+msgstr "音符をコピーするためにクリックとドラッグ"
 
 #: ../src/gui/editors/matrix/MatrixEraser.cpp:54
 #: ../src/gui/editors/matrix/MatrixMover.cpp:67
@@ -7113,7 +7130,7 @@ msgstr ""
 
 #: ../src/gui/editors/matrix/MatrixMover.cpp:460
 msgid "Click and drag to copy a note"
-msgstr ""
+msgstr "音符をコピーするためにクリックとドラッグ"
 
 #: ../src/gui/editors/matrix/MatrixPainter.cpp:340
 msgid "Click and drag to draw a note; Shift to avoid snapping to grid"
@@ -7121,7 +7138,7 @@ msgstr ""
 
 #: ../src/gui/editors/matrix/MatrixPainter.cpp:342
 msgid "Click and drag to draw a note"
-msgstr ""
+msgstr "音符を描画するためにクリックとドラッグ"
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:433
 #: ../src/gui/editors/matrix/MatrixView.cpp:3036
@@ -7254,7 +7271,7 @@ msgstr "選択を解除"
 #: ../src/gui/editors/matrix/MatrixView.cpp:843
 #: ../src/gui/editors/notation/NotationView.cpp:2250
 msgid "&Filter Selection"
-msgstr "ファイルの選択(&F)"
+msgstr "フィルタの選択(&F)"
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:868
 msgid "&No Snap"
@@ -7310,7 +7327,7 @@ msgstr ""
 #: ../src/gui/editors/matrix/MatrixView.cpp:1361
 #: ../src/gui/editors/notation/NotationView.cpp:4959
 msgid "Collapsing notes..."
-msgstr ""
+msgstr "音符の非正規化..."
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:1372
 msgid "Making legato..."
@@ -7318,12 +7335,12 @@ msgstr "レガートの作成..."
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:1467
 msgid "Note: %1 (%2.%3s)"
-msgstr ""
+msgstr "Note: %1 (%2.%3s)"
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:1522
 #: ../src/gui/editors/notation/NotationView.cpp:6614
 msgid "Time: %1 (%2.%3s)"
-msgstr ""
+msgstr "時間: %1 (%2.%3秒)"
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:1594
 #: ../src/gui/editors/notation/NotationView.cpp:4331
@@ -7346,17 +7363,17 @@ msgstr ""
 #: ../src/gui/editors/notation/NotationView.cpp:5138
 #, c-format
 msgid "Unknown note insert action %1"
-msgstr ""
+msgstr "不明な音符の挿入動作 %1"
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:1826
 #: ../src/gui/editors/matrix/MatrixView.cpp:2840
 #: ../src/gui/editors/notation/NotationView.cpp:5142
 msgid "Inserting note"
-msgstr ""
+msgstr "音符の挿入"
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:2080
 msgid "Unquantizing..."
-msgstr ""
+msgstr "非正規化中..."
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:2109
 msgid " Grid: "
@@ -7384,11 +7401,11 @@ msgstr " 量子化: "
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:2567
 msgid "Raising velocities..."
-msgstr ""
+msgstr "ベロシティの増加中..."
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:2579
 msgid "Lowering velocities..."
-msgstr ""
+msgstr "ベロシティの低減中..."
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:2594
 msgid "Set Event Velocities"
@@ -7415,6 +7432,8 @@ msgid ""
 "_n: %1 - 1 Segment - %2\n"
 "%1 - %n Segments - %2"
 msgstr ""
+"%1 - 1 セグメント - %2\n"
+"%1 - %n セグメント - %2"
 
 #: ../src/gui/editors/matrix/MatrixView.cpp:2868
 msgid "Can't insert note: No grid duration selected"
@@ -7455,7 +7474,7 @@ msgstr "共通, hidden"
 
 #: ../src/gui/editors/tempo/TempoView.cpp:210
 msgid "Hidden"
-msgstr ""
+msgstr "非表示"
 
 #: ../src/gui/editors/tempo/TempoView.cpp:213
 msgid "Common"
@@ -7463,15 +7482,15 @@ msgstr "共通"
 
 #: ../src/gui/editors/tempo/TempoView.cpp:220
 msgid "Time Signature   "
-msgstr ""
+msgstr "拍子記号   "
 
 #: ../src/gui/editors/tempo/TempoView.cpp:245
 msgid "%1.%2%3"
-msgstr ""
+msgstr "%1.%2%3"
 
 #: ../src/gui/editors/tempo/TempoView.cpp:255
 msgid "%1.%2%3 qpm (%4.%5%6 bpm)   "
-msgstr ""
+msgstr "%1.%2%3 qpm (%4.%5%6 bpm)   "
 
 #: ../src/gui/editors/tempo/TempoView.cpp:264
 msgid "Tempo   "
@@ -7483,7 +7502,7 @@ msgstr "<このフィルタレベルでは何もない>"
 
 #: ../src/gui/editors/tempo/TempoView.cpp:463
 msgid "Delete Tempo or Time Signature"
-msgstr ""
+msgstr "テンポまたは拍子記号を削除"
 
 #: ../src/gui/editors/tempo/TempoView.cpp:602
 msgid "&Edit Item"
@@ -7491,7 +7510,7 @@ msgstr "アイテムの編集(&E)"
 
 #: ../src/gui/editors/tempo/TempoView.cpp:834
 msgid "%1 - Tempo and Time Signature Editor"
-msgstr ""
+msgstr "%1 - テンポと拍子記号エディタ"
 
 #: ../src/gui/editors/guitar/GuitarChordEditor.cpp:75
 #: ../src/gui/editors/guitar/GuitarTabSelectorDialog.cpp:285
@@ -7636,7 +7655,7 @@ msgstr "通常"
 
 #: ../src/gui/editors/notation/NotationView.cpp:1535
 msgid "Follow previous accidental"
-msgstr ""
+msgstr "前の臨時記号を継続"
 
 #: ../src/gui/editors/notation/NotationView.cpp:1536
 msgid "Sharp"
@@ -7716,7 +7735,7 @@ msgstr ""
 
 #: ../src/gui/editors/notation/NotationView.cpp:1698
 msgid "Show &Annotations"
-msgstr ""
+msgstr "楽譜を表示(&A)"
 
 #: ../src/gui/editors/notation/NotationView.cpp:1702
 msgid "Show Lily&Pond Directives"
@@ -7736,15 +7755,15 @@ msgstr "選択されたイベントを標準出力へダンプ(&D)"
 
 #: ../src/gui/editors/notation/NotationView.cpp:2041
 msgid "Ma&ke Ornament..."
-msgstr ""
+msgstr "装飾音の作成(&k)"
 
 #: ../src/gui/editors/notation/NotationView.cpp:2045
 msgid "Trigger &Ornament..."
-msgstr ""
+msgstr "装飾音の詳細指定(&O)"
 
 #: ../src/gui/editors/notation/NotationView.cpp:2049
 msgid "Remove Ornament..."
-msgstr ""
+msgstr "装飾音の削除"
 
 #: ../src/gui/editors/notation/NotationView.cpp:2054
 msgid "&None"
@@ -7764,11 +7783,11 @@ msgstr "臨時記号ツールバーを表示(&A)"
 
 #: ../src/gui/editors/notation/NotationView.cpp:2092
 msgid "Show Cle&fs Toolbar"
-msgstr ""
+msgstr "音部記号ツールバーの表示(&s)"
 
 #: ../src/gui/editors/notation/NotationView.cpp:2094
 msgid "Show &Marks Toolbar"
-msgstr ""
+msgstr "演奏記号ツールバーの表示(&M)"
 
 #: ../src/gui/editors/notation/NotationView.cpp:2096
 msgid "Show &Group Toolbar"
@@ -7881,17 +7900,19 @@ msgstr "休符"
 
 #: ../src/gui/editors/notation/NotationView.cpp:3889
 msgid "%1 - Segment Track #%2 - Notation"
-msgstr ""
+msgstr "%1 - セグメントトラック #%2 - 楽譜"
 
 #: ../src/gui/editors/notation/NotationView.cpp:3895
 msgid "%1 - All Segments - Notation"
-msgstr ""
+msgstr "%1 - すべてのセグメント - 楽譜"
 
 #: ../src/gui/editors/notation/NotationView.cpp:3900
 msgid ""
 "_n: %1 - Segment - Notation\n"
 "%1 - %n Segments - Notation"
 msgstr ""
+"%1 - セグメント - 楽譜\n"
+"%1 - %n セグメント - 楽譜"
 
 #: ../src/gui/editors/notation/NotationView.cpp:3922
 msgid " Triplet Chord"
@@ -7953,12 +7974,12 @@ msgstr ""
 
 #: ../src/gui/editors/notation/NotationView.cpp:4387
 msgid "Can't paste multiple Segments into one"
-msgstr ""
+msgstr "複数のセグメントを1つには貼り付けできない"
 
 #: ../src/gui/editors/notation/NotationView.cpp:4415
 #: ../src/gui/editors/notation/NotationView.cpp:4467
 msgid "Couldn't paste at this point."
-msgstr ""
+msgstr "この位置では貼り付けできない"
 
 #: ../src/gui/editors/notation/NotationView.cpp:4570
 msgid "Pushing selection left..."
@@ -7986,11 +8007,11 @@ msgstr ""
 
 #: ../src/gui/editors/notation/NotationView.cpp:4632
 msgid "Making invisible..."
-msgstr ""
+msgstr "非表示化中..."
 
 #: ../src/gui/editors/notation/NotationView.cpp:4719
 msgid "Beaming group..."
-msgstr ""
+msgstr "グループの連桁化"
 
 #: ../src/gui/editors/notation/NotationView.cpp:4729
 msgid "Auto-beaming selection..."
@@ -8014,11 +8035,11 @@ msgstr ""
 
 #: ../src/gui/editors/notation/NotationView.cpp:4853
 msgid "Adding slur..."
-msgstr ""
+msgstr "スラー追加中..."
 
 #: ../src/gui/editors/notation/NotationView.cpp:4854
 msgid "slur"
-msgstr ""
+msgstr "スラー"
 
 #: ../src/gui/editors/notation/NotationView.cpp:4859
 msgid "Adding phrasing slur..."
@@ -8043,7 +8064,7 @@ msgstr "クレッシェンドの追加..."
 #: ../src/gui/editors/notation/NotationView.cpp:4872
 #: ../src/gui/editors/notation/NotationView.cpp:4878
 msgid "dynamic"
-msgstr ""
+msgstr "動的"
 
 #: ../src/gui/editors/notation/NotationView.cpp:4877
 msgid "Adding decrescendo..."
@@ -8105,7 +8126,7 @@ msgstr ""
 
 #: ../src/gui/editors/notation/NotationView.cpp:5030
 msgid "Restoring computed stem directions..."
-msgstr ""
+msgstr "計算された符幹の方向をリストア中..."
 
 #: ../src/gui/editors/notation/NotationView.cpp:5040
 #: ../src/gui/editors/notation/NotationView.cpp:5050
@@ -8192,16 +8213,16 @@ msgstr "指使い:"
 
 #: ../src/gui/editors/notation/NotationView.cpp:5557
 msgid "Ornament track %1 bar %2"
-msgstr ""
+msgstr "装飾音トラック %1 バー %2"
 
 #: ../src/gui/editors/notation/NotationView.cpp:5559
 #, c-format
 msgid "Ornament bar %1"
-msgstr ""
+msgstr "装飾音バー %1"
 
 #: ../src/gui/editors/notation/NotationView.cpp:5619
 msgid "Remove Ornaments"
-msgstr ""
+msgstr "複数装飾音の削除"
 
 #: ../src/gui/editors/notation/NotationView.cpp:5666
 msgid "Estimated key signature shown"
@@ -8465,7 +8486,7 @@ msgstr ""
 
 #: ../src/gui/editors/notation/NoteInserter.cpp:81
 msgid "Auto-Beam when appropriate"
-msgstr ""
+msgstr "適切に自動連桁化"
 
 #: ../src/gui/editors/notation/NoteInserter.cpp:102
 msgid "Dotted note"
@@ -8637,7 +8658,7 @@ msgstr "テンポを編集"
 
 #: ../src/gui/rulers/TempoRuler.cpp:161
 msgid "Edit Time Signature..."
-msgstr "時間シグネチャの編集"
+msgstr "拍子記号の編集"
 
 #: ../src/gui/rulers/TempoRuler.cpp:582
 msgid "%1.%2%3 (%4.%5%6 bpm)"
@@ -8799,11 +8820,11 @@ msgstr "プリセットファイル %1がオープンできない"
 
 #: ../src/gui/general/EditView.cpp:708
 msgid "&Halve Speed"
-msgstr ""
+msgstr "速度を半分(長さが倍)に(&H)"
 
 #: ../src/gui/general/EditView.cpp:712
 msgid "&Double Speed"
-msgstr ""
+msgstr "速度を倍(長さを半分)に(&D)"
 
 #: ../src/gui/general/EditView.cpp:766
 msgid "Show Velocity Property Ruler"
@@ -8911,7 +8932,7 @@ msgstr ""
 
 #: ../src/gui/general/EditView.cpp:1429
 msgid "Rescaling..."
-msgstr ""
+msgstr "再スケール中..."
 
 #: ../src/gui/general/EditView.cpp:1448
 msgid "Enter the number of semitones to transpose by:"
@@ -8951,11 +8972,11 @@ msgstr ""
 
 #: ../src/gui/general/EditView.cpp:1536
 msgid "Jogging left..."
-msgstr ""
+msgstr "Jogging left..."
 
 #: ../src/gui/general/EditView.cpp:1551
 msgid "Jogging right..."
-msgstr ""
+msgstr "Jogging right..."
 
 #: ../src/sound/AudioFileManager.cpp:659
 #, c-format
@@ -8972,7 +8993,7 @@ msgstr "オーディオファイルを再サンプリング中..."
 
 #: ../src/sound/AudioFileManager.cpp:738
 msgid "Converting and resampling audio file..."
-msgstr ""
+msgstr "オーディオファイルの変換と再サンプリング中..."
 
 #: ../src/sound/AudioFileManager.cpp:740
 msgid "Importing audio file..."
@@ -9082,11 +9103,11 @@ msgstr "Rosegardenファイルがオープンできない"
 
 #: ../src/document/RosegardenGUIDoc.cpp:621
 msgid "Error when parsing file '%1': \"%2\""
-msgstr ""
+msgstr "'%1': \"%2\"を解釈中にエラー"
 
 #: ../src/document/RosegardenGUIDoc.cpp:669
 msgid "Generating audio previews..."
-msgstr ""
+msgstr "オーディオプレビューを生成中..."
 
 #: ../src/document/RosegardenGUIDoc.cpp:701
 msgid "Merge"
@@ -9105,6 +9126,10 @@ msgid ""
 "to load this complete composition.</p><p><b>WARNING:</b> If you re-save this "
 "composition, all audio and plugin data and settings in it will be lost.</p>"
 msgstr ""
+"<h3>オーディオとプラグインが無効 </h3><p>このcompositionはオーディオファイルかプラグインを使うが、Rosegardenは、起動時にJACKオーディオサーバが無効だったため、現在オーディオ機能なしで動いている。</p> "
+"<p>この完全なcompositionをロードしたいならば、Rosegardenをいったん終了し、JACKオーディオサーバ "
+"を開始し、Rosegardenを再起動する。</p> "
+"<p><b>警告:</b>もしもこのcompositionを再セーブするならば、すべてのオーディオとプラグインデータと設定はなくなる。</p>"
 
 #: ../src/document/RosegardenGUIDoc.cpp:1533
 msgid ""
@@ -9114,6 +9139,9 @@ msgid ""
 "from this version of Rosegarden, all audio and plugin data and settings in "
 "it will be lost.</p>"
 msgstr ""
+"<h3>オーディオとプラグインが無効</h3><p>この compositionはオーディオファイルかプラグインを使うが、オーディオサポートなしでコンパイルされたバージョンのRosegardenを動作させている。</p> "
+"<p><b>警告:</b>もしもこのcompositionをこのバージョンの "
+"Rosegardenから再セーブするなら、すべてのオーディオとプラグインデータはなくなる。</p>"
 
 #: ../src/document/RosegardenGUIDoc.cpp:1570
 msgid ""
@@ -9145,10 +9173,12 @@ msgid ""
 "<h3>Plugins not found</h3><p>The following audio plugins could not be loaded:"
 "</p><ul>"
 msgstr ""
+"<h3>プラグインが見つからない</h3><p>以下のオーディオプラグインがロードできなかった:"
+"</p><ul>"
 
 #: ../src/document/RosegardenGUIDoc.cpp:1603
 msgid "<li>%1 (from %2)</li>"
-msgstr ""
+msgstr "<li>%1 (%2から)</li>"
 
 #: ../src/document/RosegardenGUIDoc.cpp:1617
 msgid ""
@@ -9160,11 +9190,11 @@ msgstr ""
 
 #: ../src/document/RosegardenGUIDoc.cpp:2107
 msgid "Insert Recorded MIDI"
-msgstr ""
+msgstr "録音されたMIDIの挿入"
 
 #: ../src/document/RosegardenGUIDoc.cpp:2459
 msgid "%1 (recorded)"
-msgstr ""
+msgstr "%1 (録音された)"
 
 #: ../src/document/RoseXmlHandler.cpp:472
 msgid ""
@@ -9226,7 +9256,7 @@ msgstr "時間ツールバー"
 #: rc.cpp:12 rc.cpp:24 rc.cpp:38 rc.cpp:42 rc.cpp:84 rc.cpp:172 rc.cpp:240
 #, no-c-format
 msgid "Transport Toolbar"
-msgstr "移調ツールバー"
+msgstr "録音再生ツールバー"
 
 #: rc.cpp:16 rc.cpp:28 rc.cpp:86 rc.cpp:244
 #, no-c-format
@@ -9236,17 +9266,17 @@ msgstr "ズームツールバー"
 #: rc.cpp:30 rc.cpp:40 rc.cpp:70 rc.cpp:162 rc.cpp:230
 #, no-c-format
 msgid "T&ransport"
-msgstr "移調(&r)"
+msgstr "録音と再生(&r)"
 
 #: rc.cpp:34
 #, no-c-format
 msgid "Number of Stereo &Inputs"
-msgstr ""
+msgstr "ステレオ入力の数(&I)"
 
 #: rc.cpp:36
 #, no-c-format
 msgid "&Number of Submasters"
-msgstr ""
+msgstr "サブマスタの数(&N)"
 
 #: rc.cpp:44
 #, no-c-format
@@ -9276,7 +9306,7 @@ msgstr "スタジオ(&S)"
 #: rc.cpp:54
 #, no-c-format
 msgid "&Tempo and Time Signature"
-msgstr ""
+msgstr "テンポと拍子記号(&T)"
 
 #: rc.cpp:56
 #, no-c-format
@@ -9296,7 +9326,7 @@ msgstr "トラック(&k)"
 #: rc.cpp:64
 #, no-c-format
 msgid "Set &Instrument"
-msgstr ""
+msgstr "インスツルメントの設定(&I)"
 
 #: rc.cpp:68 rc.cpp:150 rc.cpp:226
 #, no-c-format
@@ -9346,7 +9376,7 @@ msgstr "音符(&o)"
 #: rc.cpp:106
 #, no-c-format
 msgid "&Beams"
-msgstr ""
+msgstr "連桁(&B)"
 
 #: rc.cpp:108
 #, no-c-format
@@ -9371,7 +9401,7 @@ msgstr "マーク(&k)"
 #: rc.cpp:116
 #, no-c-format
 msgid "&Ornaments"
-msgstr ""
+msgstr "装飾音(&O)"
 
 #: rc.cpp:118
 #, no-c-format
@@ -9401,7 +9431,7 @@ msgstr "三連符と連符(&l)"
 #: rc.cpp:128
 #, no-c-format
 msgid "S&tem Direction"
-msgstr ""
+msgstr "符幹の方向(&t)"
 
 #: rc.cpp:130
 #, no-c-format
@@ -9426,7 +9456,7 @@ msgstr "移調(&p)"
 #: rc.cpp:140 rc.cpp:222
 #, no-c-format
 msgid "Convert"
-msgstr ""
+msgstr "変換"
 
 #: rc.cpp:142
 #, no-c-format
@@ -9551,7 +9581,7 @@ msgstr ""
 #: rc.cpp:265
 #, no-c-format
 msgid "Shows MIDI activity in and out of Rosegarden"
-msgstr ""
+msgstr "Rosegardenの入出力のMIDIアクティビティを表示"
 
 #: rc.cpp:267
 #, no-c-format
@@ -9581,7 +9611,7 @@ msgstr "ループ"
 #: rc.cpp:283
 #, no-c-format
 msgid "Turn on and off the loop markers (if set)"
-msgstr ""
+msgstr "ループマーカのON/OFF(設定されているならば)"
 
 #: rc.cpp:288
 #, no-c-format
@@ -9591,42 +9621,42 @@ msgstr "現在選択されたトラック以外をミュート"
 #: rc.cpp:291
 #, no-c-format
 msgid "Start loop or range here"
-msgstr ""
+msgstr "ここからループまたはレンジの開始"
 
 #: rc.cpp:294
 #, no-c-format
 msgid "End loop or range here"
-msgstr ""
+msgstr "ここでループまたはレンジの終了"
 
 #: rc.cpp:296
 #, no-c-format
 msgid "SIG"
-msgstr ""
+msgstr "SIG"
 
 #: rc.cpp:298
 #, no-c-format
 msgid "DIV"
-msgstr ""
+msgstr "DIV"
 
 #: rc.cpp:300
 #, no-c-format
 msgid "/16"
-msgstr ""
+msgstr "/16"
 
 #: rc.cpp:302
 #, no-c-format
 msgid "TEMPO"
-msgstr ""
+msgstr "TEMPO"
 
 #: rc.cpp:304
 #, no-c-format
 msgid "END"
-msgstr ""
+msgstr "END"
 
 #: rc.cpp:306
 #, no-c-format
 msgid "BAR"
-msgstr ""
+msgstr "BAR"
 
 #: rc.cpp:309
 #, no-c-format
@@ -9646,7 +9676,7 @@ msgstr "巻き戻し"
 #: rc.cpp:317
 #, no-c-format
 msgid "Moves the current pointer position back one bar."
-msgstr ""
+msgstr "現在のポインタ位置を1つ前のバーに移動"
 
 #: rc.cpp:320
 #, no-c-format
@@ -9685,7 +9715,7 @@ msgstr "早送り"
 #: rc.cpp:337
 #, no-c-format
 msgid "Moves the current pointer position forwards one bar."
-msgstr ""
+msgstr "現在のポインタ位置を1つ先のバーに移動"
 
 #: rc.cpp:340
 #, no-c-format
@@ -9811,6 +9841,8 @@ msgid ""
 "matrix editor, you can move it one semitone at a time with the up and down "
 "arrow keys on your keyboard?</p>\n"
 msgstr ""
+"<p>もしも楽譜またはマトリクスエディタを使って間違ったピッチに音符を配置したならば、 "
+"あなたのキーボード上で上下の矢印キーを使って半音動かすことができる。?</p>\n"
 
 #: ../docs/en/tips.cpp:61
 msgid ""
@@ -10293,192 +10325,4 @@ msgstr "Mensural"
 #: ../data/styles/styles.cpp:4
 msgid "Triangle"
 msgstr "三連符"
-
-#~ msgid ""
-#~ "<p>You can use the mouse wheel to scroll up and down, or to scroll left "
-#~ "and right (by holding the Alt key at the same time), or to zoom in and "
-#~ "out (by holding the Control key).</p>\n"
-#~ msgstr ""
-#~ "<p>マウスホイールを、スクロールアップ/ダウンに、また、(同じ時にAltキーを押"
-#~ "すことで)左右スクロールに、(コントロールキーを押しながら)ズームイン/アウト"
-#~ "に使うことができます。</p>\n"
-
-#~ msgid "LilyPond font size"
-#~ msgstr "Lilypontフォントサイズ"
-
-#~ msgid "Half Speed"
-#~ msgstr "半分の速さ"
-
-#~ msgid "Double Speed"
-#~ msgstr "倍の速さ"
-
-#~ msgid "&Select"
-#~ msgstr "選択(&S)"
-
-#~ msgid "Getting sound driver status..."
-#~ msgstr "サウンドドライバステータスの取得..."
-
-#~ msgid "..."
-#~ msgstr "..."
-
-#~ msgid "Enable"
-#~ msgstr "有効"
-
-#~ msgid "unlimited"
-#~ msgstr "無制限"
-
-#~ msgid "Number:"
-#~ msgstr "番号:"
-
-#~ msgid "Value:"
-#~ msgstr "値:"
-
-#~ msgid "&Velocity"
-#~ msgstr "ベロシティ(&V)"
-
-#, fuzzy
-#~ msgid "Recording Channel:"
-#~ msgstr "録音..."
-
-#~ msgid "Lilypond export options"
-#~ msgstr "Lilypond エクスポートオプション"
-
-#, fuzzy
-#~ msgid ""
-#~ "Spanish translation\n"
-#~ "ALSA hacking and bug fixes\n"
-#~ "multi-input MIDI recording"
-#~ msgstr ""
-#~ "スペイン語への翻訳\n"
-#~ "ALSA ハッキングとバグ修正\n"
-#~ "複数入力のMIDI録音"
-
-#, fuzzy
-#~ msgid "Finnish translation"
-#~ msgstr "スウェーデン語への翻訳"
-
-#~ msgid "Close this tab"
-#~ msgstr "このタブをクローズ"
-
-#, fuzzy
-#~ msgid "Pre&view Lilypond file..."
-#~ msgstr "Lilypondファイルをエクスポート..."
-
-#, fuzzy
-#~ msgid "&Split or Join"
-#~ msgstr "分割(&S)"
-
-#~ msgid "Advanced Event Edit"
-#~ msgstr "高度なイベント編集"
-
-#~ msgid "Advanced Event Viewer"
-#~ msgstr "高度なイベントビューワ"
-
-#~ msgid "  1 event selected "
-#~ msgstr " 1つのイベントを選択 "
-
-#, fuzzy
-#~ msgid "%1 - 1 Segment - %2"
-#~ msgstr "すべてのセグメントを選択(&A)"
-
-#, fuzzy
-#~ msgid "1 pixel"
-#~ msgstr "%1ピクセル"
-
-#, fuzzy
-#~ msgid "%1 - Segment - Notation"
-#~ msgstr "すべてのセグメントを選択(&A)"
-
-#, fuzzy
-#~ msgid "%1 on 1 track"
-#~ msgstr "このトラックに録音"
-
-#, fuzzy
-#~ msgid "Modify Tempo"
-#~ msgstr "テンポ変更"
-
-#, fuzzy
-#~ msgid "PitchRuler"
-#~ msgstr "ピッチ"
-
-#, fuzzy
-#~ msgid "Paste"
-#~ msgstr "マスタ"
-
-#, fuzzy
-#~ msgid "&Delete"
-#~ msgstr "削除(&l)"
-
-#, fuzzy
-#~ msgid "Stop"
-#~ msgstr "停止(&S)"
-
-#, fuzzy
-#~ msgid "Copy"
-#~ msgstr "著作権"
-
-#, fuzzy
-#~ msgid "Default"
-#~ msgstr "既定値  "
-
-#, fuzzy
-#~ msgid "Delete All"
-#~ msgstr "すべてを選択(&A)"
-
-#, fuzzy
-#~ msgid "Add"
-#~ msgstr "追加..."
-
-#, fuzzy
-#~ msgid "No"
-#~ msgstr "ノート"
-
-#, fuzzy
-#~ msgid "&Copy"
-#~ msgstr "停止(&S)"
-
-#, fuzzy
-#~ msgid "&Paste"
-#~ msgstr "フェルマータ(&P)"
-
-#, fuzzy
-#~ msgid "Configure"
-#~ msgstr "Rosegardenの構成"
-
-#, fuzzy
-#~ msgid "Untitled"
-#~ msgstr "<未タイトル>"
-
-#, fuzzy
-#~ msgid "&View"
-#~ msgstr "タイ(&T)"
-
-#, fuzzy
-#~ msgid "&Tools"
-#~ msgstr "ツールバー(&T)"
-
-#, fuzzy
-#~ msgid "&Settings"
-#~ msgstr "選択を解除"
-
-#~ msgid "Tracks to add"
-#~ msgstr "追加するトラック"
-
-#~ msgid "%1 pixels"
-#~ msgstr "%1ピクセル"
-
-#~ msgid "Programs %1 - %2"
-#~ msgstr "プログラム %1 - %2"
-
-#~ msgid "German translation (Arbeiten mit Rosegarden)"
-#~ msgstr "ドイツ語訳(Arbeiten mit Rosegarden)"
-
-#~ msgid "Audio record level"
-#~ msgstr "オーディオ録音レベル"
-
-#~ msgid "Rec"
-#~ msgstr "録"
-
-#~ msgid "The Opus font is part of Sibelius."
-#~ msgstr "OpusフォントはSibeliusの一部である。"
 

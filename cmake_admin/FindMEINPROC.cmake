@@ -11,15 +11,15 @@ IF(MEINPROC_EXECUTABLE)
     SET(MEINPROC_FOUND TRUE)
 ELSE(MEINPROC_EXECUTABLE)
     FIND_PROGRAM(MEINPROC_EXECUTABLE
-        NAME meinproc 
+	NAME meinproc 
 	PATHS ${KDE3_BIN_INSTALL_DIR}
-         $ENV{KDEDIR}/bin
+	 $ENV{KDEDIR}/bin
 	 /usr/bin
 	 /usr/local/bin
 	 /opt/kde/bin
-         /opt/kde3/bin )
+	 /opt/kde3/bin )
     IF(MEINPROC_EXECUTABLE)
-        SET(MEINPROC_FOUND TRUE)
+	SET(MEINPROC_FOUND TRUE)
     ELSE(MEINPROC_EXECUTABLE)
 	IF(NOT MEINPROC_FIND_QUIETLY)
 	    IF(MEINPROC_FIND_REQUIRED)
@@ -41,10 +41,10 @@ MACRO(ADD_DOCS _baseName)
 	    ARGS --check --cache ${_out} ${_in}
     	    DEPENDS ${_in} )
 	INSTALL(FILES ${_out}
-    	    DESTINATION share/doc/HTML/${_dir}/${_baseName}
+    	    DESTINATION ${KDE3HTMLDIR}/${_dir}/${_baseName}
 	    RENAME index.cache.bz2)
 	INSTALL(FILES ${_in} ${_images}
-    	    DESTINATION share/doc/HTML/${_dir}/${_baseName})
+    	    DESTINATION ${KDE3HTMLDIR}/${_dir}/${_baseName})
 	SET(_outputs ${_outputs} ${_out})
     ENDFOREACH(_dir)
     ADD_CUSTOM_TARGET(documentation ALL DEPENDS ${_outputs})
