@@ -44,5 +44,6 @@ namespace Rosegarden
     const char* const TriggerManagerConfigGroup = "Trigger_Editor";
     const char* const EditViewConfigGroup = "Edit_View";
     const char* const PresetDialogConfigGroup = "Parameter_Presets";
+    const char* const ExternalApplicationsConfigGroup = "External_Applications";
 
 }

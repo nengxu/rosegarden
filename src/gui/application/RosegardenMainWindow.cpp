@@ -4722,7 +4722,7 @@ void RosegardenMainWindow::slotPreviewLilyPond()
         return ;
     }
     //setup "rosegarden-lilypondview" process
-    QProcess *proc = new QProcess;
+    /*QProcess *proc = new QProcess;
     QStringList procArgs;
     procArgs << "--graphical";
     procArgs << "--pdf";
@@ -4730,7 +4730,12 @@ void RosegardenMainWindow::slotPreviewLilyPond()
     connect(proc, SIGNAL(processExited(QProcess *)),
             this, SLOT(slotLilyPondViewProcessExited(QProcess *)));
     m_lilyTempFileMap[proc] = file;
-    proc->execute("rosegarden-lilypondview", procArgs);
+    proc->execute("rosegarden-lilypondview", procArgs);*/
+
+    LilyPondProcessor *dialog = new LilyPondProcessor(this, LilyPondProcessor::Preview, filename);
+    if (dialog->exec() != QDialog::Accepted) {
+        return;
+    }
 }
 
 void RosegardenMainWindow::slotLilyPondViewProcessExited(QProcess *p)
