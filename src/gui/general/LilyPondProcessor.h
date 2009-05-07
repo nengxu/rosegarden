@@ -19,6 +19,9 @@
 #define _LILYPOND_PROCESSOR_H_
 
 #include <QDialog>
+#include <QProgressBar>
+#include <QLabel>
+#include <QProcess>
 
 
 namespace Rosegarden
@@ -64,6 +67,34 @@ public:
                       int mode,
                       QString filename);
     ~LilyPondProcessor() { };
+
+protected:
+    int           m_mode;
+    QString       m_filename;
+    QProgressBar *m_progress;
+    QLabel       *m_info;
+
+protected slots:
+    /**
+     * Display an explanatory failure message and terminate processing
+     */
+    void puke(QString error);
+
+    /**
+     * Try to run convert-ly and call runLilyPond() if successful
+     */
+    void runConvertLy();
+
+    /**
+     * Try to run lilypond and call runFinalStage() if successful
+     */
+    void runLilyPond(QProcess *p);
+
+    /**
+     * Try to launch an external PDF viewer or file printer on the successfully
+     * processed .pdf file
+     */
+    void runFinalStage(QProcess *p);
 };
 
 
