@@ -27,6 +27,7 @@
 #include <QSettings>
 #include <QLabel>
 #include <QProgressBar>
+#include <QMessageBox>
 
 #include <iostream>
 
@@ -45,7 +46,6 @@ LilyPondProcessor::LilyPondProcessor(QWidget *parent, int mode, QString filename
 
     this->setModal(false);
 
-    setWindowTitle(tr("Processing %1").arg(m_filename));
     setIcon(IconLoader().loadPixmap("window-lilypond"));
 
     QGridLayout *layout = new QGridLayout;
@@ -59,21 +59,21 @@ LilyPondProcessor::LilyPondProcessor(QWidget *parent, int mode, QString filename
     switch (mode) {
         case LilyPondProcessor::Preview: modeStr = tr("Preview"); break;
         case LilyPondProcessor::Print:   modeStr = tr("Print");   break;
-        default:                         modeStr = tr("INTERNAL ERROR"); break;
     }
-    QLabel *greeting = new QLabel(tr("<qt><p>%1 with LilyPond...</p><br></qt>").arg(modeStr), this);
-    layout->addWidget(greeting, 0, 1);
+    this->setWindowTitle(tr("Rosegarden - %1 with LilyPond...").arg(modeStr));
 
     m_info = new QLabel(this);
-    layout->addWidget(m_info, 1, 1);
+    m_info->setWordWrap(true);
+    layout->addWidget(m_info, 0, 1);
 
     m_progress = new QProgressBar(this);
     m_progress->setMinimum(0);
     m_progress->setMaximum(100);
-    layout->addWidget(m_progress, 2, 1);
+    layout->addWidget(m_progress, 1, 1);
 
-/*    QPushButton *ok = new QPushButton(tr("Ok"), this); //!!! use a QButtonBox as elsewhere
-    layout->addWidget(ok, 1, 1); */
+    QPushButton *ok = new QPushButton(tr("Cancel"), this);
+    connect(ok, SIGNAL(clicked()), this, SLOT(reject()));
+    layout->addWidget(ok, 3, 1); 
 
    
     // Just run convert.ly without all the logic to figure out if it's needed or
@@ -91,25 +91,28 @@ LilyPondProcessor::LilyPondProcessor(QWidget *parent, int mode, QString filename
 void
 LilyPondProcessor::puke(QString error)
 {
-    m_info->setWordWrap(true);
-    m_info->setText(error);
-    // probably want to use a QMessageBox::error here to block until the user
-    // reads, and then abort the whole shebang afterwards, rather than the
-    // little info QLabel in the main dialog, but one thing at a time shall we
-//    reject();
+    m_progress->setMaximum(100);
+    m_progress->hide();
+
+    m_info->setText(tr("Fatal error.  Processing aborted."));
+    QMessageBox::critical(this, tr("Rosegarden - Fatal processing error!"), error, QMessageBox::Ok, QMessageBox::Ok);
+
+    // abort processing after a fatal error, which makes calls to puke()
+    // effectively like a spot return with error code.
+    reject();
 }
 
 void
 LilyPondProcessor::runConvertLy()
 {
     m_info->setText(tr("Running <b>convert-ly</b>..."));
-    QProcess *p = new QProcess;
-    p->start("convert-ly", QStringList() << "-e" << m_filename);
-    connect(p, SIGNAL(processExited(QProcess *)),
-            this, SLOT(runLilyPond(QProcess *)));
+    m_process = new QProcess;
+    m_process->start("convert-ly", QStringList() << "-e" << m_filename);
+    connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
+            this, SLOT(runLilyPond(int, QProcess::ExitStatus)));
 
     // wait up to 10 seconds for process to start
-    if (p->waitForStarted(10)) {
+    if (m_process->waitForStarted(10)) {
         m_info->setText(tr("<b>convert-ly</b> started..."));
     } else {
         puke(tr("<qt><p>Could not run <b>convert-ly</b>!</p><p>Please install LilyPond and ensure that the \"convert-ly\" and \"lilypond\" commands are available on your path.  If you perform a <b>Run Command</b> (typically <b>Alt+F2</b>) and type \"convert-ly\" into the box, you should not get a \"command not found\" error.  If you can do that without getting an error, but still see this error message, please consult <a href=\"mailto:rosegarden-user@lists.sourceforge.net>rosegarden-user@lists.sourceforge.net</a> for additional help.</p><p>Processing terminated due to fatal errors.</p></qt>"));
@@ -119,48 +122,45 @@ LilyPondProcessor::runConvertLy()
 }
 
 void
-LilyPondProcessor::runLilyPond(QProcess *p)
+LilyPondProcessor::runLilyPond(int exitCode, QProcess::ExitStatus)
 {
     std::cerr << "LilyPondProcessor::runLilyPond()" << std::endl;
 
-    if (p->exitCode() == 0) {
+    if (m_process->exitCode() == 0) {
         m_info->setText(tr("<b>convert-ly</b> finished..."));
-        delete p;
+        delete m_process;
     } else {
         puke(tr("<qt><p>Ran <b>convert-ly</b> successfully, but it terminated with errors.</p><p>Processing terminated due to fatal errors.</p></qt>"));
     }
 
     m_progress->setValue(50);
 
-    p = new QProcess;
+    m_process = new QProcess;
     m_info->setText(tr("Running <b>lilypond</b>..."));
-    p->start("lilypond", QStringList() << "--pdf" << m_filename);
-
-    switch (m_mode) {
-        case LilyPondProcessor::Preview:
-                connect(p, SIGNAL(processExited(QProcess *)),
-                        this, SLOT(runPdfViewer(QProcess *)));
-                break;
-        case LilyPondProcessor::Print:
-                connect(p, SIGNAL(processExited(QProcess *)),
-                        this, SLOT(runFilePrinter(QProcess *)));
-    }
+    m_process->start("lilypond", QStringList() << "--pdf" << m_filename);
+    connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
+            this, SLOT(runFinalStage(int, QProcess::ExitStatus)));
             
-    if (p->waitForStarted()) {
+
+    if (m_process->waitForStarted()) {
         m_info->setText(tr("<b>lilypond</b> started..."));
     } else {
         puke(tr("<qt><p>Could not run <b>lilypond</b>!</p><p>Please install LilyPond and ensure that the \"convert-ly\" and \"lilypond\" commands are available on your path.  If you perform a <b>Run Command</b> (typically <b>Alt+F2</b>) and type \"lilypond\" into the box, you should not get a \"command not found\" error.  If you can do that without getting an error, but still see this error message, please consult <a href=\"mailto:rosegarden-user@lists.sourceforge.net>rosegarden-user@lists.sourceforge.net</a> for additional help.</p><p>Processing terminated due to fatal errors.</p></qt>"));
     }
 
-    m_progress->setValue(75);
+    // go into Knight Rider mode when chewing on LilyPond, because it can take
+    // an eternity, but I don't really want to re-create all the text stream
+    // monitoring and guessing code that's easy to do in a script and hell to do
+    // in real code
+    m_progress->setMaximum(0);
 }
 
 void
-LilyPondProcessor::runFinalStage(QProcess *p)
+LilyPondProcessor::runFinalStage(int exitCode, QProcess::ExitStatus)
 {
-    if (p->exitCode() == 0) {
+    if (exitCode == 0) {
         m_info->setText(tr("<b>lilypond</b> finished..."));
-        delete p;
+        delete m_process;
     } else {
         // this is where all the try and try again with different options stuff
         // comes into play eventually, maybe calling this slot recursively or
@@ -173,10 +173,11 @@ LilyPondProcessor::runFinalStage(QProcess *p)
     // retrieve user preferences from QSettings
     QSettings settings;
     settings.beginGroup(ExternalApplicationsConfigGroup);
-    int pdfViewerIndex = settings.value("pdfviewer", 0 /* Okular */ ).toUInt();
+    int pdfViewerIndex = settings.value("pdfviewer", 0).toUInt();
+    int filePrinterIndex = settings.value("fileprinter", 0).toUInt();
     settings.endGroup();
 
-    QString pdfViewer;
+    QString pdfViewer, filePrinter;
 
     // assumes the PDF viewer is available in the PATH; no provision is made for
     // the user to specify the location of any of these explicitly, and I'd like
@@ -191,30 +192,48 @@ LilyPondProcessor::runFinalStage(QProcess *p)
         default: pdfViewer = "kpdf"; // just because I'm still currently on KDE3
     }
 
-    if (p->exitCode() == 0) {
-        delete p;
-        p = new QProcess;
-
-
-        switch (m_mode) {
-            case LilyPondProcessor::Print:
-                m_info->setText(tr("Printing %1...").arg(pdfName));
-                /* stuff goes here */
-                break;
-
-            // just default to preview
-            case LilyPondProcessor::Preview:
-            default:
-                m_info->setText(tr("Previewing %1...").arg(pdfName));
-                p->start(pdfViewer, QStringList() << pdfName);
-        }
-
+    switch (filePrinterIndex) {
+        case 0: filePrinter = "kprinter"; break;
+        case 1: filePrinter = "gtklp";    break;
+        default: filePrinter = "lpr";     break;
     }
+
+    // a bit frigged up, we could have just manipulated finalProcessor in the
+    // first place, but it makes the code a little easier to follow leaving well
+    // enough alone
+    QString finalProcessor;
+
+    m_process = new QProcess;
+
+    switch (m_mode) {
+        case LilyPondProcessor::Print:
+            m_info->setText(tr("Printing %1...").arg(pdfName));
+            finalProcessor = filePrinter;
+            break;
+
+        // just default to preview
+        case LilyPondProcessor::Preview:
+        default:
+            m_info->setText(tr("Previewing %1...").arg(pdfName));
+            finalProcessor = pdfViewer;
+    }
+
+    m_process->start(finalProcessor, QStringList() << pdfName);
+    if (m_process->waitForStarted(10)) {
+        QString t = QString(tr("<b>%1</b> started...").arg(finalProcessor));
+    } else {
+        QString t = QString(tr("<qt><p>Could not run <b>%1</b>!</p><p>[bloopy doo] please consult <a href=\"mailto:rosegarden-user@lists.sourceforge.net>rosegarden-user@lists.sourceforge.net</a> for additional help.</p><p>Processing terminated due to fatal errors.</p></qt>")).arg(finalProcessor);
+        puke(t);
+    }
+
+    m_progress->setMaximum(100);
+    m_progress->setValue(100);
+
 
     /* more didn't start error trapping here, then we can just accept() and go
      * home I think */
 
-/*  if (p->exitCode() == 0 && !panic) {
+/*  if (m_process->exitCode() == 0 && !panic) {
         m_info->setText(tr("Complete!"));
     } else {
         m_info->setWordWrap(true);

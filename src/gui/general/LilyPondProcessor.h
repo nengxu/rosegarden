@@ -73,6 +73,7 @@ protected:
     QString       m_filename;
     QProgressBar *m_progress;
     QLabel       *m_info;
+    QProcess     *m_process;
 
 protected slots:
     /**
@@ -88,13 +89,13 @@ protected slots:
     /**
      * Try to run lilypond and call runFinalStage() if successful
      */
-    void runLilyPond(QProcess *p);
+    void runLilyPond(int exitCode, QProcess::ExitStatus);
 
     /**
      * Try to launch an external PDF viewer or file printer on the successfully
      * processed .pdf file
      */
-    void runFinalStage(QProcess *p);
+    void runFinalStage(int exitCode, QProcess::ExitStatus);
 };
 
 
