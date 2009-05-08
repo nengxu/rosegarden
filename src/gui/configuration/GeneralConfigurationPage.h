@@ -67,6 +67,14 @@ public:
         KPDF
     };
 
+    enum FilePrinter
+    {
+        KPrinter,
+        GtkLP,
+        Lpr,
+        Lp
+    };
+
     GeneralConfigurationPage(RosegardenDocument *doc,
                              QWidget *parent=0, const char *name=0);
 
@@ -89,6 +97,7 @@ protected:
     int getNoteNameStyle()          { return m_nameStyle->currentIndex(); }
     int getAppendLabel()            { return m_appendLabel->isChecked(); }
     int getPdfViewer()              { return m_pdfViewer->currentIndex(); }
+    int getFilePrinter()            { return m_filePrinter->currentIndex(); }
     
     //--------------- Data members ---------------------------------
     RosegardenDocument* m_doc;
@@ -107,7 +116,7 @@ protected:
     QCheckBox *m_jackTransport;
 
     QComboBox *m_pdfViewer;
-    QComboBox *m_docPrinter;
+    QComboBox *m_filePrinter;
 
 };
 

@@ -315,22 +315,47 @@ GeneralConfigurationPage::GeneralConfigurationPage(RosegardenDocument *doc,
     layout->setRowMinimumHeight(row, 15);
     ++row;
 
+    QLabel *explanation = new QLabel(tr("<qt>Rosegarden relies on external applications to provide certain features.  Each selected application must be installed and available on your path.  When choosing an application to use, please ensure that it can run from a \"run command\" box (typically <b>Alt+F2</b>) which should allow Rosegarden to make use of it when necessary.<br></qt>"), frame);
+    explanation->setWordWrap(true);
+    layout->addWidget(explanation, row, 0, 1, 4);
+    ++row;
+
     layout->addWidget(new QLabel(tr("PDF viewer"),
-                                 frame), row, 0);
+                      frame), row, 0);
 
     m_pdfViewer = new QComboBox(frame);
     connect(m_pdfViewer, SIGNAL(activated(int)), this, SLOT(slotModified()));
-    m_pdfViewer->addItem(tr("Okular"));
-    m_pdfViewer->addItem(tr("Evince"));
-    m_pdfViewer->addItem(tr("Acroread"));
-    m_pdfViewer->addItem(tr("KPDF"));
+    m_pdfViewer->addItem(tr("Okular (KDE 4.x)"));
+    m_pdfViewer->addItem(tr("Evince (GNOME)"));
+    m_pdfViewer->addItem(tr("Adobe Acrobat Reader (non-free)"));
+    m_pdfViewer->addItem(tr("KPDF (KDE 3.x)"));
+    m_pdfViewer->setToolTip(tr("Used to preview generated LilyPond output"));
+
+    layout->addWidget(m_pdfViewer, row, 1, 1, 3);
+    ++row;
+
+    layout->addWidget(new QLabel(tr("Command-line file printing utility"),
+                      frame), row, 0);
+
+    m_filePrinter = new QComboBox(frame);
+    connect(m_filePrinter, SIGNAL(activated(int)), this, SLOT(slotModified()));
+    m_filePrinter->addItem(tr("KPrinter (KDE)"));
+    m_filePrinter->addItem(tr("Gtk-LP (GNOME)"));
+    m_filePrinter->addItem(tr("lpr (no GUI)"));
+    m_filePrinter->addItem(tr("lp (no GUI)"));
+    m_filePrinter->setToolTip(tr("Used to print generated LilyPond output without previewing it"));
+
+    layout->addWidget(m_filePrinter, row, 1, 1, 3);
+    ++row;
 
     settings.beginGroup(ExternalApplicationsConfigGroup);
     m_pdfViewer->setCurrentIndex(settings.value("pdfviewer", Okular).toUInt());
-    layout->addWidget(m_pdfViewer, row, 1, 1, 3);
+    m_filePrinter->setCurrentIndex(settings.value("fileprinter", KPrinter).toUInt());
     settings.endGroup();
 
     ++row;
+
+
 
     layout->setRowStretch(row, 10);
 
@@ -356,6 +381,9 @@ void GeneralConfigurationPage::apply()
 
     int pdfViewerIndex = getPdfViewer();
     settings.setValue("pdfviewer", pdfViewerIndex);
+
+    int filePrinterIndex = getFilePrinter();
+    settings.setValue("fileprinter", filePrinterIndex);
 
     settings.endGroup();
 

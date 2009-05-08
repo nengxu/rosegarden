@@ -111,11 +111,11 @@ LilyPondProcessor::runConvertLy()
     connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(runLilyPond(int, QProcess::ExitStatus)));
 
-    // wait up to 10 seconds for process to start
-    if (m_process->waitForStarted(10)) {
+    // wait up to 30 seconds for process to start
+    if (m_process->waitForStarted()) {
         m_info->setText(tr("<b>convert-ly</b> started..."));
     } else {
-        puke(tr("<qt><p>Could not run <b>convert-ly</b>!</p><p>Please install LilyPond and ensure that the \"convert-ly\" and \"lilypond\" commands are available on your path.  If you perform a <b>Run Command</b> (typically <b>Alt+F2</b>) and type \"convert-ly\" into the box, you should not get a \"command not found\" error.  If you can do that without getting an error, but still see this error message, please consult <a href=\"mailto:rosegarden-user@lists.sourceforge.net>rosegarden-user@lists.sourceforge.net</a> for additional help.</p><p>Processing terminated due to fatal errors.</p></qt>"));
+        puke(tr("<qt><p>Could not run <b>convert-ly</b>!</p><p>Please install LilyPond and ensure that the \"convert-ly\" and \"lilypond\" commands are available on your path.  If you perform a <b>Run Command</b> (typically <b>Alt+F2</b>) and type \"convert-ly\" into the box, you should not get a \"command not found\" error.  If you can do that without getting an error, but still see this error message, please consult <a href=\"mailto:rosegarden-user@lists.sourceforge.net\">rosegarden-user@lists.sourceforge.net</a> for additional help.</p><p>Processing terminated due to fatal errors.</p></qt>"));
     }
 
     m_progress->setValue(25);
@@ -162,10 +162,31 @@ LilyPondProcessor::runFinalStage(int exitCode, QProcess::ExitStatus)
         m_info->setText(tr("<b>lilypond</b> finished..."));
         delete m_process;
     } else {
-        // this is where all the try and try again with different options stuff
-        // comes into play eventually, maybe calling this slot recursively or
-        // something?
-        puke(tr("<qt><p>Ran <b>lilypond</b> successfully, but it terminated with errors.</p><p>Processing terminated due to fatal errors.</p></qt>"));
+
+        // read preferences from last export from QSettings to offer clues what
+        // failed
+        QSettings settings;
+        settings.beginGroup(NotationViewConfigGroup);
+        bool exportedBeams = settings.value("lilyexportbeamings", false).toBool();
+        bool exportedBrackets = settings.value("lilyexportstaffbrackets", false).toBool();
+        settings.endGroup();
+
+        std::cerr << "  finalStage: exportedBeams == " << (exportedBeams ? "true" : "false")
+                  << " exportedBrackets == " << (exportedBrackets ? "true" : "false");
+
+        QString vomitus = QString(tr("<qt><p>Ran <b>lilypond</b> successfully, but it terminated with errors.</p>"));
+
+        if (exportedBeams) {
+            vomitus += QString(tr("<p>You opted to export Rosegarden's beaming, and LilyPond could not process the file.  It is likely that you performed certain actions in the course of editing your file that resulted in hidden beaming properties being attached to events where they did not belong, and this probably caused LilyPond to fail.  The recommended solution is to either leave beaming to LilyPond (whose automatic beaming is far better than Rosegarden's) and un-check this option, or to un-beam everything and then re-beam it all manually inside Rosgarden.  Leaving the beaming up to LilyPond is probaby the best solution.</p>"));
+        }
+
+        if (exportedBrackets) {
+            vomitus += QString(tr("<p>You opted to export staff group brackets, and LilyPond could not process the file.  Unfortunately, this useful feature can be very fragile.  Please go back and ensure that all the brackets you've selected make logical sense, paying particular attention to nesting.  Also, please check that if you are working with a subset of the total number of tracks, the brackets on that subset make sense together when taken out of the context of the whole.  If you have any doubts, please try turning off the export of staff group brackets to see whether LilyPond can then successfully render the result.</p>"));
+        }
+
+        vomitus += QString(tr("<p>Processing terminated due to fatal errors.</p></qt>"));
+
+        puke(vomitus);
     }
 
     QString pdfName = m_filename.replace(".ly", ".pdf");
@@ -195,12 +216,14 @@ LilyPondProcessor::runFinalStage(int exitCode, QProcess::ExitStatus)
     switch (filePrinterIndex) {
         case 0: filePrinter = "kprinter"; break;
         case 1: filePrinter = "gtklp";    break;
+        case 2: filePrinter = "lpr";      break;
+        case 3: filePrinter = "lp";       break;
         default: filePrinter = "lpr";     break;
     }
 
-    // a bit frigged up, we could have just manipulated finalProcessor in the
-    // first place, but it makes the code a little easier to follow leaving well
-    // enough alone
+    // So why didn't I just manipulate finalProcessor in the first place?
+    // Because I just thought of that, but don't feel like refactoring all of
+    // this yet again.  Oh well.
     QString finalProcessor;
 
     m_process = new QProcess;
@@ -211,7 +234,9 @@ LilyPondProcessor::runFinalStage(int exitCode, QProcess::ExitStatus)
             finalProcessor = filePrinter;
             break;
 
-        // just default to preview
+        // just default to preview (I always use preview anyway, as I never
+        // trust the results for a direct print without previewing them first,
+        // and in fact the direct print option seems somewhat dubious to me)
         case LilyPondProcessor::Preview:
         default:
             m_info->setText(tr("Previewing %1...").arg(pdfName));
@@ -219,30 +244,18 @@ LilyPondProcessor::runFinalStage(int exitCode, QProcess::ExitStatus)
     }
 
     m_process->start(finalProcessor, QStringList() << pdfName);
-    if (m_process->waitForStarted(10)) {
+    if (m_process->waitForStarted()) {
         QString t = QString(tr("<b>%1</b> started...").arg(finalProcessor));
     } else {
-        QString t = QString(tr("<qt><p>Could not run <b>%1</b>!</p><p>[bloopy doo] please consult <a href=\"mailto:rosegarden-user@lists.sourceforge.net>rosegarden-user@lists.sourceforge.net</a> for additional help.</p><p>Processing terminated due to fatal errors.</p></qt>")).arg(finalProcessor);
+        QString t = QString(tr("<qt><p>LilyPond processed the file successfully, but <b>%1</b> did not run!</p><p>Please configure a valid %2 under <b>Settings -> Configure Rosegarden -> General -> External Applications</b> and try again.</p><p>Processing terminated due to fatal errors.</p></qt>")).arg(finalProcessor).arg(
+                (m_mode == LilyPondProcessor::Print ? tr("file printer") : tr("PDF viewer")));
         puke(t);
     }
 
     m_progress->setMaximum(100);
     m_progress->setValue(100);
 
-
-    /* more didn't start error trapping here, then we can just accept() and go
-     * home I think */
-
-/*  if (m_process->exitCode() == 0 && !panic) {
-        m_info->setText(tr("Complete!"));
-    } else {
-        m_info->setWordWrap(true);
-        m_info->setText(tr("<qt><p>The LilyPond process terminated with errors.  Unfortunately, our LilyPond export can be fragile at times.</p><p>One of the more likely sources of trouble is the staff group brackets found in Track Parameters.  Double check that the brackets you are using are all terminated and nested properly, and that you are not exporting a subset of segments whose combined brackets do not make sense.  Try exporting with <b>Export track staff brackets</b> turned off.  Another common source of trouble occurs when you export Rosegarden's beaming, but you have beam properties that do not make any sense.  This can happen from time to time when using features like split by pitch, or when cutting and pasting.  Try exporting with <b>Export beamings</b> turned off.  If all else fails, export your work manually with <b>File -> Export</b> and run <b>lilypond</b> on your file by hand.  If you have problems that are not obvious, please see <a href= \"mailto:rosegarden-user@lists.sourceforge.net\">Rosegarden User</a> for more help.  We apologize for the inconvenience.</p></qt>"));
-    }
-
-    if (panic) {
-        m_info->setText("<qt><p>There was an error processing output!  No further m_information is available due to the incomplete nature of this emerging feature.  Oops.</p></qt>");
-    }*/
+    accept();
 }
 
 }

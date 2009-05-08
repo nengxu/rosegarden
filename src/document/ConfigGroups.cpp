@@ -45,5 +45,6 @@ namespace Rosegarden
     const char* const EditViewConfigGroup = "Edit_View";
     const char* const PresetDialogConfigGroup = "Parameter_Presets";
     const char* const ExternalApplicationsConfigGroup = "External_Applications";
+    const char* const LilyPondExportConfigGroup = "LilyPond_Export";
 
 }
