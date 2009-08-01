@@ -95,7 +95,10 @@ SequenceManager::SequenceManager(TransportDialog *transport) :
     m_canReport(true),
     m_lastLowLatencySwitchSent(false),
     m_lastTransportStartPosition(0),
-    m_sampleRate(0)
+    m_sampleRate(0),
+    m_hasGoodMidi(false),
+    m_hasGoodAudio(false),
+    m_hasGoodTimer(false)
 {
     // The owner of this sequence manager will need to call
     // checkSoundDriverStatus on it to set up its status appropriately
@@ -1071,7 +1074,9 @@ SequenceManager::processAsynchronousMidi(const MappedEventList &mC,
 
                         std::cerr << "Rosegarden: WARNING: No accurate sequencer timer available" << std::endl;
 
-                        StartupLogo::hideIfStillThere();
+                        m_hasGoodTimer = false;
+
+/*                        StartupLogo::hideIfStillThere();
                         CurrentProgressDialog::freeze();
 
                         RosegardenMainWindow::self()->awaitDialogClearance();
@@ -1171,9 +1176,9 @@ SequenceManager::processAsynchronousMidi(const MappedEventList &mC,
                             showAltTimerWarning = false;
                         }
 
-                        CurrentProgressDialog::thaw();
-                    }
-                }
+                        CurrentProgressDialog::thaw(); */
+                    } 
+                } 
             }
         }
     }
@@ -1267,9 +1272,17 @@ SequenceManager::checkSoundDriverStatus(bool warnUser)
     QString text = "";
 
     if (m_soundDriverStatus == NO_DRIVER) {
-        text = tr("<p>Both MIDI and Audio subsystems have failed to initialize.</p><p>You may continue without the sequencer, but we suggest closing Rosegarden, running \"alsaconf\" as root, and starting Rosegarden again.  If you wish to run with no sequencer by design, then use \"rosegarden --nosequencer\" to avoid seeing this error in the future.</p>");
+        m_hasGoodMidi = false;
+        m_hasGoodAudio = false;
+
+// This will move to a new status indicator informative text in due course.
+ 
+//        text = tr("<p>Both MIDI and Audio subsystems have failed to initialize.</p><p>You may continue without the sequencer, but we suggest closing Rosegarden, running \"alsaconf\" as root, and starting Rosegarden again.  If you wish to run with no sequencer by design, then use \"rosegarden --nosequencer\" to avoid seeing this error in the future.</p>");        
     } else if (!(m_soundDriverStatus & MIDI_OK)) {
-        text = tr("<p>The MIDI subsystem has failed to initialize.</p><p>You may continue without the sequencer, but we suggest closing Rosegarden, running \"modprobe snd-seq-midi\" as root, and starting Rosegarden again.  If you wish to run with no sequencer by design, then use \"rosegarden --nosequencer\" to avoid seeing this error in the future.</p>");
+        m_hasGoodMidi = true;
+        m_hasGoodAudio = false;
+
+//        text = tr("<p>The MIDI subsystem has failed to initialize.</p><p>You may continue without the sequencer, but we suggest closing Rosegarden, running \"modprobe snd-seq-midi\" as root, and starting Rosegarden again.  If you wish to run with no sequencer by design, then use \"rosegarden --nosequencer\" to avoid seeing this error in the future.</p>");
 
         // removed obsolete warning about the sequencer version not matching the
         // GUI version, as they are all one and the same now for all intents and
@@ -1277,23 +1290,28 @@ SequenceManager::checkSoundDriverStatus(bool warnUser)
 
     }
 
-    if (text != "") {
+/*    if (text != "") {
         RosegardenMainWindow::self()->awaitDialogClearance();
         QMessageBox::critical(RosegardenMainWindow::self(), "",
                            tr("<h3>Sequencer startup failed</h3>%1").arg(text));
         CurrentProgressDialog::thaw();
         return;
-    }
+    } */
 
 #ifdef HAVE_LIBJACK
 
     if (!(m_soundDriverStatus & AUDIO_OK)) {
-        RosegardenMainWindow::self()->awaitDialogClearance();
+        m_hasGoodMidi = true;
+        m_hasGoodAudio = true;
+
+
+
+//        RosegardenMainWindow::self()->awaitDialogClearance();
 
         // This is to avoid us ever showing the same dialog more than
         // once during a single run of the program -- it's quite
         // separate from the suppression function
-        static bool showJackWarning = true;
+/*        static bool showJackWarning = true;
 
         if (showJackWarning) {
             QMessageBox info(RosegardenMainWindow::self());
@@ -1322,8 +1340,8 @@ SequenceManager::checkSoundDriverStatus(bool warnUser)
                 // might be wrong
                 std::cerr << "JACK WARNING squelched per user request" << std::endl;
             }
-            showJackWarning = false;
-        }
+            showJackWarning = false; 
+        } */
     }
 #endif
     CurrentProgressDialog::thaw();

@@ -851,8 +851,12 @@ RosegardenMainWindow::initStatusBar()
                 
     m_progressBar->setTextVisible(false);
     statusBar()->addPermanentWidget(m_progressBar);
+
+    m_seqManager->hasGoodTimer(); // test
     
-    
+//  m_warningWidget = new WarningWidget(m_seqMan-> 
+//
+//
     /* init toolbar */
     /****************/
     

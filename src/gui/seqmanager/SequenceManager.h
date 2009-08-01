@@ -199,6 +199,13 @@ public:
     
     int getSampleRate(); // may return 0 if sequencer uncontactable
 
+    /// for the GUI to call to find out MIDI driver status
+    bool hasGoodMidi() { return m_hasGoodMidi; };
+    /// for the GUI to call to find out audio driver status
+    bool hasGoodAudio() { return m_hasGoodAudio; };
+    // for the GUI to call to find out if timer resolution is wonky
+    bool hasGoodTimer() { return m_hasGoodTimer; };
+
 public slots:
 
     void update();
@@ -293,6 +300,10 @@ protected:
     timeT                      m_lastTransportStartPosition;
 
     int                        m_sampleRate;
+
+    bool                       m_hasGoodMidi;
+    bool                       m_hasGoodAudio;
+    bool                       m_hasGoodTimer;
 };
 
 
