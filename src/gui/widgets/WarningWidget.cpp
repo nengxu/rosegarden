@@ -27,41 +27,59 @@
 namespace Rosegarden
 {
 
-WarningWidget::WarningWidget(bool showMidiWarning,
-                             bool showAudioWarning,
-                             bool showtimerWarning
-                            ) :
+WarningWidget::WarningWidget() :
         QWidget()
 {
-    setStyleSheet("background: red");
-    /*
+    //setStyleSheet("{ background: red; border 0px transparent; padding 0;");
+//    setStyleSheet("{ background: red;");
+    setContentsMargins(0, 0, 0, 0);
+    
 //    setFixedHeight(30);
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     QHBoxLayout *layout = new QHBoxLayout();
     setLayout(layout);
 
-    QLabel *midiCheck = new QLabel();
-    layout->addWidget(midiCheck);
-    midiCheck->setPixmap(IconLoader().loadPixmap("midi-ok")); 
+    m_midiIcon = new QLabel();
+    layout->addWidget(m_midiIcon);
+    m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-ok")); 
 
-    QLabel *audioCheck = new QLabel();
-    layout->addWidget(audioCheck);
-    audioCheck->setPixmap(IconLoader().loadPixmap("audio-ok")); 
+    m_audioIcon = new QLabel();
+    layout->addWidget(m_audioIcon);
+    m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-ok")); 
 
-    QLabel *timerCheck = new QLabel();
-    layout->addWidget(timerCheck);
-    timerCheck->setPixmap(IconLoader().loadPixmap("timer-ok")); 
-
-    QLabel *importerCheck = new QLabel();
-    layout->addWidget(importerCheck);
-    importerCheck->setPixmap(IconLoader().loadPixmap("midi-ok")); 
+    m_warningIcon = new QLabel();
+    layout->addWidget(m_warningIcon);
+    m_warningIcon->setPixmap(IconLoader().loadPixmap("warning"));
+    m_warningIcon->hide();
 
     // It might be nice to put something in here to either display the audio
     // file path (in a tooltip, perhaps) or even offer a shortcut for changing
     // this well buried but important piece of information.  Come back to that
     // thought later.
-    std::cerr << "WARNING WIDGET HEIGHT " << this->height() << std::endl;*/
+    std::cerr << "WARNING WIDGET HEIGHT " << this->height() << std::endl;
 
+}
+
+void
+WarningWidget::setMidiWarning(const bool status)
+{
+    m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-broken"));
+    m_warningIcon->show();
+}
+
+void
+WarningWidget::setAudioWarning(const bool status)
+{
+    m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-broken"));
+    m_warningIcon->show();
+}
+
+void
+WarningWidget::setTimerWarning(const bool status)
+{
+    m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-half-broken"));
+    m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-broken"));
+    m_warningIcon->show();
 }
 
 WarningWidget::~WarningWidget()

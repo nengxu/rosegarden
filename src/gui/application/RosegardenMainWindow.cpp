@@ -865,8 +865,9 @@ RosegardenMainWindow::initStatusBar()
 // I also need to play with size issues and make this as minimally intrusive and
 // tiny as it can be while still conveying worthwhile information.  It currently
 // grows the status bar by several pixels.
-    m_warningWidget = new WarningWidget(true, true, true);
+    m_warningWidget = new WarningWidget();
     statusBar()->addPermanentWidget(m_warningWidget);
+    statusBar()->setContentsMargins(0, 0, 0, 0);
 
     std::cerr << "STATUS BAR HEIGHT " << statusBar()->height() << std::endl;
 }
@@ -978,6 +979,10 @@ RosegardenMainWindow::initView()
     // moment.
     //
     if (m_seqManager != 0) {
+        // set the warning widget
+        m_warningWidget->setTimerWarning(!m_seqManager->hasGoodTimer());
+
+
         slotToggleChordNameRuler();
         slotToggleRulers();
         slotToggleTempoRuler();

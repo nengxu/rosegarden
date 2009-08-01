@@ -18,7 +18,7 @@
 #ifndef _WARNING_WIDGET_H_
 #define _WARNING_WIDGET_H_
 
-#include <QWidget>
+#include <QLabel>
 
 
 namespace Rosegarden
@@ -45,21 +45,20 @@ public:
      * be possible to correct some of these problems without making changes that
      * involve rebooting the entire system (for example, loading the
      * snd-rtctimer kernel module happens to work)
-     *
-     * \a showMidiWarning   - the MIDI subsystem is broken
-     * \a showAudioWarning  - the audio subsystem is broken (ie. JACK can't
-     *                         start)
-     * \a showTimerWarning  - user has a stock distro kernel with a busted timer
      */
-    WarningWidget(bool showMidiWarning,
-                  bool showAudioWarning,
-                  bool showTimerWarning
-                 );
+    WarningWidget();
     ~WarningWidget();
+
+    void setMidiWarning(const bool status);
+    void setAudioWarning(const bool status);
+    void setTimerWarning(const bool status);
 
     //virtual QSize sizeHint() const;
 
 protected:
+    QLabel *m_midiIcon;
+    QLabel *m_audioIcon;
+    QLabel *m_warningIcon;
 };
 
 
