@@ -27,6 +27,7 @@
 #include "sound/Midi.h"
 #include "gui/general/ActionFileClient.h"
 #include "gui/studio/DeviceManagerDialogUi.h"
+#include "gui/widgets/WarningWidget.h"
 
 #include <QDockWidget>
 #include <QString>
@@ -1591,7 +1592,7 @@ private:
 
     bool m_originatingJump;
 
-    // Use these in conjucntion with the loop button to
+    // Use these in conjunction with the loop button to
     // remember where a loop was if we've ever set one.
     timeT m_storedLoopStart;
     timeT m_storedLoopEnd;
@@ -1641,9 +1642,11 @@ private:
     LircClient *m_lircClient;
     LircCommander *m_lircCommander;
 #endif     
-    TranzportClient * m_tranzport;
+    TranzportClient *m_tranzport;
         
-    DeviceManagerDialog * m_devicesManagerNew;    
+    DeviceManagerDialog *m_devicesManagerNew;    
+
+    WarningWidget *m_warningWidget;
 };
 
 

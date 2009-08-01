@@ -140,6 +140,7 @@
 #include "gui/general/ProjectPackager.h"
 #include "gui/widgets/StartupLogo.h"
 #include "gui/widgets/TmpStatusMsg.h"
+#include "gui/widgets/WarningWidget.h"
 #include "gui/seqmanager/MidiFilterDialog.h"
 #include "gui/seqmanager/SequenceManager.h"
 #include "gui/studio/AudioMixerWindow.h"
@@ -852,16 +853,22 @@ RosegardenMainWindow::initStatusBar()
     m_progressBar->setTextVisible(false);
     statusBar()->addPermanentWidget(m_progressBar);
 
-    m_seqManager->hasGoodTimer(); // test
-    
-//  m_warningWidget = new WarningWidget(m_seqMan-> 
+    // status warning widget replaces a glob of annoying startup dialogs
+/*    m_warningWidget = new WarningWidget(m_seqManager->hasGoodMidi(),
+                                        m_seqManager->hasGoodAudio(),
+                                        m_seqManager->hasGoodTimer()
+                                       );*/
+// NOTE: the status bar is apparently set up too early to check the status
+// safely, so I'll rewrite it to just create with an empty ctor and have set
+// methods called at a more suitable time
 //
-//
-    /* init toolbar */
-    /****************/
-    
-    //### Main toolbar seems to appear twice. Commenting out the empty one.
-    // addToolBar(Qt::TopToolBarArea, new QToolBar("Main Toolbar"));
+// I also need to play with size issues and make this as minimally intrusive and
+// tiny as it can be while still conveying worthwhile information.  It currently
+// grows the status bar by several pixels.
+    m_warningWidget = new WarningWidget(true, true, true);
+    statusBar()->addPermanentWidget(m_warningWidget);
+
+    std::cerr << "STATUS BAR HEIGHT " << statusBar()->height() << std::endl;
 }
 
 void
