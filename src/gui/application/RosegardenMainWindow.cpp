@@ -402,6 +402,30 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
         // affects the ability to load plugins etc from a file on the
         // command line.
         m_seqManager->checkSoundDriverStatus(true);
+
+        // set the warning widget
+        /*m_warningWidget->setMidiWarning(false);
+        m_warningWidget->setAudioWarning(!m_seqManager->hasGoodAudio());
+        m_warningWidget->setTimerWarning(true);  // because it *is* true here, and I just want to see what this looks like at the moment, but something to think about
+        // long term is as written, this sets both icons to yellow, so it has to
+        // be called last.  I think in practice when the timer warning actually
+        // works, it will always be called last in practice, so this will work,
+        // but if not, it will need some layer of tweaking, perhaps with some
+        // tristate stuff and variables to track what the icons are set to
+
+        std::cerr << "SEQMAN reported timer OK " << m_seqManager->hasGoodTimer()
+                  << "  audio OK " << m_seqManager->hasGoodAudio()
+                  << "  midi  OK " << m_seqManager->hasGoodMidi()
+                  << std::endl;*/
+
+        /*m_warningWidget->setTimerWarning(false);
+        m_warningWidget->setAudioWarning(false);
+        m_warningWidget->setMidiWarning(false);*/
+        
+        // Oh BRAVO there, trying to force green lights but last night you never
+        // HOOKED UP THE BOOLS TO ANYTHING SO THEY ALWAYS EFFECTIVELY ACT TRUE
+        // YOU STUPID RETARD!  NO FUCKING WONDER YOU'VE BEEN CHASING YOUR TAIL
+        // ALL DAY ON THIS STATUS STUFF.  BRA-VO.
     }
 
     if (m_view) {
@@ -421,10 +445,16 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
 
     if (m_seqManager->getSoundDriverStatus() & AUDIO_OK) {
         slotStateChanged("got_audio", true);
+//        m_warningWidget->setAudioWarning(false);
     } else {
         slotStateChanged("got_audio", false);
+//        m_warningWidget->setAudioWarning(true);
     }
 
+        std::cerr << "SEQMAN reported timer OK " << m_seqManager->hasGoodTimer()
+                  << "  audio OK " << m_seqManager->hasGoodAudio()
+                  << "  midi  OK " << m_seqManager->hasGoodMidi()
+                  << std::endl;
     // If we're restarting the gui then make sure any transient
     // studio objects are cleared away.
     emit startupStatusMessage(tr("Clearing studio data..."));
@@ -875,10 +905,6 @@ RosegardenMainWindow::initStatusBar()
 void
 RosegardenMainWindow::initView()
 {
-    ////////////////////////////////////////////////////////////////////
-    // create the main widget here that is managed by KTMainWindow's view-region and
-    // connect the widget to your document to display document contents.
-
     RG_DEBUG << "RosegardenMainWindow::initView()" << endl;
 
     Composition &comp = m_doc->getComposition();
@@ -915,15 +941,6 @@ RosegardenMainWindow::initView()
     m_doc->attachView(m_swapView);
 
     setWindowTitle(tr("%1 - %2").arg(m_doc->getTitle()).arg(qApp->applicationName()));
-    
-    /*
-    // if we wanted to apply a qt4-qss stylesheet in code:
-    //
-    QFile qss("data/rosegarden.qss");
-    qss.open(QFile::ReadOnly);
-    qApp->setStyleSheet(qss.readAll());
-    qss.close();
-    // */
     
     // Transport setup
     //
@@ -979,10 +996,6 @@ RosegardenMainWindow::initView()
     // moment.
     //
     if (m_seqManager != 0) {
-        // set the warning widget
-        m_warningWidget->setTimerWarning(!m_seqManager->hasGoodTimer());
-
-
         slotToggleChordNameRuler();
         slotToggleRulers();
         slotToggleTempoRuler();

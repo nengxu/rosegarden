@@ -1064,7 +1064,10 @@ SequenceManager::processAsynchronousMidi(const MappedEventList &mC,
                             tr("The JACK Audio subsystem has failed or it has stopped Rosegarden from processing audio.\nPlease restart Rosegarden to continue working with audio.\nQuitting other running applications may improve Rosegarden's performance."));
 
                     } else if ((*i)->getData1() == MappedEvent::FailureJackRestart) {
-
+                        //!!! Does this attempt to restart the "audio service"
+                        // EVER work?  I don't think I've ever seen that work.
+                        // When this is gone, it's gone, and time to restart.
+                        // But let's not change the translated message.
                         QMessageBox::critical(
                             RosegardenMainWindow::self(), "",
                             tr("The JACK Audio subsystem has stopped Rosegarden from processing audio, probably because of a processing overload.\nAn attempt to restart the audio service has been made, but some problems may remain.\nQuitting other running applications may improve Rosegarden's performance."));
