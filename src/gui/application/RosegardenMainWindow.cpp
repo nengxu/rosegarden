@@ -418,14 +418,9 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
                   << "  midi  OK " << m_seqManager->hasGoodMidi()
                   << std::endl;*/
 
-        /*m_warningWidget->setTimerWarning(false);
-        m_warningWidget->setAudioWarning(false);
-        m_warningWidget->setMidiWarning(false);*/
-        
-        // Oh BRAVO there, trying to force green lights but last night you never
-        // HOOKED UP THE BOOLS TO ANYTHING SO THEY ALWAYS EFFECTIVELY ACT TRUE
-        // YOU STUPID RETARD!  NO FUCKING WONDER YOU'VE BEEN CHASING YOUR TAIL
-        // ALL DAY ON THIS STATUS STUFF.  BRA-VO.
+        m_warningWidget->setAudioWarning(true);
+        m_warningWidget->setMidiWarning(false);
+        m_warningWidget->setTimerWarning(false);
     }
 
     if (m_view) {

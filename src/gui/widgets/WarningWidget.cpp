@@ -63,28 +63,46 @@ WarningWidget::WarningWidget() :
 void
 WarningWidget::setMidiWarning(const bool status)
 {
-    m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-broken"));
-    m_midiIcon->setToolTip(tr("No MIDI driver!"));
-    m_warningIcon->show();
+    if (status) {
+        m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-broken"));
+        m_midiIcon->setToolTip(tr("No MIDI driver!"));
+        m_warningIcon->show();
+    } else {
+        m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-ok"));
+        m_midiIcon->setToolTip(tr("MIDI OK"));
+        m_warningIcon->hide();
+    }
 }
 
 void
 WarningWidget::setAudioWarning(const bool status)
 {
-    m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-broken"));
-    m_audioIcon->setToolTip(tr("No audio driver!"));
-    m_warningIcon->show();
+    if (status) {
+        m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-broken"));
+        m_audioIcon->setToolTip(tr("No audio driver!"));
+        m_warningIcon->show();
+    } else {
+        m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-ok"));
+        m_audioIcon->setToolTip(tr("Audio OK"));
+        m_warningIcon->hide();
+    }
 }
 
 void
 WarningWidget::setTimerWarning(const bool status)
 {
-    m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-half-broken"));
-    m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-half-broken"));
-    QString tip(tr("Low timer resolution!"));
-    m_midiIcon->setToolTip(tip);
-    m_audioIcon->setToolTip(tip);
-    m_warningIcon->show();
+    if (status) {
+        m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-half-broken"));
+        m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-half-broken"));
+        QString tip(tr("Low timer resolution!"));
+        m_midiIcon->setToolTip(tip);
+        m_audioIcon->setToolTip(tip);
+        m_warningIcon->show();
+    }
+    
+    // do we do anything to "reverse" this state, or just leave it to the
+    // others?  probably the whole thing is really begging for a tristate or
+    // something less simplistic than a bool anyway
 }
 
 WarningWidget::~WarningWidget()
