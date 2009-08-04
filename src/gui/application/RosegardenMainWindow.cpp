@@ -418,7 +418,7 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
                   << "  midi  OK " << m_seqManager->hasGoodMidi()
                   << std::endl;*/
 
-        m_warningWidget->setAudioWarning(true);
+        m_warningWidget->setAudioWarning(false);
         m_warningWidget->setMidiWarning(false);
         m_warningWidget->setTimerWarning(false);
     }

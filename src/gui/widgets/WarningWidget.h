@@ -19,6 +19,7 @@
 #define _WARNING_WIDGET_H_
 
 #include <QLabel>
+#include <QStringList>
 
 
 namespace Rosegarden
@@ -52,12 +53,14 @@ public:
     void setMidiWarning(const bool status);
     void setAudioWarning(const bool status);
     void setTimerWarning(const bool status);
+    void setMessage(const QStringList warnings);
 
     //virtual QSize sizeHint() const;
 
 protected:
     QLabel *m_midiIcon;
     QLabel *m_audioIcon;
+    QLabel *m_timerIcon;
     QLabel *m_warningIcon;
 };
 
