@@ -68,6 +68,10 @@ WarningWidget::WarningWidget() :
 
 }
 
+WarningWidget::~WarningWidget()
+{
+}
+
 void
 WarningWidget::setMidiWarning(const bool status)
 {
@@ -114,7 +118,7 @@ WarningWidget::setTimerWarning(const bool status)
 }
 
 void
-WarningWidget::setMessage(const QString text, const QString informativeText)
+WarningWidget::queueMessage(const QString text, const QString informativeText)
 {
     std::cerr << "WarningWidget::setMessage(" << qstrtostr(text)
               << ", " << qstrtostr(informativeText)
@@ -122,8 +126,22 @@ WarningWidget::setMessage(const QString text, const QString informativeText)
     m_warningButton->show();
 }
 
-WarningWidget::~WarningWidget()
+void
+WarningWidget::displayMessageQueue()
 {
+    // I'll probably have to write a dedicated QDialog subclass to handle this
+    // the way I want to build it.  The queue we'll try as a QQueue of
+    // std::pair<QString, QString> and then we'll build a dialog out of it.
+    // There may be some QTabbedDialog or something already existing that I
+    // could build here and use with minimal extra effort, but I haven't quite thought
+    // that far ahead yet.  To investigate later.
+}
+
+// seems to be worthless, but I'll leave it in case I have new inspiration later
+QSize
+WarningWidget::sizeHint()
+{
+    return QSize(128, 16);
 }
 
 // NOTES:

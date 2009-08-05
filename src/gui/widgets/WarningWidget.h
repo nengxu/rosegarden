@@ -20,6 +20,7 @@
 
 #include <QLabel>
 #include <QToolButton>
+#include <QQueue>
 
 
 namespace Rosegarden
@@ -53,9 +54,18 @@ public:
     void setMidiWarning(const bool status);
     void setAudioWarning(const bool status);
     void setTimerWarning(const bool status);
-    void setMessage(const QString text, const QString informativeText);
 
-    //virtual QSize sizeHint() const;
+    /** Add a message (consisting of a text and an informative text) to the
+     * queue.  These will be displayed via displayMessageQueue() when the user
+     * clicks the warning icon
+     */
+    void queueMessage(const QString text, const QString informativeText);
+
+    /** Display the message queue in a suitable dialog, on demand
+     */
+    void displayMessageQueue();
+
+    QSize sizeHint();
 
 protected:
     QLabel *m_midiIcon;
@@ -66,6 +76,15 @@ protected:
 
     QString m_text;
     QString m_informativeText;
+
+    /** We'll build the message queue out of these for convenience, so both the
+     * text and informative text can be tossed about as one unit
+     */
+    typedef std::pair<QString, QString> Message;
+
+    /** The message queue itself
+     */
+    QQueue<Message> m_queue;
 };
 
 

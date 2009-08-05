@@ -7874,7 +7874,7 @@ RosegardenMainWindow::slotDisplayWarning(int type,
     std::cerr << "MAIN WINDOW DISPLAY WARNING:  type " << type
               << " text" << qstrtostr(text) << std::endl;
 
-    m_warningWidget->setMessage(text, informativeText);
+    m_warningWidget->queueMessage(text, informativeText);
 /*    m_warningWidget->setTimerWarning(true);
     m_warningWidget->setAudioWarning(true);
     m_warningWidget->setMidiWarning(true);*/
