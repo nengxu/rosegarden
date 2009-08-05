@@ -34,19 +34,26 @@ namespace Rosegarden
  * user's face the first time they tried to run Rosegarden on an ordinary
  * everyday desktop-oriented distro.
  *
+ * This widget is managed by RosegardenMainWindow, which receives signals
+ * primarily from SequenceManager and passes them through into here, calling
+ * set___Warning(true) as appropriate, and adding a new warning message to our
+ * queue.
+ *
+ * Adding a message to the queue causes the warning button to show itself, and
+ * when clicked, the queued warning messages are displayed in a tabbed dialog.
+ *
  * \author D. Michael Mcintyre
  */
 class WarningWidget : public QWidget
 {
     Q_OBJECT
 public:
-    /** Constructs a WarningWidget.  The status of various warning conditions
-     * must be determined before creating this object, and no provision is
-     * currently made (or envisioned) for changing this status after creation.
-     * All of these conditions require restarting Rosegarden, even if it might
-     * be possible to correct some of these problems without making changes that
-     * involve rebooting the entire system (for example, loading the
-     * snd-rtctimer kernel module happens to work)
+
+    typedef enum { Midi, Audio, Timer, Other } WarningType;
+
+    /** Constructs a WarningWidget in a default all clear state that assumes
+     * MIDI, audio, and the system timer are all functioning correctly.  This
+     * widget is intended to be displayed on the status bar in the main window.
      */
     WarningWidget();
     ~WarningWidget();
@@ -85,6 +92,7 @@ protected:
     /** The message queue itself
      */
     QQueue<Message> m_queue;
+
 };
 
 

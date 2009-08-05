@@ -44,28 +44,25 @@ WarningWidget::WarningWidget() :
 
     m_midiIcon = new QLabel();
     layout->addWidget(m_midiIcon);
-    m_midiIcon->hide();
 
     m_audioIcon = new QLabel();
     layout->addWidget(m_audioIcon);
-    m_audioIcon->hide();
 
     m_timerIcon = new QLabel();
     layout->addWidget(m_timerIcon);
-    m_timerIcon->hide();
 
     m_warningButton = new QToolButton();
     layout->addWidget(m_warningButton);
     m_warningButton->setIconSize(QSize(16, 16));
     m_warningButton->setIcon(IconLoader().loadPixmap("warning"));
-//    m_warningButton->hide();
+    m_warningButton->hide();
 
-    // It might be nice to put something in here to either display the audio
-    // file path (in a tooltip, perhaps) or even offer a shortcut for changing
-    // this well buried but important piece of information.  Come back to that
-    // thought later.
-    std::cerr << "WARNING WIDGET HEIGHT " << this->height() << std::endl;
-
+    // Set these to false initially, assuming an all clear state.  When some
+    // problem crops up, these will be set true as appropriate by
+    // RosegardenMainWindow, which manages this widget
+    setMidiWarning(false);
+    setAudioWarning(false);
+    setTimerWarning(false);
 }
 
 WarningWidget::~WarningWidget()
@@ -77,13 +74,10 @@ WarningWidget::setMidiWarning(const bool status)
 {
     if (status) {
         m_midiIcon->hide();
-//        m_midiIcon->setToolTip(tr("No MIDI driver!"));
-        m_warningButton->show();
     } else {
         m_midiIcon->setPixmap(IconLoader().loadPixmap("midi-ok"));
         m_midiIcon->show();
         m_midiIcon->setToolTip(tr("MIDI OK"));
-//        m_warningButton->hide();
     }
 }
 
@@ -92,13 +86,10 @@ WarningWidget::setAudioWarning(const bool status)
 {
     if (status) {
         m_audioIcon->hide();
-//        m_audioIcon->setToolTip(tr("No audio driver!"));
-        m_warningButton->show();
     } else {
         m_audioIcon->setPixmap(IconLoader().loadPixmap("audio-ok"));
         m_audioIcon->show();
         m_audioIcon->setToolTip(tr("audio OK"));
-//        m_warningButton->hide();
     }
 }
 
@@ -107,23 +98,24 @@ WarningWidget::setTimerWarning(const bool status)
 {
     if (status) {
         m_timerIcon->hide();
-//        m_timerIcon->setToolTip(tr("Insufficient timer resolution!"));
-        m_warningButton->show();
     } else {
         m_timerIcon->setPixmap(IconLoader().loadPixmap("timer-ok"));
         m_timerIcon->show();
         m_timerIcon->setToolTip(tr("timer OK"));
-//        m_warningButton->hide();
     }
 }
 
 void
 WarningWidget::queueMessage(const QString text, const QString informativeText)
 {
-    std::cerr << "WarningWidget::setMessage(" << qstrtostr(text)
+    std::cerr << "WarningWidget::queuetMessage(" << qstrtostr(text)
               << ", " << qstrtostr(informativeText)
               << ")" << std::endl;
     m_warningButton->show();
+
+    Message message(text, informativeText);
+
+    m_queue.enqueue(message);
 }
 
 void

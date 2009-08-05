@@ -7875,12 +7875,23 @@ RosegardenMainWindow::slotDisplayWarning(int type,
               << " text" << qstrtostr(text) << std::endl;
 
     m_warningWidget->queueMessage(text, informativeText);
-/*    m_warningWidget->setTimerWarning(true);
-    m_warningWidget->setAudioWarning(true);
-    m_warningWidget->setMidiWarning(true);*/
-    m_warningWidget->setTimerWarning(false);
-    m_warningWidget->setAudioWarning(false);
+
+    switch (type) {
+        case WarningWidget::Midi: m_warningWidget->setMidiWarning(true); break;
+        case WarningWidget::Audio: m_warningWidget->setAudioWarning(true); break;
+        case WarningWidget::Timer: m_warningWidget->setTimerWarning(true); break;
+        case WarningWidget::Other:
+        default: break;
+    }
+
+// I'll need a hack way to make it look like my system isn't broken, for
+// screenshots, even though in reality Ubuntu 9.04 is totally hopeless
+//#define PEACHY_HACK
+#ifdef PEACHY_HACK
     m_warningWidget->setMidiWarning(false);
+    m_warningWidget->setAudioWarning(false);
+    m_warningWidget->setTimerWarning(false);
+#endif
 }
 
 
