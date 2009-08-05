@@ -68,7 +68,7 @@ public:
     /** Used to transmit the type of sequencer warning, so the WarningWidget
      * knows which icon to manipulate
      */
-    typedef enum { Midi, Audio, Timer } WarningType;
+    //typedef enum { Midi, Audio, Timer } WarningType;
 
     /**
      * Replaces the internal document
@@ -217,8 +217,8 @@ signals:
     void insertableNoteOffReceived(int pitch, int velocity);
     void controllerDeviceEventReceived(MappedEvent *ev);
 
-    /// signal RosegardenMainWindow to display a MIDI warning
-    void sendWarning(WarningType type, QString text, QString informativeText);
+    /// signal RosegardenMainWindow to display a warning on the WarningWidget
+    void sendWarning(int type, QString text, QString informativeText);
 
 protected slots:
     void slotCountdownTimerTimeout();

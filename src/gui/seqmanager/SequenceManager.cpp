@@ -1091,7 +1091,9 @@ SequenceManager::processAsynchronousMidi(const MappedEventList &mC,
                             QString informativeText(tr("<p>Rosegarden was unable to find a high-resolution timing source for MIDI performance.</p><p>This may mean you are using a Linux system with the kernel timer resolution set too low.  Please contact your Linux distributor for more information.</p><p>Some Linux distributors already provide low latency kernels, see <a href=\"http://www.rosegardenmusic.com/wiki/low-latency_kernels\">http://www.rosegardenmusic.com/wiki/low-latency_kernels</a> for instructions.</p>"));
 
                             std::cerr << "emitting WARNING from seqman" << std::endl;
-                            emit sendWarning(Timer, text, informativeText);
+                            // should use enum but that didn't work 0 midi 1
+                            // audio 2 timer
+                            emit sendWarning(2, text, informativeText);
 
 /*                            QMessageBox info(RosegardenMainWindow::self());
                             info.setText(tr("<h3>System timer resolution is too low</h3>"));
@@ -1303,7 +1305,8 @@ SequenceManager::checkSoundDriverStatus(bool warnUser)
     if (!(m_soundDriverStatus & AUDIO_OK)) {
         QString text(tr("<h3>Failed to connect to JACK</h3>"));
         QString informativeText(tr("<p>Rosegarden could not connect to the JACK audio server.  This probably means the JACK server is not running.</p><p>If you want to be able to play or record audio files or use plugins, you should exit Rosegarden and start the JACK server before running Rosegarden again.</p>"));
-        emit sendWarning(Audio, text, informativeText);
+        // should use enum but that didn't work 0 midi 1 audio 2 timer
+        emit sendWarning(1, text, informativeText);
         std::cerr << "emitting audio WARNING from seqman" << std::endl;
 
 

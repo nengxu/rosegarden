@@ -28,7 +28,7 @@
 #include "gui/general/ActionFileClient.h"
 #include "gui/studio/DeviceManagerDialogUi.h"
 #include "gui/widgets/WarningWidget.h"
-#include "gui/seqmanager/SequenceManager.h"
+//#include "gui/seqmanager/SequenceManager.h"
 
 #include <QDockWidget>
 #include <QString>
@@ -1525,7 +1525,7 @@ public slots:
     
     void slotOpenDeviceManagerNew();
 
-    void slotDisplayWarning(SequenceManager::WarningType type,
+    void slotDisplayWarning(int type,
                             QString text,
                             QString informativeText);
 

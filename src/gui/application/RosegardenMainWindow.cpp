@@ -397,9 +397,9 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
     m_seqManager->setDocument(m_doc);
 
     connect(m_seqManager,
-            SIGNAL(sendWarning(SequenceManager::WarningType, QString, QString)),
+            SIGNAL(sendWarning(int, QString, QString)),
             this,
-            SLOT(slotDisplayWarning(SequenceManager::WarningType, QString, QString)));
+            SLOT(slotDisplayWarning(int, QString, QString)));
 
 
     if (m_useSequencer) {
@@ -7867,12 +7867,20 @@ RosegardenMainWindow::slotOpenDeviceManagerNew()
 }
 
 void
-RosegardenMainWindow::slotDisplayWarning(SequenceManager::WarningType type,
+RosegardenMainWindow::slotDisplayWarning(int type,
                                          QString text,
                                          QString informativeText)
 {
     std::cerr << "MAIN WINDOW DISPLAY WARNING:  type " << type
               << " text" << qstrtostr(text) << std::endl;
+
+    m_warningWidget->setMessage(text, informativeText);
+/*    m_warningWidget->setTimerWarning(true);
+    m_warningWidget->setAudioWarning(true);
+    m_warningWidget->setMidiWarning(true);*/
+    m_warningWidget->setTimerWarning(false);
+    m_warningWidget->setAudioWarning(false);
+    m_warningWidget->setMidiWarning(false);
 }
 
 
