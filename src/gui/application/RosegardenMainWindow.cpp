@@ -396,31 +396,18 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
     m_seqManager = new SequenceManager(getTransport());
     m_seqManager->setDocument(m_doc);
 
+    connect(m_seqManager,
+            SIGNAL(sendWarning(SequenceManager::WarningType, QString, QString)),
+            this,
+            SLOT(slotDisplayWarning(SequenceManager::WarningType, QString, QString)));
+
+
     if (m_useSequencer) {
         // Check the sound driver status and warn the user of any
         // problems.  This warning has to happen early, in case it
         // affects the ability to load plugins etc from a file on the
         // command line.
         m_seqManager->checkSoundDriverStatus(true);
-
-        // set the warning widget
-        /*m_warningWidget->setMidiWarning(false);
-        m_warningWidget->setAudioWarning(!m_seqManager->hasGoodAudio());
-        m_warningWidget->setTimerWarning(true);  // because it *is* true here, and I just want to see what this looks like at the moment, but something to think about
-        // long term is as written, this sets both icons to yellow, so it has to
-        // be called last.  I think in practice when the timer warning actually
-        // works, it will always be called last in practice, so this will work,
-        // but if not, it will need some layer of tweaking, perhaps with some
-        // tristate stuff and variables to track what the icons are set to
-
-        std::cerr << "SEQMAN reported timer OK " << m_seqManager->hasGoodTimer()
-                  << "  audio OK " << m_seqManager->hasGoodAudio()
-                  << "  midi  OK " << m_seqManager->hasGoodMidi()
-                  << std::endl;*/
-
-        m_warningWidget->setAudioWarning(false);
-        m_warningWidget->setMidiWarning(false);
-        m_warningWidget->setTimerWarning(false);
     }
 
     if (m_view) {
@@ -446,10 +433,6 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
 //        m_warningWidget->setAudioWarning(true);
     }
 
-        std::cerr << "SEQMAN reported timer OK " << m_seqManager->hasGoodTimer()
-                  << "  audio OK " << m_seqManager->hasGoodAudio()
-                  << "  midi  OK " << m_seqManager->hasGoodMidi()
-                  << std::endl;
     // If we're restarting the gui then make sure any transient
     // studio objects are cleared away.
     emit startupStatusMessage(tr("Clearing studio data..."));
@@ -879,22 +862,9 @@ RosegardenMainWindow::initStatusBar()
     statusBar()->addPermanentWidget(m_progressBar);
 
     // status warning widget replaces a glob of annoying startup dialogs
-/*    m_warningWidget = new WarningWidget(m_seqManager->hasGoodMidi(),
-                                        m_seqManager->hasGoodAudio(),
-                                        m_seqManager->hasGoodTimer()
-                                       );*/
-// NOTE: the status bar is apparently set up too early to check the status
-// safely, so I'll rewrite it to just create with an empty ctor and have set
-// methods called at a more suitable time
-//
-// I also need to play with size issues and make this as minimally intrusive and
-// tiny as it can be while still conveying worthwhile information.  It currently
-// grows the status bar by several pixels.
     m_warningWidget = new WarningWidget();
     statusBar()->addPermanentWidget(m_warningWidget);
     statusBar()->setContentsMargins(0, 0, 0, 0);
-
-    std::cerr << "STATUS BAR HEIGHT " << statusBar()->height() << std::endl;
 }
 
 void
@@ -7891,9 +7861,21 @@ RosegardenMainWindow::slotJumpToQuickMarker()
     m_doc->jumpToQuickMarker();
 }
 
-void RosegardenMainWindow::slotOpenDeviceManagerNew()
+void
+RosegardenMainWindow::slotOpenDeviceManagerNew()
 {
 }
+
+void
+RosegardenMainWindow::slotDisplayWarning(SequenceManager::WarningType type,
+                                         QString text,
+                                         QString informativeText)
+{
+    std::cerr << "MAIN WINDOW DISPLAY WARNING:  type " << type
+              << " text" << qstrtostr(text) << std::endl;
+}
+
+
 
 RosegardenMainWindow *RosegardenMainWindow::m_myself = 0;
 

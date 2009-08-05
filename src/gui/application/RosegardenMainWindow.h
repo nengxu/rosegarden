@@ -28,6 +28,7 @@
 #include "gui/general/ActionFileClient.h"
 #include "gui/studio/DeviceManagerDialogUi.h"
 #include "gui/widgets/WarningWidget.h"
+#include "gui/seqmanager/SequenceManager.h"
 
 #include <QDockWidget>
 #include <QString>
@@ -1521,9 +1522,13 @@ public slots:
     void slotSetQuickMarker();
     
     void slotJumpToQuickMarker();    
-
     
     void slotOpenDeviceManagerNew();
+
+    void slotDisplayWarning(SequenceManager::WarningType type,
+                            QString text,
+                            QString informativeText);
+
 private:
 
     /** Use QTemporaryFile to obtain a tmp filename that is guaranteed to be

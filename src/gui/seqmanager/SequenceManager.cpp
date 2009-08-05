@@ -95,10 +95,7 @@ SequenceManager::SequenceManager(TransportDialog *transport) :
     m_canReport(true),
     m_lastLowLatencySwitchSent(false),
     m_lastTransportStartPosition(0),
-    m_sampleRate(0),
-    m_hasGoodMidi(false),
-    m_hasGoodAudio(false),
-    m_hasGoodTimer(false)
+    m_sampleRate(0)
 {
     // The owner of this sequence manager will need to call
     // checkSoundDriverStatus on it to set up its status appropriately
@@ -1077,12 +1074,10 @@ SequenceManager::processAsynchronousMidi(const MappedEventList &mC,
 
                         std::cerr << "Rosegarden: WARNING: No accurate sequencer timer available" << std::endl;
 
-                        m_hasGoodTimer = false;
-
 /*                        StartupLogo::hideIfStillThere();
                         CurrentProgressDialog::freeze();
 
-                        RosegardenMainWindow::self()->awaitDialogClearance();
+                        RosegardenMainWindow::self()->awaitDialogClearance(); */
 
                         // This is to avoid us ever showing the same
                         // dialog more than once during a single run
@@ -1090,9 +1085,15 @@ SequenceManager::processAsynchronousMidi(const MappedEventList &mC,
                         // the suppression function
                         static bool showTimerWarning = true;
 
-                        if (showTimerWarning) {
+//                        if (showTimerWarning) {
+                            QString text(tr("<h3>System timer resolution is too low</h3>"));
 
-                            QMessageBox info(RosegardenMainWindow::self());
+                            QString informativeText(tr("<p>Rosegarden was unable to find a high-resolution timing source for MIDI performance.</p><p>This may mean you are using a Linux system with the kernel timer resolution set too low.  Please contact your Linux distributor for more information.</p><p>Some Linux distributors already provide low latency kernels, see <a href=\"http://www.rosegardenmusic.com/wiki/low-latency_kernels\">http://www.rosegardenmusic.com/wiki/low-latency_kernels</a> for instructions.</p>"));
+
+                            std::cerr << "emitting WARNING from seqman" << std::endl;
+                            emit sendWarning(Timer, text, informativeText);
+
+/*                            QMessageBox info(RosegardenMainWindow::self());
                             info.setText(tr("<h3>System timer resolution is too low</h3>"));
                             info.setInformativeText(tr("<p>Rosegarden was unable to find a high-resolution timing source for MIDI performance.</p><p>This may mean you are using a Linux system with the kernel timer resolution set too low.  Please contact your Linux distributor for more information.</p><p>Some Linux distributors already provide low latency kernels, see <a href=\"http://www.rosegardenmusic.com/wiki/low-latency_kernels\">http://www.rosegardenmusic.com/wiki/low-latency_kernels</a> for instructions.</p>"));
                             info.setStandardButtons(QMessageBox::Ok);
@@ -1275,15 +1276,11 @@ SequenceManager::checkSoundDriverStatus(bool warnUser)
     QString text = "";
 
     if (m_soundDriverStatus == NO_DRIVER) {
-        m_hasGoodMidi = false;
-        m_hasGoodAudio = false;
 
 // This will move to a new status indicator informative text in due course.
  
 //        text = tr("<p>Both MIDI and Audio subsystems have failed to initialize.</p><p>You may continue without the sequencer, but we suggest closing Rosegarden, running \"alsaconf\" as root, and starting Rosegarden again.  If you wish to run with no sequencer by design, then use \"rosegarden --nosequencer\" to avoid seeing this error in the future.</p>");        
     } else if (!(m_soundDriverStatus & MIDI_OK)) {
-        m_hasGoodMidi = true;
-        m_hasGoodAudio = false;
 
 //        text = tr("<p>The MIDI subsystem has failed to initialize.</p><p>You may continue without the sequencer, but we suggest closing Rosegarden, running \"modprobe snd-seq-midi\" as root, and starting Rosegarden again.  If you wish to run with no sequencer by design, then use \"rosegarden --nosequencer\" to avoid seeing this error in the future.</p>");
 
@@ -1304,8 +1301,10 @@ SequenceManager::checkSoundDriverStatus(bool warnUser)
 #ifdef HAVE_LIBJACK
 
     if (!(m_soundDriverStatus & AUDIO_OK)) {
-        m_hasGoodMidi = true;
-        m_hasGoodAudio = true;
+        QString text(tr("<h3>Failed to connect to JACK</h3>"));
+        QString informativeText(tr("<p>Rosegarden could not connect to the JACK audio server.  This probably means the JACK server is not running.</p><p>If you want to be able to play or record audio files or use plugins, you should exit Rosegarden and start the JACK server before running Rosegarden again.</p>"));
+        emit sendWarning(Audio, text, informativeText);
+        std::cerr << "emitting audio WARNING from seqman" << std::endl;
 
 
 

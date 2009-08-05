@@ -65,6 +65,11 @@ public:
     SequenceManager(TransportDialog *transport);
     ~SequenceManager();
 
+    /** Used to transmit the type of sequencer warning, so the WarningWidget
+     * knows which icon to manipulate
+     */
+    typedef enum { Midi, Audio, Timer } WarningType;
+
     /**
      * Replaces the internal document
      */
@@ -199,26 +204,22 @@ public:
     
     int getSampleRate(); // may return 0 if sequencer uncontactable
 
-    /// for the GUI to call to find out MIDI driver status
-    bool hasGoodMidi() { return m_hasGoodMidi; };
-    /// for the GUI to call to find out audio driver status
-    bool hasGoodAudio() { return m_hasGoodAudio; };
-    // for the GUI to call to find out if timer resolution is wonky
-    bool hasGoodTimer() { return m_hasGoodTimer; };
-
 public slots:
 
     void update();
 
 signals:
-    void signalSelectProgramNoSend(int,int,int);
+    void signalSelectProgramNoSend(int, int, int);
     void setValue(int);
     void incrementProgress(int);
 
     void insertableNoteOnReceived(int pitch, int velocity);
     void insertableNoteOffReceived(int pitch, int velocity);
     void controllerDeviceEventReceived(MappedEvent *ev);
-    
+
+    /// signal RosegardenMainWindow to display a MIDI warning
+    void sendWarning(WarningType type, QString text, QString informativeText);
+
 protected slots:
     void slotCountdownTimerTimeout();
 
@@ -301,9 +302,6 @@ protected:
 
     int                        m_sampleRate;
 
-    bool                       m_hasGoodMidi;
-    bool                       m_hasGoodAudio;
-    bool                       m_hasGoodTimer;
 };
 
 
