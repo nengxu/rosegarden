@@ -19,6 +19,8 @@
 #define _WARNINGDIALOG_H_
 
 #include <QDialog>
+#include <QTabWidget>
+#include <QIcon>
 
 namespace Rosegarden
 {
@@ -46,6 +48,12 @@ public:
     typedef std::pair<QString, QString> Message;
 
     void addWarning(Message message);
+
+private:
+    QTabWidget *m_tabWidget;
+
+    // We'll just load the icon once, and recycle it throughout
+    QIcon       m_warningIcon;
 };
 
 }

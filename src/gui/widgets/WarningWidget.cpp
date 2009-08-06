@@ -60,6 +60,7 @@ WarningWidget::WarningWidget() :
             SIGNAL(clicked()),
             this,
             SLOT(displayMessageQueue()));
+    m_warningButton->setToolTip(tr("<qt>Runtime problems detected!<br>Click to display details</qt>"));
     m_warningButton->hide();
 
     // Set these to false initially, assuming an all clear state.  When some
@@ -127,7 +128,14 @@ void
 WarningWidget::displayMessageQueue()
 {
     std::cerr << "WarningWidget::displayMessageQueue()" << std::endl;
-    m_warningDialog->exec();
+
+//    m_warningDialog->exec();
+
+    while (!m_queue.isEmpty()) {
+        std::cerr << " - emptying queue..." << std::endl;
+        m_warningDialog->addWarning(m_queue.dequeue());
+    }    
+    m_warningDialog->show();
 }
 
 // seems to be worthless, but I'll leave it in case I have new inspiration later

@@ -7874,8 +7874,18 @@ RosegardenMainWindow::slotDisplayWarning(int type,
     std::cerr << "MAIN WINDOW DISPLAY WARNING:  type " << type
               << " text" << qstrtostr(text) << std::endl;
 
+// I'll need a hack way to make it look like my system isn't broken, for
+// screenshots, even though in reality Ubuntu 9.04 is totally hopeless
+//#define PEACHY_HACK
+#ifdef PEACHY_HACK
+    return;
+#endif
+
+    // queue up the message, which trips the warning icon in so doing
     m_warningWidget->queueMessage(text, informativeText);
 
+    // set up the error state for the appropriate icon...  this should probably
+    // be managed some other way, but that's organic growth for you
     switch (type) {
         case WarningWidget::Midi: m_warningWidget->setMidiWarning(true); break;
         case WarningWidget::Audio: m_warningWidget->setAudioWarning(true); break;
@@ -7884,14 +7894,6 @@ RosegardenMainWindow::slotDisplayWarning(int type,
         default: break;
     }
 
-// I'll need a hack way to make it look like my system isn't broken, for
-// screenshots, even though in reality Ubuntu 9.04 is totally hopeless
-//#define PEACHY_HACK
-#ifdef PEACHY_HACK
-    m_warningWidget->setMidiWarning(false);
-    m_warningWidget->setAudioWarning(false);
-    m_warningWidget->setTimerWarning(false);
-#endif
 }
 
 
