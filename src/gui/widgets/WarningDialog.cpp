@@ -17,18 +17,31 @@
 
 #include "WarningDialog.h"
 
-// local includes
-#include "local/LocalInclude.h"
+#include <QDialog>
+#include <QTabWidget>
 
-// Qt includes
-#include <QtInclude>
-
-// STL & other includes
-#include <vector>
-
+#include <iostream>
 
 namespace Rosegarden
 {
+
+
+WarningDialog::WarningDialog() : QDialog()
+{
+    std::cerr << "WarningDialog::WarningDialog()" << std::endl;
+
+    setWindowTitle("WarningDialog");
+}
+
+WarningDialog::~WarningDialog()
+{
+}
+
+void
+WarningDialog::addWarning(Message message)
+{
+}
+
 
 }
 

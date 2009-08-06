@@ -18,6 +18,8 @@
 #ifndef _WARNING_WIDGET_H_
 #define _WARNING_WIDGET_H_
 
+#include "WarningDialog.h"
+
 #include <QLabel>
 #include <QToolButton>
 #include <QQueue>
@@ -68,11 +70,12 @@ public:
      */
     void queueMessage(const QString text, const QString informativeText);
 
-    /** Display the message queue in a suitable dialog, on demand
-     */
-    void displayMessageQueue();
-
     QSize sizeHint();
+
+    /** We'll build the message queue out of these for convenience, so both the
+     * text and informative text can be tossed about as one unit
+     */
+    typedef std::pair<QString, QString> Message;
 
 protected:
     QLabel *m_midiIcon;
@@ -84,15 +87,17 @@ protected:
     QString m_text;
     QString m_informativeText;
 
-    /** We'll build the message queue out of these for convenience, so both the
-     * text and informative text can be tossed about as one unit
-     */
-    typedef std::pair<QString, QString> Message;
-
     /** The message queue itself
      */
     QQueue<Message> m_queue;
 
+    WarningDialog *m_warningDialog;
+
+protected slots:
+
+    /** Display the message queue in a suitable dialog, on demand
+     */
+    void displayMessageQueue();
 };
 
 

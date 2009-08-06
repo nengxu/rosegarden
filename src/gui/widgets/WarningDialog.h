@@ -18,17 +18,35 @@
 #ifndef _WARNINGDIALOG_H_
 #define _WARNINGDIALOG_H_
 
-// local includes
-#include <local/LocalInclude.h>
-
-// Qt includes
-#include <QtInclude>
-
-// STL & other includes
-#include <vector>
+#include <QDialog>
 
 namespace Rosegarden
 {
+
+/** A WarningDialog is a place to present queued warnings from various
+ * sub-optimal runtime conditions (eg. bad timer, no JACK) so they can be
+ * displayed and flipped through at the user's convenience.
+ *
+ * \author D. Michael McIntyre
+ */
+class WarningDialog : public QDialog
+{
+    Q_OBJECT
+public:
+    WarningDialog();
+    ~WarningDialog();
+
+    /** We'll build the message queue out of these for convenience, so both the
+     * text and informative text can be tossed about as one unit
+     *
+     * (copied typedef from WarningWidget because I got bored with trying to
+     * figure out whatever was wrong with the way I tried to share it between
+     * these classes...)
+     */
+    typedef std::pair<QString, QString> Message;
+
+    void addWarning(Message message);
+};
 
 }
 
