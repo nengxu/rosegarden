@@ -394,8 +394,6 @@ NewNotationView::setupActions()
     createAction("simple_tuplet", SLOT(slotGroupSimpleTuplet()));
     createAction("tuplet", SLOT(slotGroupGeneralTuplet()));
 
-//### JAS Stop here for now!
-
     //Where are "break_tuplet", "slur", & "phrasing_slur" created?
     
     //"Slurs" subMenu
@@ -466,6 +464,8 @@ NewNotationView::setupActions()
     //Actions first appear in "Tools" Menubar menu
     createAction("select", SLOT(slotSetSelectTool()));
     createAction("erase", SLOT(slotSetEraseTool()));
+    createAction("note_inserter", SLOT(slotSwitchToNotes()));
+    createAction("rest_inserter", SLOT(slotSwitchToRests()));
 
     // These actions do as their names imply, and in this case, the toggle will
     // call one or the other of these
