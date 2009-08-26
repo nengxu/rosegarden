@@ -351,37 +351,10 @@
     <text>&amp;Tools</text>
     <!-- JAS Other tools in group are not selectable from menu -->
     <Action name="select" text="&amp;Select and Edit" icon="select" shortcut="F2" group="tools_note" checked="false" />
-    <Action name="note_inserter" text="Draw &amp;Notes" icon="insert-note" shortcut="T" group="tools_note" checked="true"/>
-    <Action name="rest_inserter" text="Draw &amp;Rests" icon="insert-rest" shortcut="Shift+T" group="tools_note" checked="false"/>
+    <Action name="note_inserter" text="Draw &amp;Notes" icon="insert-note" shortcut="F3" group="tools_note" checked="true"/>
+    <Action name="rest_inserter" text="Draw &amp;Rests" icon="insert-rest" shortcut="Shift+F3" group="tools_note" checked="false"/>
     <Action name="erase" text="&amp;Erase" icon="eraser" shortcut="F4" group="tools_note" checked="false" />
     <!-- <Menu noMerge="1" name="NoteTools"> -->
-    <!-- %%% deal with switch action later. Put in sub menus and recode. -->
-    <Action name="switch_to_notes" text="Switch to N&amp;otes" />
-    <Action name="switch_to_rests" text="Switch to Res&amp;ts" />
-    <Action name="switch_dots_on" text="Switch to &amp;Dotted Notes or Rests" />
-    <Action name="switch_dots_off" text="Switch to &amp;Plain Notes or Rests" />
-    <Menu noMerge="1" name="DurationTools">
-      <text>&amp;Durations</text>
-	    <!-- Reference names, but with _ instead of - -->
-      <Action name="duration_breve" text="&amp;Double Whole Note" icon="breve" shortcut="5" checked="false" group="tools_duration" />
-      <Action name="duration_semibreve" text="&amp;Whole Note" icon="semibreve" shortcut="1" checked="false" group="tools_duration" />
-      <Action name="duration_minim" text="&amp;Half Note" icon="minim" shortcut="2" checked="false" group="tools_duration" />
-      <Action name="duration_crotchet" text="&amp;Quarter Note" icon="crotchet" shortcut="4" checked="true" group="tools_duration" />
-      <Action name="duration_quaver" text="&amp;Eighth Note" icon="quaver" shortcut="8" checked="false" group="tools_duration" />
-      <Action name="duration_semiquaver" text="&amp;Sixteenth note" icon="semiquaver" shortcut="6" checked="false" group="tools_duration" />
-      <Action name="duration_demisemi" text="&amp;Thirty-Second Note" icon="demisemi" shortcut="3" checked="false" group="tools_duration" />
-      <Action name="duration_hemidemisemi" text="Sixty-&amp;Fourth Note" icon="hemidemisemi" shortcut="0" checked="false" group="tools_duration" />
-    <Separator/>
-      <Action name="duration_dotted_semibreve" text="D&amp;otted Whole Note" icon="dotted-semibreve" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_minim" text="Dotted Half &amp;Note" icon="dotted-minim" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_crotchet" text="Dotted Q&amp;uarter Note" icon="dotted-crotchet" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_quaver" text="Dotted E&amp;ighth Note" icon="dotted-quaver" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_semiquaver" text="Dotted Si&amp;xteenth Note" icon="dotted-semiquaver" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_demisemi" text="Dotted Thirt&amp;y-Second Note" icon="dotted-demisemi" checked="false" group="tools_duration" />
-    <Separator/>
-      <Action name="toggle_notes_rests" text="Switch &amp;Between Notes and Rests" shortcut="Y"/>
-      <Action name="toggle_dot" text="To&amp;ggle Dot" shortcut="." />
-    </Menu>
     <Menu noMerge="1" name="Accidentals">
       <text>&amp;Accidentals</text>
       <Action name="no_accidental" text="&amp;No Accidental" icon="accidental-none" checked="true" group="accidentals" />
@@ -447,6 +420,28 @@
       <Action name="panic" text="P&amp;anic" icon="transport-panic" shortcut="Alt+Ctrl+P" />
     </Menu>
   <Separator/>
+    <Menu noMerge="1" name="DurationTools">
+      <text>&amp;Durations</text>
+	    <!-- Reference names, but with _ instead of - -->
+      <Action name="duration_breve" text="&amp;Double Whole Note" icon="breve" shortcut="5" checked="false" group="tools_duration" />
+      <Action name="duration_semibreve" text="&amp;Whole Note" icon="semibreve" shortcut="1" checked="false" group="tools_duration" />
+      <Action name="duration_minim" text="&amp;Half Note" icon="minim" shortcut="2" checked="false" group="tools_duration" />
+      <Action name="duration_crotchet" text="&amp;Quarter Note" icon="crotchet" shortcut="4" checked="true" group="tools_duration" />
+      <Action name="duration_quaver" text="&amp;Eighth Note" icon="quaver" shortcut="8" checked="false" group="tools_duration" />
+      <Action name="duration_semiquaver" text="&amp;Sixteenth note" icon="semiquaver" shortcut="6" checked="false" group="tools_duration" />
+      <Action name="duration_demisemi" text="&amp;Thirty-Second Note" icon="demisemi" shortcut="3" checked="false" group="tools_duration" />
+      <Action name="duration_hemidemisemi" text="Sixty-&amp;Fourth Note" icon="hemidemisemi" shortcut="0" checked="false" group="tools_duration" />
+    <Separator/>
+      <Action name="duration_dotted_semibreve" text="D&amp;otted Whole Note" icon="dotted-semibreve" checked="false" group="tools_duration" />
+      <Action name="duration_dotted_minim" text="Dotted Half &amp;Note" icon="dotted-minim" checked="false" group="tools_duration" />
+      <Action name="duration_dotted_crotchet" text="Dotted Q&amp;uarter Note" icon="dotted-crotchet" checked="false" group="tools_duration" />
+      <Action name="duration_dotted_quaver" text="Dotted E&amp;ighth Note" icon="dotted-quaver" checked="false" group="tools_duration" />
+      <Action name="duration_dotted_semiquaver" text="Dotted Si&amp;xteenth Note" icon="dotted-semiquaver" checked="false" group="tools_duration" />
+      <Action name="duration_dotted_demisemi" text="Dotted Thirt&amp;y-Second Note" icon="dotted-demisemi" checked="false" group="tools_duration" />
+    <Separator/>
+      <Action name="toggle_dot" text="To&amp;ggle Dot" shortcut="." />
+      <Action name="toggle_notes_rests" text="Switch &amp;Between Notes and Rests " shortcut="Y"/>
+    </Menu>
     <!-- JAS action names for "insert_note_actionmenu" derived from src/gui/general/EditView.cpp -->
     <!-- JAS original line <Action name="insert_note_actionmenu" /> -->
     <Menu name="insert_note_actionmenu">
