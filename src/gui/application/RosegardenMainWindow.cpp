@@ -4575,7 +4575,7 @@ RosegardenMainWindow::slotExportProject()
     }
 
     //setup "rosegarden-project-package" process
-    ProjectPackager *dialog = new ProjectPackager(this, ProjectPackager::Pack, fileName);
+    ProjectPackager *dialog = new ProjectPackager(this, m_doc, ProjectPackager::Pack, fileName);
     if (dialog->exec() != QDialog::Accepted) {
         return;
     }

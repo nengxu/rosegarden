@@ -17,6 +17,7 @@
 
 #include "ProjectPackager.h"
 
+#include "document/RosegardenDocument.h"
 #include "gui/general/IconLoader.h"
 #include "misc/ConfigGroups.h"
 
@@ -34,8 +35,9 @@
 namespace Rosegarden
 {
 
-ProjectPackager::ProjectPackager(QWidget *parent, int mode, QString filename) :
+ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document,  int mode, QString filename) :
         QDialog(parent),
+        m_doc(document),
         m_mode(mode),
         m_filename(filename)
 {
@@ -96,6 +98,45 @@ ProjectPackager::puke(QString error)
 
     // Well, that was the theory.  In practice it apparently isn't so easy to do
     // the bash equivalent of a spontaneous "exit 1" inside a QDialog.  Hrm.
+}
+
+QStringList
+ProjectPackager::getAudioFiles()
+{
+    // 1. Set up a loop to iterate through all segments on all tracks from
+    // LilyPondExporter
+    //
+    // 2. Find audio segments (should be obvious enough, and the opposite of
+    // what LilyPondExporter does)
+    //
+    // 3. Figure out what audio file is associated with that segment (surely
+    // must be discoverable and fairly obvious, though I have no idea how that
+    // works off hand)
+    //
+    // 4. Build up a QStringList somehow or other
+    //
+    // (Is it cleaner/faster to build the entire list and then |sort | uniq it
+    // at the end, or do we
+    //
+    //   for (each new file I have)
+    //       if (file isn't already in the growing longer list)
+    //           add_it_to_the_list
+    //
+    // all on one pass?  I really have no idea off hand what kind of
+    // "|sort|uniq" features QStringList might already have, etc. so homework
+    // required.
+    //
+    // I'm really not sure whether it would be faster to iterate through the
+    // final 1000 file list one time to prune 900 duplicate files out of it, or
+    // to check a short list that winds up being 100 long 1000 times in total.
+    // That's probably the kind of thing you'd need a profiler and a glob of
+    // different test cases to really pin down, but maybe it's only because I'm
+    // so math challenged I don't see the obvious here.
+    //
+    // Oh well, if the first version of the algorithm is crap, it's bound to be
+    // simple enough just to refactor the algorithm later, so just go with
+    // whichever approach seems closest to hand and easiest to get written.
+    //
 }
 
 void

@@ -18,10 +18,13 @@
 #ifndef _PROJECT_PACKAGER_H_
 #define _PROJECT_PACKAGER_H_
 
+#include "document/RosegardenDocument.h"
+
 #include <QDialog>
 #include <QProgressBar>
 #include <QLabel>
 #include <QProcess>
+#include <QStringList>
 
 
 namespace Rosegarden
@@ -56,16 +59,41 @@ public:
     static const int Unpack    = 2;
 
     ProjectPackager(QWidget *parent,
-                      int mode,
-                      QString filename);
+                    RosegardenDocument *document,
+                    int mode,
+                    QString filename);
     ~ProjectPackager() { };
 
 protected:
-    int           m_mode;
-    QString       m_filename;
-    QProgressBar *m_progress;
-    QLabel       *m_info;
-    QProcess     *m_process;
+    RosegardenDocument *m_doc;
+    int                 m_mode;
+    QString             m_filename;
+    QProgressBar       *m_progress;
+    QLabel             *m_info;
+    QProcess           *m_process;
+
+    /** Returns a QStringList containing a sorted|uniqed list of audio files
+     * used by m_doc
+     *
+     * Problems to solve: how do we |sort|uniq a QStringList?  The same audio
+     * file might be used by hundreds of audio segments (eg. Emergence) and
+     * while we could pull it out and overwrite the same file 100 times to
+     * result in only one final copy, that's a big waste.
+     */
+    QStringList getAudioFiles();
+
+/* General questions not resolved yet:
+ *
+ * When do we change the audio file path from whatever it was to the new one
+ * we're creating?  At pack time or unpack time?  Did the old script even do
+ * this?
+ *
+ * I suppose we could do it in both places.  Harmless enough isn't it?  No,
+ * scratch that, do it when we pack, because we're packing with a live document,
+ * but doing it on an unpack requires...  Well either code hooks (signals and
+ * slots?) or some XML hacking.
+ *
+ */
 
 protected slots:
     /**
@@ -74,12 +102,43 @@ protected slots:
     void puke(QString error);
 
     /**
-     * Try to unpack an existing .rgd file
+     * Try to unpack an existing .rgd file, which will entail:
+     *
+     *   1. QProcess a tar xzf command
+     *
+     *   2. decompress the included FLAC files back to .wav
+     *
+     *   3. ???
+     *
      */
     void runUnpack();
 
     /**
-     * Try to run lilypond and call runFinalStage() if successful
+     * Begin the packing process, which will entail:
+     *
+     *   1. discover audio files used by the composition
+     *
+     *   2. pull out copies to a tmp directory
+     *
+     *   3. compress audio files with FLAC (preferably using the library,
+     *   although that is quite hopeless for the moment, due to the assert()
+     *   conflict)
+     *
+     *   4. prompt user for additional files
+     *
+     *   5. add them
+     *
+     *   6. final directory structure looks like:
+     *
+     *       ./export_filename.rg
+     *       ./export_filename/[wav files compressed with FLAC]
+     *       ./export_filename/[misc files]
+     *
+     *   7. tarball this (tar czf)
+     *
+     *   8. rename it to .rgp from .tar.gz
+     *
+     *   9. ???
      */
     void runPack();
 };
