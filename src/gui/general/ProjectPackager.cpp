@@ -18,6 +18,8 @@
 #include "ProjectPackager.h"
 
 #include "document/RosegardenDocument.h"
+#include "base/Composition.h"
+#include "base/Track.h"
 #include "gui/general/IconLoader.h"
 #include "misc/ConfigGroups.h"
 
@@ -103,6 +105,33 @@ ProjectPackager::puke(QString error)
 QStringList
 ProjectPackager::getAudioFiles()
 {
+    QStringList list;
+
+    // get the Composition
+    Composition *comp = &m_doc->getComposition();
+
+    Track *track = 0;
+
+    for (int trackPos = 0;
+        (track = comp->getTrackByPosition(trackPos)) != 0; ++trackPos) {
+
+        for (Composition::iterator i = comp->begin(); i != comp->end(); ++i) {
+
+            if ((*i)->getTrack() != track->getId())
+                continue;
+
+            // Check whether the track is an audio track
+            InstrumentId instrumentId = track->getInstrument();
+            bool isAudioTrack = instrumentId >= AudioInstrumentBase;
+
+            if (isAudioTrack) {
+
+            }
+        }
+    }
+
+
+
     // 1. Set up a loop to iterate through all segments on all tracks from
     // LilyPondExporter
     //
