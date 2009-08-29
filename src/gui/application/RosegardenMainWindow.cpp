@@ -4360,7 +4360,9 @@ RosegardenMainWindow::slotToggleTracking()
 
 void
 RosegardenMainWindow::slotTestStartupTester()
-{
+{   
+    return;
+
     RG_DEBUG << "RosegardenMainWindow::slotTestStartupTester" << endl;
 
     if (!m_startupTester) {

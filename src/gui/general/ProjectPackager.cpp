@@ -46,7 +46,7 @@ ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document, 
     // (I'm not sure why RG_DEBUG didn't work from in here.  Having to use
     // iostream is mildly irritating, as QStrings have to be converted, but
     // whatever, I'll figure that out later, or just leave well enough alone)
-    std::cerr << "ProjectPackager::ProjectPackager():  mode: " << mode << " m_filename: " << m_filename.toStdString() << std::endl;
+    std::cout << "ProjectPackager::ProjectPackager():  mode: " << mode << " m_filename: " << m_filename.toStdString() << std::endl;
 
     this->setModal(false);
 
@@ -80,8 +80,8 @@ ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document, 
     layout->addWidget(ok, 3, 1); 
 
     switch (mode) {
-        case ProjectPackager::Unpack:  runPack();    break;
-        case ProjectPackager::Pack:    runUnpack();  break;
+        case ProjectPackager::Unpack:  runUnpack();    break;
+        case ProjectPackager::Pack:    runPack();  break;
     }
 }
 
@@ -122,9 +122,12 @@ ProjectPackager::getAudioFiles()
 
             // Check whether the track is an audio track
             InstrumentId instrumentId = track->getInstrument();
-            bool isAudioTrack = instrumentId >= AudioInstrumentBase;
+            bool isAudioTrack = (instrumentId >= AudioInstrumentBase &&
+                                 instrumentId < MidiInstrumentBase);
 
             if (isAudioTrack) {
+
+                std::cout << "trackPos: " << trackPos << " is an audio track" << std::endl;
 
             }
         }
@@ -171,7 +174,11 @@ ProjectPackager::getAudioFiles()
 void
 ProjectPackager::runPack()
 {
-    m_info->setText(tr("Running <b>convert-ly</b>..."));
+    m_info->setText(tr("Packing project..."));
+
+    getAudioFiles();
+
+    /*
     m_process = new QProcess;
     m_process->start("convert-ly", QStringList() << "-e" << m_filename);
     connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
@@ -185,12 +192,13 @@ ProjectPackager::runPack()
     }
 
     m_progress->setValue(25);
+    /* */
 }
 
 void
 ProjectPackager::runUnpack()
 {
-    std::cerr << "ProjectPackager::runUnpack()" << std::endl;
+    std::cout << "ProjectPackager::runUnpack()" << std::endl;
     return;
 
     if (m_process->exitCode() == 0) {
@@ -238,7 +246,7 @@ ProjectPackager::runFinalStage(int exitCode, QProcess::ExitStatus)
         bool exportedBrackets = settings.value("lilyexportstaffbrackets", false).toBool();
         settings.endGroup();
 
-        std::cerr << "  finalStage: exportedBeams == " << (exportedBeams ? "true" : "false") << std::endl
+        std::cout << "  finalStage: exportedBeams == " << (exportedBeams ? "true" : "false") << std::endl
                   << " exportedBrackets == " << (exportedBrackets ? "true" : "false") << std::endl;
 
         QString vomitus = QString(tr("<qt><p>Ran <b>lilypond</b> successfully, but it terminated with errors.</p>"));
