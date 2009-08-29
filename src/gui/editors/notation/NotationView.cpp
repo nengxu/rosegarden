@@ -464,8 +464,7 @@ NewNotationView::setupActions()
     //Actions first appear in "Tools" Menubar menu
     createAction("select", SLOT(slotSetSelectTool()));
     createAction("erase", SLOT(slotSetEraseTool()));
-    createAction("note_inserter", SLOT(slotSwitchToNotes()));
-    createAction("rest_inserter", SLOT(slotSwitchToRests()));
+    createAction("draw", SLOT(slotSetNoteRestInserter()));
 
     // These actions do as their names imply, and in this case, the toggle will
     // call one or the other of these
@@ -1443,6 +1442,13 @@ void
 NewNotationView::slotSetEraseTool()
 {
     if (m_notationWidget) m_notationWidget->slotSetEraseTool();
+    slotUpdateMenuStates();
+}    
+
+void
+NewNotationView::slotSetNoteRestInserter()
+{
+    if (m_notationWidget) m_notationWidget->slotSetNoteRestInserter();
     slotUpdateMenuStates();
 }    
 

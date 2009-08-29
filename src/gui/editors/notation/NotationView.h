@@ -108,6 +108,7 @@ protected slots:
 
     void slotSetSelectTool();
     void slotSetEraseTool();
+    void slotSetNoteRestInserter();
 
 
     void slotInsertNoteFromAction();

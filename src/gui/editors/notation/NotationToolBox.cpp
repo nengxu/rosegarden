@@ -20,6 +20,7 @@
 #include "gui/general/BaseTool.h"
 #include "NotationWidget.h"
 #include "NotationTool.h"
+#include "NoteRestInserter.h"
 #include "NoteInserter.h"
 #include "RestInserter.h"
 #include "ClefInserter.h"
@@ -81,6 +82,10 @@ NotationToolBox::createTool(QString toolName)
     else if (toolNamelc == NotationSelector::ToolName)
 
         tool = new NotationSelector(m_widget);
+
+    else if (toolNamelc == NoteRestInserter::ToolName)
+
+        tool = new NoteRestInserter(m_widget);
 
     else {
         QMessageBox::critical(0, "", QString("NotationToolBox::createTool : unrecognised toolname %1 (%2)")

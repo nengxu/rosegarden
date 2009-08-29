@@ -19,6 +19,7 @@
 
 #include "NotationScene.h"
 #include "NotationToolBox.h"
+#include "NoteRestInserter.h"
 #include "NoteInserter.h"
 #include "RestInserter.h"
 #include "ClefInserter.h"
@@ -370,6 +371,12 @@ void
 NotationWidget::slotSetSelectTool()
 {
     slotSetTool(NotationSelector::ToolName);
+}
+
+void
+NotationWidget::slotSetNoteRestInserter()
+{
+    slotSetTool(NoteRestInserter::ToolName);
 }
 
 void
