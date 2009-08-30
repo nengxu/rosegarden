@@ -37,6 +37,11 @@
 
 #include <iostream>
 
+// NOTE: we're using std::cout everywhere in here for the moment.  It's easy to
+// swap later to std::cerr, and for the time being this is convenient, because
+// we can ./rosegarden > /dev/null to ignore everything except these messages
+// we're generating in here.
+
 namespace Rosegarden
 {
 
@@ -151,19 +156,45 @@ ProjectPackager::runPack()
 
     QStringList audioFiles = getAudioFiles();
 
-    /* 1. find suitable place to write a tmp directory
-     * 2. mkdir m_filename there
-     * 3. save/cp m_filename.rg to $LOCATION/m_filename/..
-     * 4. cp audioFiles $LOCATION/m_filename/*
-     * 5. run external flac on $LOCATION/*
+    // get the audio path from the Document via the AudioFileManager (eg.
+    // "/home/jsmith/rosegarden" )  (note that Rosegarden stores such things
+    // internally as std::strings for obscure legacy reasons)
+    AudioFileManager *manager = &m_doc->getAudioFileManager();
+    std::string audioPath = manager->getAudioPath();
+
+
+    /* 1. find suitable place to write a tmp directory (should it be /tmp or
+     * under ~ somewhere, eg. ~/tmp or maybe even a Qt class can figure it out
+     * so we don't have to)
+     * 3. save/cp m_filename.rg to eg. /tmp/$m_filename.rg (NOTE: don't assume
+     * the code that called us in RosegardenMainWindow is at all sacred.)
+     * 2. mkdir m_filename there (eg. /tmp/$m_filename)
+     * 4. cp extracted audioFiles from $audioPath/$audioFiles to /tmp/$m_filename/$audioFiles (use iterator as in sample code below)
+     * 5. run external flac utility on /tmp/$m_filename/$audioFiles
+     * 6. prompt for additional files, and add them under /$m_filename directory if any
+     * 7. run tar czf command that includes ./$m_filename.rg and ./m_filename directory
      * &c.
+     * (at some stage in the overall process we need to change the audio path,
+     * manager->setAudioPath() to point to...  Hrm.  Not sure how to handle
+     * this, actually, as audio paths stored internally are absolute except for
+     * the ~ but we probably can't know where this will actually be extracted,
+     * so we're probably going to get that wrong.  I think this is something the
+     * original script never got right either.  So we probably want to do that
+     * when UN-packing, after we KNOW where the files are.  Instead of feeding
+     * the user a "can't find audio file rg-123.wav, use this file dialog to
+     * point me at it because I'm Rosegarden and I'm brain damaged"
+     *
+     * save this for one of the last things to refine later and don't worry
+     * overmuch going in)
      */
 
+    std::cout << "Audio files test:" << std::endl;
     QStringList::const_iterator si;
     for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
         std::string o = (*si).toLocal8Bit().constData();
-        std::cout << "audio file: " << o << std::endl;
+        std::cout << audioPath << " " << o << std::endl;
     }
+
 
     /*
     m_process = new QProcess;
