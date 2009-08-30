@@ -132,12 +132,7 @@ ProjectPackager::getAudioFiles()
             // some polite sanity checking to avoid possible crashes
             if (!file) continue;
 
-            std::string audioFile = manager->getAudioPath() + file->getName();
-
-            list << strtoqstr(audioFile);
-
-            std::cout << "We found an audio segment!  Its file ID is " << id 
-                      << " its name is: " << file->getName() << std::endl;
+            list << strtoqstr(file->getName());
         }
     }
 
@@ -155,6 +150,14 @@ ProjectPackager::runPack()
     m_info->setText(tr("Packing project..."));
 
     QStringList audioFiles = getAudioFiles();
+
+    /* 1. find suitable place to write a tmp directory
+     * 2. mkdir m_filename there
+     * 3. save/cp m_filename.rg to $LOCATION/m_filename/..
+     * 4. cp audioFiles $LOCATION/m_filename/*
+     * 5. run external flac on $LOCATION/*
+     * &c.
+     */
 
     QStringList::const_iterator si;
     for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
