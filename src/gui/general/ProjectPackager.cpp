@@ -22,6 +22,9 @@
 #include "base/Track.h"
 #include "gui/general/IconLoader.h"
 #include "misc/ConfigGroups.h"
+#include "misc/Strings.h"
+#include "sound/AudioFile.h"
+#include "sound/AudioFileManager.h"
 
 #include <QDialog>
 #include <QProcess>
@@ -79,10 +82,13 @@ ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document, 
     connect(ok, SIGNAL(clicked()), this, SLOT(reject()));
     layout->addWidget(ok, 3, 1); 
 
+    getAudioFiles();
+    /*
+
     switch (mode) {
         case ProjectPackager::Unpack:  runUnpack();    break;
         case ProjectPackager::Pack:    runPack();  break;
-    }
+    }*/
 }
 
 void
@@ -107,40 +113,38 @@ ProjectPackager::getAudioFiles()
 {
     QStringList list;
 
-    // get the Composition
+    // get the Composition from the document, so we can iterate through it
     Composition *comp = &m_doc->getComposition();
 
-    Track *track = 0;
+    // We don't particularly care about tracks here, so just iterate through the
+    // entire Composition to find the audio segments and get the associated
+    // file IDs from which to obtain a list of actual files.  This could
+    // conceivably pick up audio segments that are residing on MIDI tracks and
+    // wouldn't otherwise be functional, but the important thing is to never
+    // miss a single file that has any chance of being worth preserving.
+    for (Composition::iterator i = comp->begin(); i != comp->end(); ++i) {
+        if ((*i)->getType() == Segment::Audio) {
 
-    for (int trackPos = 0;
-        (track = comp->getTrackByPosition(trackPos)) != 0; ++trackPos) {
+            AudioFileManager *manager = &m_doc->getAudioFileManager();
 
-        for (Composition::iterator i = comp->begin(); i != comp->end(); ++i) {
+            unsigned int id = (*i)->getAudioFileId();
 
-            if ((*i)->getTrack() != track->getId())
-                continue;
+            AudioFile *file = manager->getAudioFile(id);
 
-            // Check whether the track is an audio track
-            InstrumentId instrumentId = track->getInstrument();
-            bool isAudioTrack = (instrumentId >= AudioInstrumentBase &&
-                                 instrumentId < MidiInstrumentBase);
+            // some polite sanity checking to avoid possible crashes
+            if (!file) continue;
 
-            if (isAudioTrack) {
+            list << strtoqstr(file->getName());            
 
-                std::cout << "trackPos: " << trackPos << " is an audio track" << std::endl;
-
-            }
+            std::cout << "We found an audio segment!  Its file ID is " << id 
+                      << " its name is: " << file->getName() << std::endl;
         }
     }
 
+    return list;
 
 
-    // 1. Set up a loop to iterate through all segments on all tracks from
-    // LilyPondExporter
-    //
-    // 2. Find audio segments (should be obvious enough, and the opposite of
-    // what LilyPondExporter does)
-    //
+
     // 3. Figure out what audio file is associated with that segment (surely
     // must be discoverable and fairly obvious, though I have no idea how that
     // works off hand)
@@ -176,7 +180,7 @@ ProjectPackager::runPack()
 {
     m_info->setText(tr("Packing project..."));
 
-    getAudioFiles();
+    //getAudioFiles();
 
     /*
     m_process = new QProcess;
@@ -192,7 +196,7 @@ ProjectPackager::runPack()
     }
 
     m_progress->setValue(25);
-    /* */
+    * */
 }
 
 void
