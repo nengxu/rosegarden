@@ -21,8 +21,6 @@
 #include "NotationWidget.h"
 #include "NotationTool.h"
 #include "NoteRestInserter.h"
-#include "NoteInserter.h"
-#include "RestInserter.h"
 #include "ClefInserter.h"
 #include "TextInserter.h"
 #include "GuitarChordInserter.h"
@@ -51,15 +49,7 @@ NotationToolBox::createTool(QString toolName)
 
     QString toolNamelc = toolName.toLower();
     
-    if (toolNamelc == NoteInserter::ToolName)
-
-        tool = new NoteInserter(m_widget);
-
-    else if (toolNamelc == RestInserter::ToolName)
-
-        tool = new RestInserter(m_widget);
-
-    else if (toolNamelc == ClefInserter::ToolName)
+    if (toolNamelc == ClefInserter::ToolName)
 
         tool = new ClefInserter(m_widget);
 

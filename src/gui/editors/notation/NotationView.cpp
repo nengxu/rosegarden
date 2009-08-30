@@ -23,8 +23,7 @@
 #include "NoteStyleFactory.h"
 #include "NoteFontFactory.h"
 #include "NotationStrings.h"
-#include "NoteInserter.h"
-#include "RestInserter.h"
+#include "NoteRestInserter.h"
 #include "NotationSelector.h"
 #include "HeadersGroup.h"
 
@@ -853,18 +852,17 @@ NewNotationView::slotUpdateMenuStates()
     }
 
     // 2. set inserter-related states
-
-    // #1372863 -- RestInserter is a subclass of NoteInserter, so we
-    // need to test dynamic_cast<RestInserter *> before
-    // dynamic_cast<NoteInserter *> (which will succeed for both)
-    if (dynamic_cast<RestInserter *>(m_notationWidget->getCurrentTool())) {
-        NOTATION_DEBUG << "Have rest inserter " << endl;
-        leaveActionState("note_insert_tool_current");
-        enterActionState("rest_insert_tool_current");
-    } else if (dynamic_cast<NoteInserter *>(m_notationWidget->getCurrentTool())) {
-        NOTATION_DEBUG << "Have note inserter " << endl;
-        leaveActionState("rest_insert_tool_current");
-        enterActionState("note_insert_tool_current");
+    NoteRestInserter *currentTool = dynamic_cast<NoteRestInserter *>(m_notationWidget->getCurrentTool());
+    if (currentTool) {
+        if (currentTool->isaRestInserter()) {
+            NOTATION_DEBUG << "Have rest inserter " << endl;
+            leaveActionState("note_insert_tool_current");
+            enterActionState("rest_insert_tool_current");
+        } else {
+            NOTATION_DEBUG << "Have note inserter " << endl;
+            leaveActionState("rest_insert_tool_current");
+            enterActionState("note_insert_tool_current");
+        }
     } else {
         NOTATION_DEBUG << "Have neither inserter " << endl;
         leaveActionState("note_insert_tool_current");
@@ -1455,9 +1453,8 @@ NewNotationView::slotSetNoteRestInserter()
 void
 NewNotationView::slotToggleNotesRests()
 {
-    NoteInserter *currentInserter = dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool());
+    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
 
-    // O fuster cluck, thou art so verily untidy
     if (currentInserter) {
         if (currentInserter->isaRestInserter())
             slotSwitchToNotes();
@@ -1469,7 +1466,8 @@ NewNotationView::slotToggleNotesRests()
 void
 NewNotationView::slotSwitchToNotes()
 {
-    NoteInserter *currentInserter = dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool());
+// Remove from here later save for Initial State code
+/*    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
 
     // The default unitType is taken from the denominator of the time signature:
     //   e.g. 4/4 -> 1/4, 6/8 -> 1/8, 2/2 -> 1/2.
@@ -1477,9 +1475,23 @@ NewNotationView::slotSwitchToNotes()
     Note::Type unitType = sig.getUnit(); // was: Note::Crotchet;
     int dots = 0;
 
+    if (!currentInserter->isaRestInserter()) {
+        unitType = currentInserter->getCurrentNote().getNoteType();
+        dots = currentInserter->getCurrentNote().getDots();
+    }
+*/
+    TimeSignature sig;
+    Note::Type unitType;
+    int dots;
+    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
+
     if (currentInserter) {
         unitType = currentInserter->getCurrentNote().getNoteType();
         dots = currentInserter->getCurrentNote().getDots();
+    } else {
+        NOTATION_DEBUG << "NewNotationView::slotSwitchToNotes() : expected "
+                       << "NoteRestInserter as current tool.  Silent exit.";
+        return;
     }
 
     if (m_notationWidget) {
@@ -1511,7 +1523,8 @@ NewNotationView::slotSwitchToNotes()
 void
 NewNotationView::slotSwitchToRests()
 {
-    NoteInserter *currentInserter = dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool());
+// Remove later save (as above) for Initail State code.
+/*    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
 
     // The default unitType is taken from the denominator of the time signature:
     //   e.g. 4/4 -> 1/4, 6/8 -> 1/8, 2/2 -> 1/2.
@@ -1523,7 +1536,21 @@ NewNotationView::slotSwitchToRests()
         unitType = currentInserter->getCurrentNote().getNoteType();
         dots = currentInserter->getCurrentNote().getDots();
     }
+*/
 
+    TimeSignature sig;
+    Note::Type unitType;
+    int dots;
+    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
+
+    if (currentInserter) {
+        unitType = currentInserter->getCurrentNote().getNoteType();
+        dots = currentInserter->getCurrentNote().getDots();
+    } else {
+        NOTATION_DEBUG << "NewNotationView::slotSwitchToRests() : expected "
+                       << "NoteRestInserter as current tool.  Silent exit.";
+        return;
+    }
     if (m_notationWidget) {
         m_notationWidget->slotSetRestInserter();
         m_notationWidget->slotSetInsertedNote(unitType, dots);
@@ -1801,14 +1828,19 @@ void NewNotationView::slotInsertNoteFromAction()
     Segment *segment = getCurrentSegment();
     if (!segment) return;
 
-    if (! dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool())) {
-        // If no duration has been selected, use the default duration.
-        slotSwitchToNotes();
-        // /* was sorry */ QMessageBox::warning(this, "", tr("No note duration selected"));
-        // return ;
+    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
+    if (currentInserter) {
+       if (currentInserter->isaRestInserter()) {
+           slotSwitchToNotes();
+       }
+    } else {
+        NOTATION_DEBUG << "NewNotationView::slotInsertNoteFromAction() : expected "
+                       << "NoteRestInserter as current tool.  Silent exit.";
+        return;
     }
 
-    bool wasRestInserter = false;
+// Revert State not needed remove later
+/*     bool wasRestInserter = false;
     if (dynamic_cast<RestInserter *> (m_notationWidget->getCurrentTool()) ) {
         // When keyboard was used for inserting a note, use
         //  (i)  keys "QWERUIO", "ASDJFKL" and "ZCXVBNM" for inserting notes and
@@ -1817,8 +1849,8 @@ void NewNotationView::slotInsertNoteFromAction()
         wasRestInserter = true;
         slotSwitchToNotes();
     }
-    NoteInserter *currentInserter = dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool());
-
+*/
+        
     int pitch = 0;
     Accidental accidental =
         Accidentals::NoAccidental;
@@ -1849,10 +1881,12 @@ void NewNotationView::slotInsertNoteFromAction()
 
     currentInserter->insertNote(*segment, insertionTime, pitch, accidental);
 
+/*
     if (wasRestInserter) {
         // Switch back to inserting Rests, if rests were selected.
         slotSwitchToRests();
     }
+*/
 }
 
 void NewNotationView::slotInsertRest()
@@ -1860,38 +1894,46 @@ void NewNotationView::slotInsertRest()
     Segment *segment = getCurrentSegment();
     if (!segment) return;
     
-    if (! dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool())) {
-        // If no duration has been selected, use the default duration.
-        slotSwitchToRests();
-        // /* was sorry */ QMessageBox::warning(this, "", tr("No note duration selected"));
-        // return ;
+    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
+    if (currentInserter) {
+        if(!currentInserter->isaRestInserter()) {
+            slotSwitchToRests();
+        }
+    } else {
+        NOTATION_DEBUG << "NewNotationView::slotInsertRest() : expected "
+                       << "NoteRestInserter as current tool.  Silent exit.";
+        return;
     }
 
+//Revert State note needed.  Remove later
+/* 
     bool wasNoteInserter = false;
     if (! dynamic_cast<RestInserter *> (m_notationWidget->getCurrentTool()) ) {
         wasNoteInserter = true;
         slotSwitchToRests();
     }
-
+*/
     timeT insertionTime = getInsertionTime();
 
-    RestInserter *currentInserter = dynamic_cast<RestInserter *> (m_notationWidget->getCurrentTool());
     currentInserter->insertNote(*segment, insertionTime,
                                 0, Accidentals::NoAccidental, true);
 
+/*
     if (wasNoteInserter) {
         // If Notes Toolbar was selected, continue inserting notes
         slotSwitchToNotes();
     }
+*/
 }
 
 void
 NewNotationView::slotToggleDot()
 {
     if (m_notationWidget) {
-        NoteInserter *currentInserter = dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool());
+        NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
         if (!currentInserter) {
-            /* was sorry */ QMessageBox::warning(this, "", tr("No note duration selected"));
+            /* was sorry QMessageBox::warning(this, "", tr("No note duration selected"));
+            */
             return ;
         }
         Note note = currentInserter->getCurrentNote();
@@ -1908,7 +1950,7 @@ NewNotationView::slotToggleDot()
 
         DurationMonobarModeType currentMode = InsertingNotes;
 
-        if (dynamic_cast<RestInserter *>(m_notationWidget->getCurrentTool())) {
+        if (currentInserter->isaRestInserter()) {
             // ensure that rest_ preface the note duration
             noteToolbarName = QString("rest_%1").arg(actionName.replace("rest_",""));
             m_notationWidget->slotSetRestInserter();
@@ -1947,11 +1989,14 @@ NewNotationView::slotNoteAction()
     if (name.startsWith("duration_")) {
         name = name.replace("duration_", "");
         if (m_notationWidget) {
-            if (dynamic_cast<RestInserter *>(m_notationWidget->getCurrentTool())) {
-                NOTATION_DEBUG << "Have rest inserter " << endl;
-                name = QString("rest_%1").arg(name);
-            } else if (dynamic_cast<NoteInserter *>(m_notationWidget->getCurrentTool())) {
-                NOTATION_DEBUG << "Have note inserter " << endl;
+            NoteRestInserter *currentTool = dynamic_cast<NoteRestInserter *>(m_notationWidget->getCurrentTool());
+            if (currentTool) {
+                if (currentTool->isaRestInserter()) {
+                    NOTATION_DEBUG << "Have rest inserter " << endl;
+                    name = QString("rest_%1").arg(name);
+                } else {
+                    NOTATION_DEBUG << "Have note inserter " << endl;
+                }
             } else {
                 NOTATION_DEBUG << "Have neither inserter " << endl;
                 NOTATION_DEBUG << "Select note inserter, which is default " << endl;
@@ -2646,10 +2691,11 @@ NewNotationView::slotGroupTuplet(bool simple)
 
         t = getInsertionTime();
 
-        NoteInserter *currentInserter = dynamic_cast<NoteInserter *> (m_notationWidget->getCurrentTool());
+        NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
 
         Note::Type unitType;
 
+// Should fix this too (maybe go fetch the NoteRestTool and check its duration).
         if (currentInserter) {
             unitType = currentInserter->getCurrentNote().getNoteType();
         } else {
