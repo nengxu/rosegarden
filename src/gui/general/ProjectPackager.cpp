@@ -82,13 +82,11 @@ ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document, 
     connect(ok, SIGNAL(clicked()), this, SLOT(reject()));
     layout->addWidget(ok, 3, 1); 
 
-    getAudioFiles();
-    /*
 
     switch (mode) {
         case ProjectPackager::Unpack:  runUnpack();    break;
         case ProjectPackager::Pack:    runPack();  break;
-    }*/
+    }
 }
 
 void
@@ -134,45 +132,21 @@ ProjectPackager::getAudioFiles()
             // some polite sanity checking to avoid possible crashes
             if (!file) continue;
 
-            list << strtoqstr(file->getName());            
+            std::string audioFile = manager->getAudioPath() + file->getName();
+
+            list << strtoqstr(audioFile);
 
             std::cout << "We found an audio segment!  Its file ID is " << id 
                       << " its name is: " << file->getName() << std::endl;
         }
     }
 
+    // This requires Qt 4.5 or later to work, and it really seems worth it.  All
+    // the hand wringing I did about if or whether or how, shazam man, it's this
+    // simple to settle all of those questions.  It's irresistable.
+    list.removeDuplicates();
+
     return list;
-
-
-
-    // 3. Figure out what audio file is associated with that segment (surely
-    // must be discoverable and fairly obvious, though I have no idea how that
-    // works off hand)
-    //
-    // 4. Build up a QStringList somehow or other
-    //
-    // (Is it cleaner/faster to build the entire list and then |sort | uniq it
-    // at the end, or do we
-    //
-    //   for (each new file I have)
-    //       if (file isn't already in the growing longer list)
-    //           add_it_to_the_list
-    //
-    // all on one pass?  I really have no idea off hand what kind of
-    // "|sort|uniq" features QStringList might already have, etc. so homework
-    // required.
-    //
-    // I'm really not sure whether it would be faster to iterate through the
-    // final 1000 file list one time to prune 900 duplicate files out of it, or
-    // to check a short list that winds up being 100 long 1000 times in total.
-    // That's probably the kind of thing you'd need a profiler and a glob of
-    // different test cases to really pin down, but maybe it's only because I'm
-    // so math challenged I don't see the obvious here.
-    //
-    // Oh well, if the first version of the algorithm is crap, it's bound to be
-    // simple enough just to refactor the algorithm later, so just go with
-    // whichever approach seems closest to hand and easiest to get written.
-    //
 }
 
 void
@@ -180,7 +154,13 @@ ProjectPackager::runPack()
 {
     m_info->setText(tr("Packing project..."));
 
-    //getAudioFiles();
+    QStringList audioFiles = getAudioFiles();
+
+    QStringList::const_iterator si;
+    for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
+        std::string o = (*si).toLocal8Bit().constData();
+        std::cout << "audio file: " << o << std::endl;
+    }
 
     /*
     m_process = new QProcess;
