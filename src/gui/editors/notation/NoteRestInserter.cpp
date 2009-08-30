@@ -87,6 +87,7 @@ NoteRestInserter::NoteRestInserter(NotationWidget* widget) :
     createAction("select", SLOT(slotSelectSelected()));
     createAction("erase", SLOT(slotEraseSelected()));
     createAction("rests", SLOT(slotRestsSelected()));
+    createAction("notes", SLOT(slotNotesSelected()));
 
     connect(m_widget, SIGNAL(changeAccidental(Accidental, bool)),
             this, SLOT(slotSetAccidental(Accidental, bool)));
@@ -491,7 +492,8 @@ NoteRestInserter::doAddCommand(Segment &segment, timeT time, timeT endTime,
                            const Note &note, int pitch, Accidental accidental)
 {
     NOTATION_DEBUG << "doAddCommand: time " << time << ", endTime " << endTime
-                   << ", pitch " << pitch << endl;
+                   << ", pitch " << pitch << ",isaRestInserter "
+                   << isaRestInserter() << endl;
 
     Command *activeCommand = 0;  //Used in rest / note mode code
     NoteInsertionCommand *insertionCommand = 0; //Used in rest / note mode code
@@ -698,6 +700,25 @@ void NoteRestInserter::slotRestsSelected()
     if (!action) {
         std::cerr << "WARNING: No such action as " << actionName << std::endl;
     } else {
+        setToRestInserter(true);
+        action->setChecked(true);
+        action->trigger();
+    }
+}
+
+void NoteRestInserter::slotNotesSelected()
+{
+    Note note(m_noteType, m_noteDots);
+    QString actionName(NotationStrings::getReferenceName(note));
+    actionName.replace(QRegExp("-"), "_");
+	
+    QAction *action = findActionInParentView(actionName);
+
+    if (!action) {
+        std::cerr << "WARNING: No such action as " << actionName << std::endl;
+    } else {
+        setToRestInserter(false);
+        action->setChecked(true);
         action->trigger();
     }
 }

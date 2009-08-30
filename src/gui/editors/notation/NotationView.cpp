@@ -147,14 +147,26 @@ NewNotationView::NewNotationView(RosegardenDocument *doc,
     connect(m_notationWidget->getScene(), SIGNAL(selectionChanged()),
             this, SLOT(slotUpdateMenuStates()));
 
-    // Default tool is a note inserter; if we have some notes already,
-    // make the selector the default (c.f. MatrixView also).
-    if (m_notationWidget->segmentsContainNotes()) {
-        findAction("select")->trigger();
-    }
-
     //  Either way, start off with plain durations as the visible notes toolbar
     morphDurationMonobar(InsertingNotes);
+
+    // Determine default action stolen from MatrixView.cpp
+    // Toggle the desired tool off and then trigger it on again, to
+    // make sure its signal is called at least once (as would not
+    // happen if the tool was on by default otherwise)
+    QAction *toolAction = 0;
+    if (!m_notationWidget->segmentsContainNotes()) {
+        toolAction = findAction("draw");
+    } else {
+        toolAction = findAction("select");
+    }
+    if (toolAction) {
+        NOTATION_DEBUG << "initial state for action '" << toolAction->objectName() << "' is " << toolAction->isChecked() << endl;
+        if (toolAction->isChecked()) toolAction->toggle();
+        NOTATION_DEBUG << "newer state for action '" << toolAction->objectName() << "' is " << toolAction->isChecked() << endl;
+        toolAction->trigger();
+        NOTATION_DEBUG << "newest state for action '" << toolAction->objectName() << "' is " << toolAction->isChecked() << endl;
+    }
 
     // Set display configuration
     bool visible;
@@ -1930,10 +1942,13 @@ void
 NewNotationView::slotToggleDot()
 {
     if (m_notationWidget) {
-        NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
+        NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *>
+            (m_notationWidget->getCurrentTool());
         if (!currentInserter) {
             /* was sorry QMessageBox::warning(this, "", tr("No note duration selected"));
             */
+            NOTATION_DEBUG << "NewNotationView::slotToggleDat : expected "
+                       << "NoteRestInserter as current tool.  Silent exit.";
             return ;
         }
         Note note = currentInserter->getCurrentNote();
@@ -1969,7 +1984,9 @@ NewNotationView::slotToggleDot()
         morphDurationMonobar(currentMode);
             
         findAction(noteToolbarName)->setChecked(true);
+        // Show we always open the duration tool bar? Yuck!
         findAction(durationMenuName)->setChecked(true);
+        
 
         slotUpdateMenuStates();
     }

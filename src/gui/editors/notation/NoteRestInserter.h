@@ -92,9 +92,6 @@ public slots:
 protected:
     NoteRestInserter(NotationWidget *);
 
-//    RestInserter(NotationWidget *);  // From RestInserter (delete)
-
-    /// this ctor is used by RestInserter (delete)
     NoteRestInserter(QString rcFileName, QString menuName, NotationWidget *);
 
     timeT getOffsetWithinRest(NotationStaff *,
@@ -122,12 +119,14 @@ protected slots:
     void slotNatural();
     void slotDoubleSharp();
     void slotDoubleFlat();
-    void slotToggleDot();  //Same code as RestInserter
+    void slotToggleDot();
     void slotToggleAutoBeam();
 
     void slotEraseSelected();
     void slotSelectSelected();
-    void slotRestsSelected();
+    // Consider a slotToggleNoteRest() instead
+    void slotRestsSelected();  //Check real need for this
+    void slotNotesSelected();  //Check real need for this
 
 protected:
     //--------------- Data members ---------------------------------

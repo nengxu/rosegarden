@@ -392,7 +392,7 @@ NotationWidget::slotSetRestInserter()
 {
     NoteRestInserter *noteRestInserter = dynamic_cast<NoteRestInserter *>
         (m_toolBox->getTool(NoteRestInserter::ToolName));
-    noteRestInserter->setToRestInserter(false); // set to insert notes.
+    noteRestInserter->setToRestInserter(true); // set to insert notes.
 
     slotSetTool(NoteRestInserter::ToolName);
 }
