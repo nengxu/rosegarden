@@ -635,10 +635,10 @@
 
 <ToolBar name="Duration Toolbar" newline="true" hidden="false" position="left">
   <text>Duration Toolbar</text>
-  <Action name="switch_to_notes" icon="switch-to-notes"/>
-  <Action name="switch_to_rests" icon="switch-to-rests"/>
-  <Action name="switch_dots_on" icon="switch-dots-on"/>
-  <Action name="switch_dots_off" icon="switch-dots-off"/>
+  <Action name="switch_to_notes" icon="switch-to-notes" />
+  <Action name="switch_to_rests" icon="switch-to-rests" />
+  <Action name="switch_dots_on" icon="switch-dots-on" />
+  <Action name="switch_dots_off" icon="switch-dots-off" />
 <Separator/>
   <!-- Reference names, but with _ instead of - -->
   <Action name="breve" icon="breve" checked="false" group="tools_note" tooltip="Double Whole Note (5)" />
@@ -1009,6 +1009,105 @@
   <disable>
    <Action name="insert_control_ruler_item"/>
   </disable>
+</State>
+
+<State name="note_0_dot_mode">
+  <enable>
+    <!-- This line is in question since active always -->
+    <Action name="switch_to_rests" />
+    <Action name="switch_dots_on" />
+    <Action name="insert_note_actionmenu"/>
+    <Action name="chord_mode" />
+    <Action name="triplet_mode" />
+    <Action name="grace_mode" />
+  </enable>
+  <visible>
+    <Action name="switch_to_rests" />
+    <Action name="switch_dots_on" />
+    <Action name="breve" />
+    <Action name="semibreve" />
+    <Action name="minim" />
+    <Action name="crotchet" />
+    <Action name="quaver" />
+    <Action name="semiquaver" />
+    <Action name="demisemi" />
+    <Action name="hemidemisemi" />
+  </visible>
+</State>
+
+<State name="note_1_dot_mode">
+  <enable>
+    <!-- This line is in question since active always -->
+    <Action name="insert_note_actionmenu"/>
+    <Action name="switch_to_rests" />
+    <Action name="switch_dots_off" />
+  </enable>
+  <disable>
+    <Action name="dummy_1" />
+    <Action name="dummy_2" />
+  </disable>
+  <visible>
+    <Action name="switch_to_rests" />
+    <Action name="switch_dots_off" />
+    <Action name="dummy_1" />
+    <Action name="dotted_semibreve" />
+    <Action name="dotted_minim" />
+    <Action name="dotted_crotchet" />
+    <Action name="dotted_quaver" />
+    <Action name="dotted_semiquaver" />
+    <Action name="dotted_demisemi" />
+    <Action name="dummy_2" />
+  </visible>
+</State>
+
+<State name="rest_0_dot_mode">
+  <enable>
+    <Action name="switch_to_notes" />
+    <Action name="switch_dots_on" />
+  </enable>
+  <disable>
+    <Action name="chord_mode" />
+    <Action name="triplet_mode" />
+    <Action name="grace_mode" />
+  </disable>
+  <visible>
+    <Action name="switch_to_notes" />
+    <Action name="switch_dots_on" />
+    <Action name="rest_breve" />
+    <Action name="rest_semibreve" />
+    <Action name="rest_minim" />
+    <Action name="rest_crotchet" />
+    <Action name="rest_quaver" />
+    <Action name="rest_semiquaver" />
+    <Action name="rest_demisemi" />
+    <Action name="rest_hemidemisemi" />
+  </visible>
+</State>
+
+<State name="rest_1_dot_mode">
+  <enable>
+    <Action name="switch_to_notes" />
+    <Action name="switch_dots_off" />
+  </enable>
+  <disable>
+    <Action name="dummy_3" />
+    <Action name="dummy_4" />
+    <Action name="chord_mode" />
+    <Action name="triplet_mode" />
+    <Action name="grace_mode" />
+  </disable>
+  <visible>
+    <Action name="switch_to_notes" />
+    <Action name="switch_dots_off" />
+    <Action name="dummy_3" />
+    <Action name="rest_dotted_semibreve" />
+    <Action name="rest_dotted_minim" />
+    <Action name="rest_dotted_crotchet" />
+    <Action name="rest_dotted_quaver" />
+    <Action name="rest_dotted_semiquaver" />
+    <Action name="rest_dotted_demisemi" />
+    <Action name="dummy_4" />
+  </visible>
 </State>
 
 </kpartgui>

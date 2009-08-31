@@ -630,8 +630,7 @@ NewNotationView::setupActions()
     //Where is "options_show_toolbar" created?
     createAction("show_general_toolbar", SLOT(slotToggleGeneralToolBar()));
     createAction("show_tools_toolbar", SLOT(slotToggleToolsToolBar()));
-    createAction("show_notes_toolbar", SLOT(slotToggleNotesToolBar()));
-    createAction("show_rests_toolbar", SLOT(slotToggleRestsToolBar()));
+    createAction("show_duration_toolbar", SLOT(slotToggleDurationToolBar()));
     createAction("show_accidentals_toolbar", SLOT(slotToggleAccidentalsToolBar()));
     createAction("show_clefs_toolbar", SLOT(slotToggleClefsToolBar()));
     createAction("show_marks_toolbar", SLOT(slotToggleMarksToolBar()));
@@ -1367,14 +1366,9 @@ void NewNotationView::slotToggleToolsToolBar()
     toggleNamedToolBar("Tools Toolbar");
 }
 
-void NewNotationView::slotToggleNotesToolBar()
+void NewNotationView::slotToggleDurationToolBar()
 {
-    toggleNamedToolBar("Notes Toolbar");
-}
-
-void NewNotationView::slotToggleRestsToolBar()
-{
-    toggleNamedToolBar("Rests Toolbar");
+    toggleNamedToolBar("Duration Toolbar");
 }
 
 void NewNotationView::slotToggleAccidentalsToolBar()
@@ -1592,7 +1586,12 @@ NewNotationView::slotSwitchToRests()
 void
 NewNotationView::hideAllDurationMonobarActions()
 {
-    // This makes me nausous with how much it needs to know about the .rc file
+    leaveActionState("note_0_dot_mode");
+    leaveActionState("note_1_dot_mode");
+    leaveActionState("rest_0_dot_mode");
+    leaveActionState("rest_1_dot_mode");
+
+/*    // This makes me nausous with how much it needs to know about the .rc file
     // to work, but this is what we have to do.
 
     // controlling bits
@@ -1644,6 +1643,7 @@ NewNotationView::hideAllDurationMonobarActions()
     findAction("chord_mode")->setEnabled(false);
     findAction("triplet_mode")->setEnabled(false);
     findAction("grace_mode")->setEnabled(false);
+*/
 }
 
 void
@@ -1670,7 +1670,9 @@ NewNotationView::morphDurationMonobar(DurationMonobarModeType mode)
     switch (mode) {
 
     case InsertingNotes:
-        // controlling bits
+        enterActionState("note_0_dot_mode");
+        break;
+/*        // controlling bits
         findAction("switch_to_rests")->setVisible(true);
         findAction("switch_dots_on")->setVisible(true);
         // was Notes Toolbar
@@ -1687,9 +1689,11 @@ NewNotationView::morphDurationMonobar(DurationMonobarModeType mode)
         findAction("triplet_mode")->setEnabled(true);
         findAction("grace_mode")->setEnabled(true);
         break;
-
+*/
    case InsertingDottedNotes:
-        // controlling bits
+        enterActionState("note_1_dot_mode");
+        break;
+/*        // controlling bits
         findAction("switch_to_rests")->setVisible(true);
         findAction("switch_dots_off")->setVisible(true);
         // was Dotted Notes Toolbar
@@ -1706,9 +1710,11 @@ NewNotationView::morphDurationMonobar(DurationMonobarModeType mode)
         findAction("triplet_mode")->setEnabled(true);
         findAction("grace_mode")->setEnabled(true);
         break;
-
+*/
     case InsertingRests:
-        // controlling bits
+        enterActionState("rest_0_dot_mode");
+        break;
+/*        // controlling bits
         findAction("switch_to_notes")->setVisible(true);
         findAction("switch_dots_on")->setVisible(true);
         // was Rests Toolbar
@@ -1725,9 +1731,11 @@ NewNotationView::morphDurationMonobar(DurationMonobarModeType mode)
         findAction("triplet_mode")->setEnabled(false);
         findAction("grace_mode")->setEnabled(false);
         break;
-
+*/
     case InsertingDottedRests:
-        // controlling bits
+        enterActionState("rest_1_dot_mode");
+        break;
+/*        // controlling bits
         findAction("switch_to_notes")->setVisible(true);
         findAction("switch_dots_off")->setVisible(true);
         // was Dotted Rests Toolbar
@@ -1744,7 +1752,7 @@ NewNotationView::morphDurationMonobar(DurationMonobarModeType mode)
         findAction("triplet_mode")->setEnabled(false);
         findAction("grace_mode")->setEnabled(false);
         break;
-
+*/
     default:
         std::cerr << "NewNotationView::morphDurationMonobar:  Damn, well, I guess the DurationMonobar just winked out of existence.  Oh well."  << std::endl;
 

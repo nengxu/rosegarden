@@ -108,8 +108,12 @@ protected slots:
 
     void slotSetSelectTool();
     void slotSetEraseTool();
+    
+    /**
+     * Restore NoteRestInserter as the current tool and recall its
+     * state information.
+     */
     void slotSetNoteRestInserter();
-
 
     void slotInsertNoteFromAction();
     void slotInsertRest();
@@ -200,8 +204,7 @@ protected slots:
 
     void slotToggleGeneralToolBar();
     void slotToggleToolsToolBar();
-    void slotToggleNotesToolBar();
-    void slotToggleRestsToolBar();
+    void slotToggleDurationToolBar();
     void slotToggleAccidentalsToolBar();
     void slotToggleClefsToolBar();
     void slotToggleMarksToolBar();
