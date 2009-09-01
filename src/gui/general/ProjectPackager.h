@@ -102,18 +102,6 @@ protected slots:
     void puke(QString error);
 
     /**
-     * Try to unpack an existing .rgd file, which will entail:
-     *
-     *   1. QProcess a tar xzf command
-     *
-     *   2. decompress the included FLAC files back to .wav
-     *
-     *   3. ???
-     *
-     */
-    void runUnpack();
-
-    /**
      * Begin the packing process, which will entail:
      *
      *   1. discover audio files used by the composition
@@ -141,6 +129,90 @@ protected slots:
      *   9. ???
      */
     void runPack();
+
+    /** Create a temporary working directory and assemble copied files to that
+     * location for further processing.  The copy operations could take some
+     * time, so we probably need a QProcess slot for this, and assemble the
+     * various copy operations into one backend script to execute from that
+     * QProcess.
+     *
+     * When complete, trigger startFlacEncoder()
+     */
+    void assembleFiles(QString path, QStringList files);
+
+    /** Assemble the various flac encoding operations into one backend script to
+     * operate from a single QProcess, so this chewing can take place without
+     * blocking the GUI.  Since it's possible to track the total number of
+     * files, and what file out of n we're on, we should work out some nice way
+     * to hook this up to m_status and give some indication of progress,
+     * instead of just leaving it in "busy" mode.
+     *
+     * When complete, trigger promptAdditionalFiles()
+     */
+    void startFlacEncoder(QString path, QStringList files);
+
+    // flac may leave the original .wav files intact, in which case we need to
+    // clean them up, but we can probably build that into the purpose-built
+    // script created by the preceding chain link without having to insert
+    // another one here.  Probably.
+
+    /** Prompt the user for any additional files they wish to include in the
+     * project package.  This will require a bit of thought.  Once the list is
+     * assembled, copy the files to the temporary working location.
+     *
+     * When complete, trigger compressPackage()
+     */
+    void promptAdditionalFiles();
+
+    /** Turn the whole assembled shebang into a completed .rgp file.  If this
+     * would require more than one QProcess, perhaps do another temporary
+     * backend script, since we will have had so many of them by then, what the
+     * hell.
+     *
+     * We can probably arrange it so this is the final link in the chain, and
+     * signals the end of the pack operation.
+     */
+    void compressPackage();
+
+    /**
+     * Try to unpack an existing .rgd file, which will entail:
+     *
+     *   1. QProcess a tar xzf command
+     *
+     *   2. decompress the included FLAC files back to .wav
+     *
+     *   3. ???
+     *
+     */
+    /** Begin the unpacking process by running 'tar xzf' against the incoming
+     * filename in situ.  That should be fine.
+     *
+     * When complete, trigger startFlacDecoder()
+     */
+    void runUnpack();
+
+    /** We don't have a live document from which to discover the files this time
+     * around. We'll need to look at the disk after unpacking the tarball.  We
+     * may be able to use QFile methods for this and avoid using a QProcess, and
+     * an extra link in the processing chain.
+     */
+    //void discoverFiles()
+
+    /** Discover the flac files and assemble a purpose-built script to decode
+     * them.  If flac leaves the original .flac files intact, we should
+     * incorporate removing them into this script, and get it all done in one
+     * QProcess operation.
+     *
+     * It seems like changing out the audio path would best be done here at this
+     * stage too, but we don't have a live document at this point, so I guess we
+     * want to incorporate that step into the code behind File -> Import Project
+     * Package out at the RosegardenMainWindow level instead, and just make sure
+     * to keep track of what it should be set to for when that step arrives.
+     *
+     * When complete, trigger?  Anything else?
+     */
+    void runFlacDecoder();
+
 };
 
 
