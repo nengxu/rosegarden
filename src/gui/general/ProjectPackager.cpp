@@ -167,6 +167,31 @@ ProjectPackager::runPack()
     AudioFileManager *manager = &m_doc->getAudioFileManager();
     std::string audioPath = manager->getAudioPath();
 
+//  QDir::homePath() and so on
+
+//      Stitch together QDirs?
+//
+//      Qt method for copying files?  (Probably is one.  QFile?  QDir?)
+
+#ifdef COME_BACK_LATER
+    QString tmpDir("~/rosegarden-project-packager-tmp");
+    QString dataDir("");
+    if (tmpDir.exists()) {
+        // If the directory exists, it's left over from an aborted previous run.
+        // Should we clean it up silently, or warn and abort?  At this stage in
+        // development, let's ignore it and carry on
+    } // else
+
+    // make the temporary working directory
+    if (tmpDir.mkdir()) {
+        // copy m_filename
+    } else {
+        puke(tr("<qt>Could not create temporary working directory %1.<br>Processing aborted!</qt>"));
+        return;
+    }
+
+#endif
+
 
     /* 1. find suitable place to write a tmp directory (should it be /tmp or
      * under ~ somewhere, eg. ~/tmp or maybe even a Qt class can figure it out
