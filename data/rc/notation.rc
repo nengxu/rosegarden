@@ -425,7 +425,7 @@
       <Action name="duration_breve" text="&amp;Double Whole Note" icon="breve" shortcut="5" checked="false" group="duration_shortcut" />
       <Action name="duration_semibreve" text="&amp;Whole Note" icon="semibreve" shortcut="1" checked="false" group="duration_shortcut" />
       <Action name="duration_minim" text="&amp;Half Note" icon="minim" shortcut="2" checked="false" group="duration_shortcut" />
-      <Action name="duration_crotchet" text="&amp;Quarter Note" icon="crotchet" shortcut="4" checked="true" group="duration_shortcut" />
+      <Action name="duration_crotchet" text="&amp;Quarter Note" icon="crotchet" shortcut="4" checked="false" group="duration_shortcut" />
       <Action name="duration_quaver" text="&amp;Eighth Note" icon="quaver" shortcut="8" checked="false" group="duration_shortcut" />
       <Action name="duration_semiquaver" text="&amp;Sixteenth note" icon="semiquaver" shortcut="6" checked="false" group="duration_shortcut" />
       <Action name="duration_demisemi" text="&amp;Thirty-Second Note" icon="demisemi" shortcut="3" checked="false" group="duration_shortcut" />

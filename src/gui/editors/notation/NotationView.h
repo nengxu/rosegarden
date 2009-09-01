@@ -121,18 +121,25 @@ protected slots:
     /** Call either slotSwitchToNotes() or slotSwitchToRests() depending on
      * calling context
      */
-    void slotToggleNotesRests();
+    /**
+     * Toggle the current state of the NoteRestInserter state via a call to
+     * slotSwitchToNotes / slotSwitchToRests.
+     */
+    void slotToggleNoteRest();
+
+    /**
+     * Switch the NoteRestInserter to Note Insertion mode and update the gui.
+     */
     void slotSwitchToNotes();
+
+
+    /**
+     * Switch the NoteRestInserter to Rest Insertion mode and update the gui.
+     */
     void slotSwitchToRests();
 
-    /** The logic tangle to try to set the monobar per switching on the mode
-     * would be brutal, so morphDurationMonobar will only show things, relying on this
-     * to have hidden everything beforehand.  It's ugly, but at least this
-     * avoids a complete spaghetti bowl of if then whether logic.
-     */
-    void hideAllDurationMonobarActions();
-
-    /** Contort the DurationMonobar with a long and complicated series of hide and
+    /**
+     * Contort the DurationMonobar with a long and complicated series of hide and
      * show operations that pretty much make my stomach churn.
      *
      * \p mode is one of InsertingNotes, InsertingDottedNotes, InsertingRests,
@@ -140,11 +147,15 @@ protected slots:
      */
     void morphDurationMonobar();
 
-    /** Switch between dotted and plain variations on the current note or rest
+    /**
+     * Switch between dotted and plain variations on the current note or rest
      * duration being inserted (by whatever means insertion is ocurring)
      */
     void slotToggleDot(); 
 
+    /**
+     * Process calls to insert a notes.
+     */
     void slotNoteAction();
     void slotNoAccidental();
     void slotFollowAccidental();

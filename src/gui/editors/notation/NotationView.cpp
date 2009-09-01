@@ -524,7 +524,7 @@ NewNotationView::setupActions()
     // Determines which switch_to slot to call, based on some hackery inserted
     // into NoteInserter to figure out from outside if it's a NoteInserter
     // inserting notes or a NoteInserter inserting rests
-    createAction("toggle_notes_rests", SLOT(slotToggleNotesRests()));
+    createAction("toggle_notes_rests", SLOT(slotToggleNoteRest()));
 
     //"NoteTool" subMenu
     //NEED to create action methods
@@ -1445,6 +1445,8 @@ NewNotationView::slotSetEraseTool()
 void
 NewNotationView::slotSetNoteRestInserter()
 {
+    NOTATION_DEBUG << "NewNotationView::slotSetNoteRestInserter : entered. " << endl;
+
     if (m_notationWidget) m_notationWidget->slotSetNoteRestInserter();
 
     //Must ensure it is set since may be called from multiple actions. 
@@ -1453,8 +1455,10 @@ NewNotationView::slotSetNoteRestInserter()
 }    
 
 void
-NewNotationView::slotToggleNotesRests()
+NewNotationView::slotToggleNoteRest()
 {
+    NOTATION_DEBUG << "NewNotationView::slotToggleNoteRest : entered. " << endl;
+
     NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
 
     if (currentInserter) {
@@ -1468,6 +1472,8 @@ NewNotationView::slotToggleNotesRests()
 void
 NewNotationView::slotSwitchToNotes()
 {
+    NOTATION_DEBUG << "NewNotationView::slotSwitchToNotes : entered. " << endl;
+
 // Remove from here later save for Initial State code
 /*    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
 
@@ -1489,15 +1495,16 @@ NewNotationView::slotSwitchToNotes()
 
         if (!currentInserter) {
             NOTATION_DEBUG << "NewNotationView::slotSwitchToNotes() : expected"
-                       << " NoteRestInserter as current tool.  Silent exit.";
+                       << " NoteRestInserter as current tool.  Silent exit."
+                       << endl;
             return;
         }
 
-        if (!currentInserter->isaRestInserter()) {
-            // Nothing to do already in note mode
-            return;
-        }
-
+        // Removed efficiency check -- if current inserter = notes then exit.
+        // This slot is called from slotNoteAction which somtimes toggle dot
+        // off and this in efficience is now tolerable for clean code purpose
+        // in slotNoteAction.
+        
         Note::Type unitType = currentInserter->getCurrentNote()
             .getNoteType();
         int dots = (currentInserter->getCurrentNote().getDots() ? 1 : 0);
@@ -1507,9 +1514,11 @@ NewNotationView::slotSwitchToNotes()
         m_notationWidget->slotSetNoteInserter();
     }
 
-    morphDurationMonobar();
-    findAction(QString("duration_%1").arg(actionName))->setChecked(true);
+    //Must set duration_ shortcuts to false to allow repressing
+    //This fixes bug when in rest mode a eq. duration shortcut is pressed
+    findAction(QString("duration_%1").arg(actionName))->setChecked(false);
     findAction(actionName)->setChecked(true);
+    morphDurationMonobar();
 
     slotUpdateMenuStates();
 }
@@ -1517,6 +1526,8 @@ NewNotationView::slotSwitchToNotes()
 void
 NewNotationView::slotSwitchToRests()
 {
+    NOTATION_DEBUG << "NewNotationView::slotSwitchToRests : entered. " << endl;
+
 // Remove later save (as above) for Initail State code.
 /*    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
 
@@ -1539,14 +1550,13 @@ NewNotationView::slotSwitchToRests()
 
         if (!currentInserter) {
             NOTATION_DEBUG << "NewNotationView::slotSwitchToRests() : expected"
-                       << " NoteRestInserter as current tool.  Silent exit.";
+                       << " NoteRestInserter as current tool.  Silent exit."
+                       << endl;
             return;
         }
-
-        if (currentInserter->isaRestInserter()) {
-            // Nothing to do already in rest mode
-            return;
-        }
+        
+        // Removed efficiency check -- to mirror slotSwitchToNote.
+        // So efficiency lost if already in note restmode when called.
 
         Note::Type unitType = currentInserter->getCurrentNote()
             .getNoteType();
@@ -1557,25 +1567,20 @@ NewNotationView::slotSwitchToRests()
         m_notationWidget->slotSetRestInserter();
     }
 
-    morphDurationMonobar();
-    findAction(QString("duration_%1").arg(actionName))->setChecked(true);
+    //Must set duration_ shortcuts to false to allow repressing
+    //This fixes bug when in rest mode a eq. duration shortcut is pressed
+    findAction(QString("duration_%1").arg(actionName))->setChecked(false);
     findAction(QString("rest_%1").arg(actionName))->setChecked(true);
+    morphDurationMonobar();
 
     slotUpdateMenuStates();
 }
 
 void
-NewNotationView::hideAllDurationMonobarActions()
-{
-    leaveActionState("note_0_dot_mode");
-    leaveActionState("note_1_dot_mode");
-    leaveActionState("rest_0_dot_mode");
-    leaveActionState("rest_1_dot_mode");
-}
-
-void
 NewNotationView::morphDurationMonobar()
 {
+    NOTATION_DEBUG << "NewNotationView::morphDurationMonobar : entered. " << endl;
+
     NoteRestInserter *currentInserter = 0; 
     if(m_notationWidget) {
         currentInserter = dynamic_cast<NoteRestInserter *>
@@ -1587,7 +1592,8 @@ NewNotationView::morphDurationMonobar()
     {
         // Morph called when NoteRestInserter not set as current tool
         NOTATION_DEBUG << "NewNotationView::morphNotationToolbar() : expected"
-               << " NoteRestInserter as current tool. Set to Notes Toolbar.";
+               << " NoteRestInserter as current tool. Set to Notes Toolbar."
+               << endl;
     } else {
         // Retrieve duration and dot values
         // This may be un-necessary now
@@ -1612,9 +1618,14 @@ NewNotationView::morphDurationMonobar()
     default: modeStr = "WTF?  This won't be pretty.";
 
     }
-    std::cerr << "NewNotationView::morphDurationMonobar: morphing to " << modeStr << std::endl;
+    std::cerr << "NewNotationView::morphDurationMonobar: morphing to "
+        << modeStr << std::endl;
 
-    hideAllDurationMonobarActions();
+    //leave all states. Hide all buttons in duration toolbar.
+    leaveActionState("note_0_dot_mode");
+    leaveActionState("note_1_dot_mode");
+    leaveActionState("rest_0_dot_mode");
+    leaveActionState("rest_1_dot_mode");
 
     // Then we have to switch things back on per mode in a big messy switch
     // statement wrapped around an alternate expression of the same 43 lines
@@ -1623,7 +1634,7 @@ NewNotationView::morphDurationMonobar()
     case InsertingNotes:
         enterActionState("note_0_dot_mode");
         break;
-   case InsertingDottedNotes:
+    case InsertingDottedNotes:
         enterActionState("note_1_dot_mode");
         break;
     case InsertingRests:
@@ -1633,8 +1644,9 @@ NewNotationView::morphDurationMonobar()
         enterActionState("rest_1_dot_mode");
         break;
     default:
-        std::cerr << "NewNotationView::morphDurationMonobar:  Damn, well, I guess the DurationMonobar just winked out of existence.  Oh well."  << std::endl;
-
+        std::cerr << "NewNotationView::morphDurationMonobar:  Damn, well, "
+            << "I guess the DurationMonobar just winked out of existence."
+            << std::endl;
     }
 }
 
@@ -1734,7 +1746,7 @@ void NewNotationView::slotInsertNoteFromAction()
 
         if(!currentInserter) {
             //set the NoteRestInserter as current
-            m_notationWidget->slotSetNoteRestInserter();
+            slotSetNoteRestInserter();
             //re-fetch the current tool for analysis
             currentInserter = dynamic_cast<NoteRestInserter *>
                 (m_notationWidget->getCurrentTool());
@@ -1746,18 +1758,6 @@ void NewNotationView::slotInsertNoteFromAction()
             }
         }
     }
-
-// Revert State not needed remove later
-/*     bool wasRestInserter = false;
-    if (dynamic_cast<RestInserter *> (m_notationWidget->getCurrentTool()) ) {
-        // When keyboard was used for inserting a note, use
-        //  (i)  keys "QWERUIO", "ASDJFKL" and "ZCXVBNM" for inserting notes and
-        //  (ii) key "P" for inserting rests.
-        // Therefore, switch here temporarily for inserting Notes.
-        wasRestInserter = true;
-        slotSwitchToNotes();
-    }
-*/
         
     int pitch = 0;
     Accidental accidental =
@@ -1789,12 +1789,6 @@ void NewNotationView::slotInsertNoteFromAction()
 
     currentInserter->insertNote(*segment, insertionTime, pitch, accidental);
 
-/*
-    if (wasRestInserter) {
-        // Switch back to inserting Rests, if rests were selected.
-        slotSwitchToRests();
-    }
-*/
 }
 
 void NewNotationView::slotInsertRest()
@@ -1813,87 +1807,57 @@ void NewNotationView::slotInsertRest()
         return;
     }
 
-//Revert State note needed.  Remove later
-/* 
-    bool wasNoteInserter = false;
-    if (! dynamic_cast<RestInserter *> (m_notationWidget->getCurrentTool()) ) {
-        wasNoteInserter = true;
-        slotSwitchToRests();
-    }
-*/
     timeT insertionTime = getInsertionTime();
 
     currentInserter->insertNote(*segment, insertionTime,
                                 0, Accidentals::NoAccidental, true);
-
-/*
-    if (wasNoteInserter) {
-        // If Notes Toolbar was selected, continue inserting notes
-        slotSwitchToNotes();
-    }
-*/
 }
 
 void
 NewNotationView::slotToggleDot()
 {
+    NOTATION_DEBUG << "NewNotationView::slotToggleDot : entered. " << endl;
     if (m_notationWidget) {
         NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *>
             (m_notationWidget->getCurrentTool());
         if (!currentInserter) {
             /* was sorry QMessageBox::warning(this, "", tr("No note duration selected"));
             */
-            NOTATION_DEBUG << "NewNotationView::slotToggleDat : expected "
+            NOTATION_DEBUG << "NewNotationView::slotToggleDot : expected "
                        << "NoteRestInserter as current tool.  Silent exit.";
             return ;
         }
         Note note = currentInserter->getCurrentNote();
-        QString durationMenuName;
-        QString noteToolbarName;
 
         Note::Type noteType = note.getNoteType();
-        int noteDots = (note.getDots() ? 0 : 1);
+        int noteDots = (note.getDots() ? 0 : 1); // Toggle the dot state
 
         QString actionName(NotationStrings::getReferenceName(Note(noteType,noteDots)));
         actionName.replace(QRegExp("-"), "_");
 
-        durationMenuName = QString("duration_%1").arg(actionName);
-
-        DurationMonobarModeType currentMode = InsertingNotes;
-
-        if (currentInserter->isaRestInserter()) {
-            // ensure that rest_ preface the note duration
-            noteToolbarName = QString("rest_%1").arg(actionName.replace("rest_",""));
-            m_notationWidget->slotSetRestInserter();
-            currentMode = InsertingRests;
-        } else {
-            noteToolbarName = actionName;
-            m_notationWidget->slotSetNoteInserter();
-        }
         m_notationWidget->slotSetInsertedNote(noteType, noteDots);
-
-        // morph the monobar using a logic chain that would make the Barilla
-        // pasta company proud
-
-        morphDurationMonobar();
-            
-//        findAction(noteToolbarName)->setChecked(true);
-//        findAction(durationMenuName)->setChecked(true);
-
-        slotUpdateMenuStates();
+        if (currentInserter->isaRestInserter()) {
+            slotSwitchToRests();
+        } else {
+            slotSwitchToNotes();
+        }
     }
 }
 
 void
 NewNotationView::slotNoteAction()
 {
+    NOTATION_DEBUG << "NewNotationView::slotNoteAction : entered. " << endl;
+
     QObject *s = sender();
     QString name = s->objectName();
-    QString durationMenuName;
+//    QString durationMenuName;
     QString noteToolbarName;
 
-    bool rest = false;
+    //Set defaults for duration_ shortcut calls
+    bool rest = false;  
     int dots = 0;
+    bool durationShortcutCalled = false;
 
     if (m_notationWidget) {
         NoteRestInserter *currentTool = dynamic_cast<NoteRestInserter *>
@@ -1907,51 +1871,41 @@ NewNotationView::slotNoteAction()
         }
         if (name.startsWith("duration_")) {
             name = name.replace("duration_", "");
-            if (currentTool->isaRestInserter()) {
-                //Insert note called from keyboard.
-                //Must switch to insert Notes
-                slotSwitchToNotes();
+            NOTATION_DEBUG << "NewNotationView::slotNoteAction : "
+                << "Duration shortcut called." << endl;
+            //duration shortcut called from keyboard or menu.
+            //Must switch to insert Notes mode.
+
+        } else if (currentTool->isaRestInserter()) {
+            NOTATION_DEBUG << "NewNotationView::slotNoteAction : "
+                << "Have rest inserter." << endl;
+            if (name.startsWith("rest_")) {
+                name = name.replace("rest_", "");
             }
-            if (currentTool) {
-                if (currentTool->isaRestInserter()) {
-                    NOTATION_DEBUG << "Have rest inserter " << endl;
-                    name = QString("rest_%1").arg(name);
-                } else {
-                    NOTATION_DEBUG << "Have note inserter " << endl;
-                }
-            }
+            rest = true;
+        } else {
+            NOTATION_DEBUG << "NewNotationView::slotNoteAction : "
+                << "Have note inserter." << endl;
         }
     }
 
-    noteToolbarName = name;
-    if (name.startsWith("rest_")) {
-        rest = true;
-        name = name.replace("rest_", "");
-    }
-
-    durationMenuName = QString("duration_%1").arg(name);
+//    durationMenuName = QString("duration_%1").arg(name);
     if (name.startsWith("dotted_")) {
         dots = 1;
         name = name.replace("dotted_", "");
     }
 
-    Note::Type type(NotationStrings::getNoteForName(name).getNoteType());
+    Note::Type type = NotationStrings::getNoteForName(name).getNoteType();
     if (m_notationWidget) {
         m_notationWidget->slotSetInsertedNote(type, dots);
         if (rest) {
-            m_notationWidget->slotSetRestInserter();
+//            m_notationWidget->slotSetRestInserter();
             slotSwitchToRests();
         } else {
-            m_notationWidget->slotSetNoteInserter();
+//            m_notationWidget->slotSetNoteInserter();
             slotSwitchToNotes();
         }
     }
-    
-    findAction(noteToolbarName)->setChecked(true);
-    findAction(durationMenuName)->setChecked(true);
-
-    slotUpdateMenuStates();
-
     //!!! todo: set status bar indication
 }
 
