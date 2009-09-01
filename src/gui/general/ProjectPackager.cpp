@@ -296,8 +296,11 @@ ProjectPackager::startFlacEncoder(QString path, QStringList files)
     script.close();
 
     // run the assembled script
+    m_process = new QProcess;
     m_process->setWorkingDirectory(path);
-    m_process->start(scriptName);
+    m_process->start("bash", QStringList() << scriptName);
+//    m_process->waitForFinished();  (just testing to make sure the script
+//    actually ate up time as intended for proof of concept purposes)
     connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(runTar(int, QProcess::ExitStatus)));
 }
