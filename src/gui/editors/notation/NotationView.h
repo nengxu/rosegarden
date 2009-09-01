@@ -138,7 +138,7 @@ protected slots:
      * \p mode is one of InsertingNotes, InsertingDottedNotes, InsertingRests,
      * etc. (see the typedef DurationMonobarModeType for a complete list)
      */
-    void morphDurationMonobar(const DurationMonobarModeType mode);
+    void morphDurationMonobar();
 
     /** Switch between dotted and plain variations on the current note or rest
      * duration being inserted (by whatever means insertion is ocurring)

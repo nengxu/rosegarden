@@ -422,21 +422,21 @@
     <Menu noMerge="1" name="DurationTools">
       <text>&amp;Durations</text>
 	    <!-- Reference names, but with _ instead of - -->
-      <Action name="duration_breve" text="&amp;Double Whole Note" icon="breve" shortcut="5" checked="false" group="tools_duration" />
-      <Action name="duration_semibreve" text="&amp;Whole Note" icon="semibreve" shortcut="1" checked="false" group="tools_duration" />
-      <Action name="duration_minim" text="&amp;Half Note" icon="minim" shortcut="2" checked="false" group="tools_duration" />
-      <Action name="duration_crotchet" text="&amp;Quarter Note" icon="crotchet" shortcut="4" checked="true" group="tools_duration" />
-      <Action name="duration_quaver" text="&amp;Eighth Note" icon="quaver" shortcut="8" checked="false" group="tools_duration" />
-      <Action name="duration_semiquaver" text="&amp;Sixteenth note" icon="semiquaver" shortcut="6" checked="false" group="tools_duration" />
-      <Action name="duration_demisemi" text="&amp;Thirty-Second Note" icon="demisemi" shortcut="3" checked="false" group="tools_duration" />
-      <Action name="duration_hemidemisemi" text="Sixty-&amp;Fourth Note" icon="hemidemisemi" shortcut="0" checked="false" group="tools_duration" />
+      <Action name="duration_breve" text="&amp;Double Whole Note" icon="breve" shortcut="5" checked="false" group="duration_shortcut" />
+      <Action name="duration_semibreve" text="&amp;Whole Note" icon="semibreve" shortcut="1" checked="false" group="duration_shortcut" />
+      <Action name="duration_minim" text="&amp;Half Note" icon="minim" shortcut="2" checked="false" group="duration_shortcut" />
+      <Action name="duration_crotchet" text="&amp;Quarter Note" icon="crotchet" shortcut="4" checked="true" group="duration_shortcut" />
+      <Action name="duration_quaver" text="&amp;Eighth Note" icon="quaver" shortcut="8" checked="false" group="duration_shortcut" />
+      <Action name="duration_semiquaver" text="&amp;Sixteenth note" icon="semiquaver" shortcut="6" checked="false" group="duration_shortcut" />
+      <Action name="duration_demisemi" text="&amp;Thirty-Second Note" icon="demisemi" shortcut="3" checked="false" group="duration_shortcut" />
+      <Action name="duration_hemidemisemi" text="Sixty-&amp;Fourth Note" icon="hemidemisemi" shortcut="0" checked="false" group="duration_shortcut" />
     <Separator/>
-      <Action name="duration_dotted_semibreve" text="D&amp;otted Whole Note" icon="dotted-semibreve" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_minim" text="Dotted Half &amp;Note" icon="dotted-minim" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_crotchet" text="Dotted Q&amp;uarter Note" icon="dotted-crotchet" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_quaver" text="Dotted E&amp;ighth Note" icon="dotted-quaver" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_semiquaver" text="Dotted Si&amp;xteenth Note" icon="dotted-semiquaver" checked="false" group="tools_duration" />
-      <Action name="duration_dotted_demisemi" text="Dotted Thirt&amp;y-Second Note" icon="dotted-demisemi" checked="false" group="tools_duration" />
+      <Action name="duration_dotted_semibreve" text="D&amp;otted Whole Note" icon="dotted-semibreve" checked="false" group="duration_shortcut" />
+      <Action name="duration_dotted_minim" text="Dotted Half &amp;Note" icon="dotted-minim" checked="false" group="duration_shortcut" />
+      <Action name="duration_dotted_crotchet" text="Dotted Q&amp;uarter Note" icon="dotted-crotchet" checked="false" group="duration_shortcut" />
+      <Action name="duration_dotted_quaver" text="Dotted E&amp;ighth Note" icon="dotted-quaver" checked="false" group="duration_shortcut" />
+      <Action name="duration_dotted_semiquaver" text="Dotted Si&amp;xteenth Note" icon="dotted-semiquaver" checked="false" group="duration_shortcut" />
+      <Action name="duration_dotted_demisemi" text="Dotted Thirt&amp;y-Second Note" icon="dotted-demisemi" checked="false" group="duration_shortcut" />
     <Separator/>
       <Action name="toggle_dot" text="To&amp;ggle Dot" shortcut="." />
       <Action name="toggle_notes_rests" text="Switch &amp;Between Notes and Rests " shortcut="Y"/>
@@ -610,8 +610,8 @@
 <ToolBar name="Tools Toolbar">
   <text>Tools Toolbar</text>
   <Action name="select" />
-  <Action name="erase" />
   <Action name="draw" />
+  <Action name="erase" />
   <Action name="text" />
   <Action name="guitarchord" />
   <Separator/>
@@ -633,7 +633,7 @@
   <Action name="panic" />
 </ToolBar>
 
-<ToolBar name="Duration Toolbar" newline="true" hidden="false" position="left">
+<ToolBar name="Duration Toolbar" hidden="false" position="left">
   <text>Duration Toolbar</text>
   <Action name="switch_to_notes" icon="switch-to-notes" />
   <Action name="switch_to_rests" icon="switch-to-rests" />
@@ -641,44 +641,42 @@
   <Action name="switch_dots_off" icon="switch-dots-off" />
 <Separator/>
   <!-- Reference names, but with _ instead of - -->
-  <Action name="breve" icon="breve" checked="false" group="tools_note" tooltip="Double Whole Note (5)" />
-  <Action name="semibreve" icon="semibreve" checked="false" group="tools_note" tooltip="Whole Note (1)" />
-  <Action name="minim" icon="minim" checked="false" group="tools_note" tooltip="Half Note (2)" />
-  <Action name="crotchet" icon="crotchet" checked="true" group="tools_note" tooltip="Quarter Note (4)" />
-  <Action name="quaver" icon="quaver" checked="false" group="tools_note" tooltip="Eighth Note (8)" />
-  <Action name="semiquaver" icon="semiquaver" checked="false" group="tools_note" tooltip="Sixteenth Note (6)" />
-  <Action name="demisemi" icon="demisemi" checked="false" group="tools_note" tooltip="Thirty-Second Note (3)" />
-  <Action name="hemidemisemi" icon="hemidemisemi" checked="false" group="tools_note" tooltip="Sixty-Fourth Note (0)" />
+  <Action name="dummy_1" icon="duration-not-available" checked="false" group="duration_toolbar" />
+  <Action name="breve" icon="breve" checked="false" group="duration_toolbar" tooltip="Double Whole Note (5)" />
+  <Action name="semibreve" icon="semibreve" checked="false" group="duration_toolbar" tooltip="Whole Note (1)" />
+  <Action name="minim" icon="minim" checked="false" group="duration_toolbar" tooltip="Half Note (2)" />
+  <Action name="crotchet" icon="crotchet" checked="true" group="duration_toolbar" tooltip="Quarter Note (4)" />
+  <Action name="quaver" icon="quaver" checked="false" group="duration_toolbar" tooltip="Eighth Note (8)" />
+  <Action name="semiquaver" icon="semiquaver" checked="false" group="duration_toolbar" tooltip="Sixteenth Note (6)" />
+  <Action name="demisemi" icon="demisemi" checked="false" group="duration_toolbar" tooltip="Thirty-Second Note (3)" />
+  <Action name="hemidemisemi" icon="hemidemisemi" checked="false" group="duration_toolbar" tooltip="Sixty-Fourth Note (0)" />
   <!-- was Dotted Notes Toolbar -->
-  <Action name="dummy_1" icon="duration-not-available" checked="false" group="tools_note" />
-  <Action name="dotted_semibreve" icon="dotted-semibreve" checked="false" group="tools_note" tooltip="Dotted Whole Note" />
-  <Action name="dotted_minim" icon="dotted-minim" checked="false" group="tools_note" tooltip="Dotted Half Note" />
-  <Action name="dotted_crotchet" icon="dotted-crotchet" checked="false" group="tools_note" tooltip="Dotted Quarter Note" />
-  <Action name="dotted_quaver" icon="dotted-quaver" checked="false" group="tools_note" tooltip="Dotted Eighth Note" />
-  <Action name="dotted_semiquaver" icon="dotted-semiquaver" checked="false" group="tools_note" tooltip="Dotted Sixteenth Note" />
-  <Action name="dotted_demisemi" icon="dotted-demisemi" checked="false" group="tools_note" tooltip="Dotted Thirty-Second Note" />
-  <Action name="dummy_2" icon="duration-not-available" checked="false" group="tools_note" />
+  <Action name="dotted_semibreve" icon="dotted-semibreve" checked="false" group="duration_toolbar" tooltip="Dotted Whole Note" />
+  <Action name="dotted_minim" icon="dotted-minim" checked="false" group="duration_toolbar" tooltip="Dotted Half Note" />
+  <Action name="dotted_crotchet" icon="dotted-crotchet" checked="false" group="duration_toolbar" tooltip="Dotted Quarter Note" />
+  <Action name="dotted_quaver" icon="dotted-quaver" checked="false" group="duration_toolbar" tooltip="Dotted Eighth Note" />
+  <Action name="dotted_semiquaver" icon="dotted-semiquaver" checked="false" group="duration_toolbar" tooltip="Dotted Sixteenth Note" />
+  <Action name="dotted_demisemi" icon="dotted-demisemi" checked="false" group="duration_toolbar" tooltip="Dotted Thirty-Second Note" />
   <!-- was Rests Toolbar -->
-  <Action name="rest_breve" icon="rest-breve" checked="false" group="tools_note" tooltip="Double Whole Rest (5)" />
-  <Action name="rest_semibreve" icon="rest-semibreve" checked="false" group="tools_note" tooltip="Whole Rest (1)" />
-  <Action name="rest_minim" icon="rest-minim" checked="false" group="tools_note" tooltip="Half Rest (2)" />
-  <Action name="rest_crotchet" icon="rest-crotchet" checked="false" group="tools_note" tooltip="Quarter Rest (4)" />
-  <Action name="rest_quaver" icon="rest-quaver" checked="false" group="tools_note" tooltip="Eighth Rest (8)" />
-  <Action name="rest_semiquaver" icon="rest-semiquaver" checked="false" group="tools_note" tooltip="Sixteenth Rest (6)" />
-  <Action name="rest_demisemi" icon="rest-demisemi" checked="false" group="tools_note" tooltip="Thirty-Second Rest (3)" />
-  <Action name="rest_hemidemisemi" icon="rest-hemidemisemi" checked="false" group="tools_note" tooltip="Sixty-Fourth Rest (0)" />
+  <Action name="rest_breve" icon="rest-breve" checked="false" group="duration_toolbar" tooltip="Double Whole Rest (5)" />
+  <Action name="rest_semibreve" icon="rest-semibreve" checked="false" group="duration_toolbar" tooltip="Whole Rest (1)" />
+  <Action name="rest_minim" icon="rest-minim" checked="false" group="duration_toolbar" tooltip="Half Rest (2)" />
+  <Action name="rest_crotchet" icon="rest-crotchet" checked="false" group="duration_toolbar" tooltip="Quarter Rest (4)" />
+  <Action name="rest_quaver" icon="rest-quaver" checked="false" group="duration_toolbar" tooltip="Eighth Rest (8)" />
+  <Action name="rest_semiquaver" icon="rest-semiquaver" checked="false" group="duration_toolbar" tooltip="Sixteenth Rest (6)" />
+  <Action name="rest_demisemi" icon="rest-demisemi" checked="false" group="duration_toolbar" tooltip="Thirty-Second Rest (3)" />
+  <Action name="rest_hemidemisemi" icon="rest-hemidemisemi" checked="false" group="duration_toolbar" tooltip="Sixty-Fourth Rest (0)" />
   <!-- was Dotted Rests Toolbar -->
-  <Action name="dummy_3" icon="duration-not-available" checked="false" group="tools_note" />
-  <Action name="rest_dotted_semibreve" icon="dotted-rest-semibreve" checked="false" group="tools_note" tooltip="Dotted Whole Rest" />
-  <Action name="rest_dotted_minim" icon="dotted-rest-minim" checked="false" group="tools_note" tooltip="Dotted Half Rest" />
-  <Action name="rest_dotted_crotchet" icon="dotted-rest-crotchet" checked="false" group="tools_note" tooltip="Dotted Quarter Rest" />
-  <Action name="rest_dotted_quaver" icon="dotted-rest-quaver" checked="false" group="tools_note" tooltip="Dotted Eighth Rest" />
-  <Action name="rest_dotted_semiquaver" icon="dotted-rest-semiquaver" checked="false" group="tools_note" tooltip="Dotted Sixteenth Rest" />
-  <Action name="rest_dotted_demisemi" icon="dotted-rest-demisemi" checked="false" group="tools_note" tooltip="Dotted Thirty-Second Rest" />
-  <Action name="dummy_4" icon="duration-not-available" checked="false" group="tools_note" />
+  <Action name="rest_dotted_semibreve" icon="dotted-rest-semibreve" checked="false" group="duration_toolbar" tooltip="Dotted Whole Rest" />
+  <Action name="rest_dotted_minim" icon="dotted-rest-minim" checked="false" group="duration_toolbar" tooltip="Dotted Half Rest" />
+  <Action name="rest_dotted_crotchet" icon="dotted-rest-crotchet" checked="false" group="duration_toolbar" tooltip="Dotted Quarter Rest" />
+  <Action name="rest_dotted_quaver" icon="dotted-rest-quaver" checked="false" group="duration_toolbar" tooltip="Dotted Eighth Rest" />
+  <Action name="rest_dotted_semiquaver" icon="dotted-rest-semiquaver" checked="false" group="duration_toolbar" tooltip="Dotted Sixteenth Rest" />
+  <Action name="rest_dotted_demisemi" icon="dotted-rest-demisemi" checked="false" group="duration_toolbar" tooltip="Dotted Thirty-Second Rest" />
+  <Action name="dummy_2" icon="duration-not-available" checked="false" group="duration_toolbar" />
 <Separator/>
-  <Action name="chord_mode"/>
   <Action name="triplet_mode" />
+  <Action name="chord_mode"/>
   <Action name="grace_mode" />
 </ToolBar>
 
@@ -781,19 +779,14 @@
   <Action name="flip_control_events_back" text="Flip Backwards" shortcut="]" />
 </Menu>
 
-<State name="note_insert_tool_current">
-  <disable>
-    <Action name="switch_to_notes"/>
-  </disable>
+<State name="note_rest_tool_current">
   <enable>
+    <Action name="switch_to_notes"/>
+    <Action name="switch_to_rests"/>
+    <Action name="switch_dots_on" />
+    <Action name="switch_dots_off" />
     <Action name="insert_note_actionmenu"/>
   </enable>
-</State>
-
-<State name="rest_insert_tool_current">
-  <disable>
-    <Action name="switch_to_rests"/>
-  </disable>
 </State>
 
 <State name="have_selection">
@@ -1018,7 +1011,6 @@
     <Action name="switch_dots_on" />
     <Action name="insert_note_actionmenu"/>
     <Action name="chord_mode" />
-    <Action name="triplet_mode" />
     <Action name="grace_mode" />
   </enable>
   <visible>
@@ -1067,7 +1059,6 @@
   </enable>
   <disable>
     <Action name="chord_mode" />
-    <Action name="triplet_mode" />
     <Action name="grace_mode" />
   </disable>
   <visible>
@@ -1090,23 +1081,22 @@
     <Action name="switch_dots_off" />
   </enable>
   <disable>
-    <Action name="dummy_3" />
-    <Action name="dummy_4" />
+    <Action name="dummy_1" />
+    <Action name="dummy_2" />
     <Action name="chord_mode" />
-    <Action name="triplet_mode" />
     <Action name="grace_mode" />
   </disable>
   <visible>
     <Action name="switch_to_notes" />
     <Action name="switch_dots_off" />
-    <Action name="dummy_3" />
+    <Action name="dummy_1" />
     <Action name="rest_dotted_semibreve" />
     <Action name="rest_dotted_minim" />
     <Action name="rest_dotted_crotchet" />
     <Action name="rest_dotted_quaver" />
     <Action name="rest_dotted_semiquaver" />
     <Action name="rest_dotted_demisemi" />
-    <Action name="dummy_4" />
+    <Action name="dummy_2" />
   </visible>
 </State>
 
