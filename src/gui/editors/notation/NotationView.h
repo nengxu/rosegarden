@@ -244,8 +244,7 @@ private:
      * morph into what used to be separate toolbars in a cleaner and simpler
      * world.
      */
-    typedef enum { Initialize,
-                   InsertingNotes,
+    typedef enum { InsertingNotes,
                    InsertingDottedNotes,
                    InsertingRests,
                    InsertingDottedRests

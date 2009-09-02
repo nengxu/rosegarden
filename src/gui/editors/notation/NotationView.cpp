@@ -127,7 +127,7 @@ NewNotationView::NewNotationView(RosegardenDocument *doc,
                                  QWidget *parent) :
     EditViewBase(doc, segments, parent),
     m_document(doc),
-    m_durationMode(Initialize)
+    m_durationMode(InsertingRests) //Fool morphDurationToolbar during first call
 {
     m_notationWidget = new NotationWidget();
     setCentralWidget(m_notationWidget);
@@ -511,8 +511,8 @@ NewNotationView::setupActions()
     // to draw a lot of fancy icons for disabled durations, we have this dummy
     // filler to keep spacing the same across all toolbars, and there have to
     // two of them
-    QAction * dummyAction = createAction("dummy_1", SLOT());
-    dummyAction = createAction("dummy_2", SLOT());
+    createAction("dummy_1", SLOT());
+    createAction("dummy_2", SLOT());
 
     //"NoteTool" subMenu
     //NEED to create action methods
@@ -1557,25 +1557,24 @@ NewNotationView::morphDurationMonobar()
         (m_notationWidget->getCurrentTool());
     }
 
-    DurationMonobarModeType newMode = Initialize;
     if (!currentInserter)
     {
         // Morph called when NoteRestInserter not set as current tool
         NOTATION_DEBUG << "NewNotationView::morphNotationToolbar() : expected"
-               << " NoteRestInserter defaulting to Initialize." 
+               << " NoteRestInserter.  Silent Exit." 
                << endl;
+        return;
 
-    } else {
-        // Retrieve duration and dot values
-        // This may be un-necessary now
-        int dots = currentInserter->getCurrentNote().getDots();
+    }
+    // Retrieve duration and dot values
+    int dots = currentInserter->getCurrentNote().getDots();
         
-        // Determine duration tooolbar mode
-        if (currentInserter->isaRestInserter()) {
-            newMode = (dots ? InsertingDottedRests : InsertingRests);
-        } else {
-            newMode = (dots ? InsertingDottedNotes : InsertingNotes);
-        }
+    // Determine duration tooolbar mode
+    DurationMonobarModeType newMode = InsertingNotes;
+    if (currentInserter->isaRestInserter()) {
+        newMode = (dots ? InsertingDottedRests : InsertingRests);
+    } else {
+        newMode = (dots ? InsertingDottedNotes : InsertingNotes);
     }
     
     //Convert to English for debug purposes.        
@@ -1586,14 +1585,13 @@ NewNotationView::morphDurationMonobar()
     case InsertingDottedNotes: modeStr = "Dotted Notes Toolbar"; break;
     case InsertingRests: modeStr = "Rests Toolbar"; break;
     case InsertingDottedRests: modeStr = "Dotted Rests Toolbar"; break;
-    case Initialize: modeStr = "Initialized 'Note Toolbar'"; break;
     default: modeStr = "WTF?  This won't be pretty.";
 
     }
     NOTATION_DEBUG << "NewNotationView::morphDurationMonobar: morphing to "
         << modeStr << endl;
 
-    if (newMode == m_durationMode && m_durationMode != Initialize) {
+    if (newMode == m_durationMode) {
         NOTATION_DEBUG << "NewNotationView::morphDurationMonobar: new "
             << "mode and last mode are the same.  exit wothout morphing."
             << endl;
@@ -1602,13 +1600,6 @@ NewNotationView::morphDurationMonobar()
     
     // Turn off current state (or last state--depending on perspective.)
     switch (m_durationMode) {
-
-    case Initialize:
-        // Leave all states. Hide all buttons in duration toolbar.
-        leaveActionState("note_0_dot_mode");
-        leaveActionState("note_1_dot_mode");
-        leaveActionState("rest_0_dot_mode");
-        leaveActionState("rest_1_dot_mode");
 
     case InsertingNotes:
         leaveActionState("note_0_dot_mode");
@@ -1638,11 +1629,6 @@ NewNotationView::morphDurationMonobar()
     // Now morph to new state.
     switch (newMode) {
 
-    case Initialize:
-        enterActionState("note_0_dot_mode");
-        m_durationMode = InsertingNotes;
-        break;
-    
     case InsertingNotes:
         enterActionState("note_0_dot_mode");
         break;
@@ -1668,14 +1654,25 @@ NewNotationView::morphDurationMonobar()
 void
 NewNotationView::initializeNoteRestInserter()
 {     
-    //Set Default Duration based on Time Signature denominator.
+    // Set Default Duration based on Time Signature denominator.
     // The default unitType is taken from the denominator of the time signature:
     //   e.g. 4/4 -> 1/4, 6/8 -> 1/8, 2/2 -> 1/2.
     TimeSignature sig = getDocument()->getComposition().getTimeSignatureAt(getInsertionTime());
-    Note::Type unitType = sig.getUnit(); // was: Note::Crotchet;
+    Note::Type unitType = sig.getUnit();
 
     QString actionName = NotationStrings::getReferenceName(Note(unitType,0));
     actionName.replace(QRegExp("-"), "_");
+
+    //Initialize Duration Toolbar (hide all buttons)   
+    leaveActionState("note_0_dot_mode");
+    leaveActionState("note_1_dot_mode");
+    leaveActionState("rest_0_dot_mode");
+    leaveActionState("rest_1_dot_mode");
+    
+    // Counting on a InsertingRests to be stored in m_durationMode
+    // which it was passed in the constructor.  This will
+    // ensure morphDurationMonobar always fires correctly since
+    // a duration_ shortcut is always tied to the note palette.
     findAction(QString("duration_%1").arg(actionName))->trigger();
 }
 
@@ -1886,7 +1883,6 @@ NewNotationView::slotNoteAction()
 
     QObject *s = sender();
     QString name = s->objectName();
-//    QString durationMenuName;
     QString noteToolbarName;
 
     //Set defaults for duration_ shortcut calls
@@ -1923,7 +1919,6 @@ NewNotationView::slotNoteAction()
         }
     }
 
-//    durationMenuName = QString("duration_%1").arg(name);
     if (name.startsWith("dotted_")) {
         dots = 1;
         name = name.replace("dotted_", "");
@@ -1933,10 +1928,8 @@ NewNotationView::slotNoteAction()
     if (m_notationWidget) {
         m_notationWidget->slotSetInsertedNote(type, dots);
         if (rest) {
-//            m_notationWidget->slotSetRestInserter();
             slotSwitchToRests();
         } else {
-//            m_notationWidget->slotSetNoteInserter();
             slotSwitchToNotes();
         }
     }

@@ -636,7 +636,7 @@
   <Action name="panic" />
 </ToolBar>
 
-<ToolBar name="Duration Toolbar" hidden="false" position="left">
+<ToolBar name="Duration Toolbar" newline="true" hidden="false" position="left">
   <text>Duration Toolbar</text>
   <Action name="switch_to_notes" />
   <Action name="switch_to_rests" />
