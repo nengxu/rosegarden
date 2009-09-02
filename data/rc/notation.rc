@@ -432,14 +432,17 @@
       <Action name="duration_hemidemisemi" text="Sixty-&amp;Fourth Note" icon="hemidemisemi" shortcut="0" checked="false" group="duration_shortcut" />
     <Separator/>
       <Action name="duration_dotted_semibreve" text="D&amp;otted Whole Note" icon="dotted-semibreve" checked="false" group="duration_shortcut" />
-      <Action name="duration_dotted_minim" text="Dotted Half &amp;Note" icon="dotted-minim" checked="false" group="duration_shortcut" />
+      <Action name="duration_dotted_minim" text="Dotted Ha&amp;lf Note" icon="dotted-minim" checked="false" group="duration_shortcut" />
       <Action name="duration_dotted_crotchet" text="Dotted Q&amp;uarter Note" icon="dotted-crotchet" checked="false" group="duration_shortcut" />
       <Action name="duration_dotted_quaver" text="Dotted E&amp;ighth Note" icon="dotted-quaver" checked="false" group="duration_shortcut" />
       <Action name="duration_dotted_semiquaver" text="Dotted Si&amp;xteenth Note" icon="dotted-semiquaver" checked="false" group="duration_shortcut" />
       <Action name="duration_dotted_demisemi" text="Dotted Thirt&amp;y-Second Note" icon="dotted-demisemi" checked="false" group="duration_shortcut" />
     <Separator/>
-      <Action name="toggle_dot" text="To&amp;ggle Dot" shortcut="." />
-      <Action name="toggle_notes_rests" text="Switch &amp;Between Notes and Rests " shortcut="Y"/>
+      <!-- Yes these share the same shortcut, only one of each will be visible at a time -->
+      <Action name="switch_to_notes" text="Switch To &amp;Notes" icon="switch-to-notes" shortcut="Y" />
+      <Action name="switch_to_rests" text="Switch To &amp;Rests" icon="switch-to-rests" shortcut="Y" />
+      <Action name="switch_dots_on" text="To&amp;ggle Dot On" icon="switch-dots-on" shortcut="." />
+      <Action name="switch_dots_off" text="To&amp;ggle Dot Off" icon="switch-dots-off" shortcut="." />
     </Menu>
     <!-- JAS action names for "insert_note_actionmenu" derived from src/gui/general/EditView.cpp -->
     <!-- JAS original line <Action name="insert_note_actionmenu" /> -->
@@ -635,10 +638,10 @@
 
 <ToolBar name="Duration Toolbar" hidden="false" position="left">
   <text>Duration Toolbar</text>
-  <Action name="switch_to_notes" icon="switch-to-notes" />
-  <Action name="switch_to_rests" icon="switch-to-rests" />
-  <Action name="switch_dots_on" icon="switch-dots-on" />
-  <Action name="switch_dots_off" icon="switch-dots-off" />
+  <Action name="switch_to_notes" />
+  <Action name="switch_to_rests" />
+  <Action name="switch_dots_on" />
+  <Action name="switch_dots_off" />
 <Separator/>
   <!-- Reference names, but with _ instead of - -->
   <Action name="dummy_1" icon="duration-not-available" checked="false" group="duration_toolbar" />

@@ -126,7 +126,8 @@ NewNotationView::NewNotationView(RosegardenDocument *doc,
                                  std::vector<Segment *> segments,
                                  QWidget *parent) :
     EditViewBase(doc, segments, parent),
-    m_document(doc)
+    m_document(doc),
+    m_durationMode(Initialize)
 {
     m_notationWidget = new NotationWidget();
     setCentralWidget(m_notationWidget);
@@ -147,8 +148,8 @@ NewNotationView::NewNotationView(RosegardenDocument *doc,
     connect(m_notationWidget->getScene(), SIGNAL(selectionChanged()),
             this, SLOT(slotUpdateMenuStates()));
 
-    //  Either way, start off with plain durations as the visible notes toolbar
-    morphDurationMonobar();
+    //Initialize NoteRestInserter and DurationToolbar
+    initializeNoteRestInserter();
 
     // Determine default action stolen from MatrixView.cpp
     // Toggle the desired tool off and then trigger it on again, to
@@ -479,12 +480,12 @@ NewNotationView::setupActions()
 
     // These actions do as their names imply, and in this case, the toggle will
     // call one or the other of these
+    // These rely on .tc script keeping the right state visible
     createAction("switch_to_rests", SLOT(slotSwitchToRests()));
     createAction("switch_to_notes", SLOT(slotSwitchToNotes()));
 
-    // These actions always just pass straight to the toggle, and rely on the
-    // calling context to deliver the result implied in the action name, which
-    // isn't actually guaranteed otherwise
+    // These actions always just pass straight to the toggle.
+    // These rely on .tc script keeping the right state visible
     createAction("switch_dots_on", SLOT(slotToggleDot()));
     createAction("switch_dots_off", SLOT(slotToggleDot()));
 
@@ -508,23 +509,10 @@ NewNotationView::setupActions()
 
     // since we can't create toolbars with disabled icons, and to avoid having
     // to draw a lot of fancy icons for disabled durations, we have this dummy
-    // filler to keep spacing the same across all toolbars, and there have to be
-    // four of them at that...  blah.
+    // filler to keep spacing the same across all toolbars, and there have to
+    // two of them
     QAction * dummyAction = createAction("dummy_1", SLOT());
-    dummyAction->setEnabled(false);
     dummyAction = createAction("dummy_2", SLOT());
-    dummyAction->setEnabled(false);
-    dummyAction = createAction("dummy_3", SLOT());
-    dummyAction->setEnabled(false);
-    dummyAction = createAction("dummy_4", SLOT());
-    dummyAction->setEnabled(false);
-
-    createAction("toggle_dot", SLOT(slotToggleDot()));
-
-    // Determines which switch_to slot to call, based on some hackery inserted
-    // into NoteInserter to figure out from outside if it's a NoteInserter
-    // inserting notes or a NoteInserter inserting rests
-    createAction("toggle_notes_rests", SLOT(slotToggleNoteRest()));
 
     //"NoteTool" subMenu
     //NEED to create action methods
@@ -621,7 +609,6 @@ NewNotationView::setupActions()
 
     createAction("chord_mode", SLOT(slotUpdateInsertModeStatus()));
     createAction("triplet_mode", SLOT(slotUpdateInsertModeStatus()));
-//    findAction("triplet_mode")->setCheckable(true);
     createAction("grace_mode", SLOT(slotUpdateInsertModeStatus()));
     createAction("toggle_step_by_step", SLOT(slotToggleStepByStep()));
 
@@ -646,8 +633,6 @@ NewNotationView::setupActions()
 
     createAction("show_annotations", SLOT(slotToggleAnnotations()));
     createAction("show_lilypond_directives", SLOT(slotToggleLilyPondDirectives()));
-
-//### JAS Stop here for now!
 
     createAction("lilypond_directive", SLOT(slotLilyPondDirective()));
     createAction("debug_dump", SLOT(slotDebugDump()));
@@ -1455,21 +1440,6 @@ NewNotationView::slotSetNoteRestInserter()
 }    
 
 void
-NewNotationView::slotToggleNoteRest()
-{
-    NOTATION_DEBUG << "NewNotationView::slotToggleNoteRest : entered. " << endl;
-
-    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
-
-    if (currentInserter) {
-        if (currentInserter->isaRestInserter())
-            slotSwitchToNotes();
-        else
-            slotSwitchToRests();
-    }
-}
-
-void
 NewNotationView::slotSwitchToNotes()
 {
     NOTATION_DEBUG << "NewNotationView::slotSwitchToNotes : entered. " << endl;
@@ -1587,13 +1557,14 @@ NewNotationView::morphDurationMonobar()
         (m_notationWidget->getCurrentTool());
     }
 
-    DurationMonobarModeType mode = InsertingNotes;
+    DurationMonobarModeType newMode = Initialize;
     if (!currentInserter)
     {
         // Morph called when NoteRestInserter not set as current tool
         NOTATION_DEBUG << "NewNotationView::morphNotationToolbar() : expected"
-               << " NoteRestInserter as current tool. Set to Notes Toolbar."
+               << " NoteRestInserter defaulting to Initialize." 
                << endl;
+
     } else {
         // Retrieve duration and dot values
         // This may be un-necessary now
@@ -1601,53 +1572,111 @@ NewNotationView::morphDurationMonobar()
         
         // Determine duration tooolbar mode
         if (currentInserter->isaRestInserter()) {
-            mode = (dots ? InsertingDottedRests : InsertingRests);
+            newMode = (dots ? InsertingDottedRests : InsertingRests);
         } else {
-            mode = (dots ? InsertingDottedNotes : InsertingNotes);
+            newMode = (dots ? InsertingDottedNotes : InsertingNotes);
         }
     }
     
     //Convert to English for debug purposes.        
     std::string modeStr;
-    switch (mode) {
+    switch (newMode) {
 
     case InsertingNotes: modeStr = "Notes Toolbar"; break;
     case InsertingDottedNotes: modeStr = "Dotted Notes Toolbar"; break;
     case InsertingRests: modeStr = "Rests Toolbar"; break;
     case InsertingDottedRests: modeStr = "Dotted Rests Toolbar"; break;
+    case Initialize: modeStr = "Initialized 'Note Toolbar'"; break;
     default: modeStr = "WTF?  This won't be pretty.";
 
     }
-    std::cerr << "NewNotationView::morphDurationMonobar: morphing to "
-        << modeStr << std::endl;
+    NOTATION_DEBUG << "NewNotationView::morphDurationMonobar: morphing to "
+        << modeStr << endl;
 
-    //leave all states. Hide all buttons in duration toolbar.
-    leaveActionState("note_0_dot_mode");
-    leaveActionState("note_1_dot_mode");
-    leaveActionState("rest_0_dot_mode");
-    leaveActionState("rest_1_dot_mode");
+    if (newMode == m_durationMode && m_durationMode != Initialize) {
+        NOTATION_DEBUG << "NewNotationView::morphDurationMonobar: new "
+            << "mode and last mode are the same.  exit wothout morphing."
+            << endl;
+        return;
+    }
+    
+    // Turn off current state (or last state--depending on perspective.)
+    switch (m_durationMode) {
 
-    // Then we have to switch things back on per mode in a big messy switch
-    // statement wrapped around an alternate expression of the same 43 lines
-    switch (mode) {
+    case Initialize:
+        // Leave all states. Hide all buttons in duration toolbar.
+        leaveActionState("note_0_dot_mode");
+        leaveActionState("note_1_dot_mode");
+        leaveActionState("rest_0_dot_mode");
+        leaveActionState("rest_1_dot_mode");
 
+    case InsertingNotes:
+        leaveActionState("note_0_dot_mode");
+        break;
+
+    case InsertingDottedNotes:
+        leaveActionState("note_1_dot_mode");
+        break;
+
+    case InsertingRests:
+        leaveActionState("rest_0_dot_mode");
+        break;
+
+    case InsertingDottedRests:
+        leaveActionState("rest_1_dot_mode");
+        break;
+
+    default:
+        NOTATION_DEBUG << "NewNotationView::morphDurationMonobar:  None of "
+            << "The standard four modes were selected for m_durationMode. "
+            << "How did that happen?" << endl;
+    }
+
+    // transfer new mode to member for next recall.
+    m_durationMode = newMode;
+    
+    // Now morph to new state.
+    switch (newMode) {
+
+    case Initialize:
+        enterActionState("note_0_dot_mode");
+        m_durationMode = InsertingNotes;
+        break;
+    
     case InsertingNotes:
         enterActionState("note_0_dot_mode");
         break;
+
     case InsertingDottedNotes:
         enterActionState("note_1_dot_mode");
         break;
+
     case InsertingRests:
         enterActionState("rest_0_dot_mode");
         break;
+
     case InsertingDottedRests:
         enterActionState("rest_1_dot_mode");
         break;
     default:
-        std::cerr << "NewNotationView::morphDurationMonobar:  Damn, well, "
-            << "I guess the DurationMonobar just winked out of existence."
-            << std::endl;
+        NOTATION_DEBUG << "NewNotationView::morphDurationMonobar:  None of "
+            << "The standard four modes were selected for newMode. "
+            << "How did that happen?" << endl;
     }
+}
+
+void
+NewNotationView::initializeNoteRestInserter()
+{     
+    //Set Default Duration based on Time Signature denominator.
+    // The default unitType is taken from the denominator of the time signature:
+    //   e.g. 4/4 -> 1/4, 6/8 -> 1/8, 2/2 -> 1/2.
+    TimeSignature sig = getDocument()->getComposition().getTimeSignatureAt(getInsertionTime());
+    Note::Type unitType = sig.getUnit(); // was: Note::Crotchet;
+
+    QString actionName = NotationStrings::getReferenceName(Note(unitType,0));
+    actionName.replace(QRegExp("-"), "_");
+    findAction(QString("duration_%1").arg(actionName))->trigger();
 }
 
 int
@@ -1756,39 +1785,36 @@ void NewNotationView::slotInsertNoteFromAction()
             if (currentInserter->isaRestInserter()) {
                 slotSwitchToNotes();
             }
+            int pitch = 0;
+            Accidental accidental = Accidentals::NoAccidental;
+
+            timeT insertionTime = getInsertionTime();
+            static Rosegarden::Key key = segment->getKeyAtTime(insertionTime);
+            static Clef clef = segment->getClefAtTime(insertionTime);
+
+            try {
+
+                std::cerr << "NewNotationView::slotInsertNoteFromAction: time = "
+                    << insertionTime << ", key = " << key.getName()
+                    << ", clef = " << clef.getClefType() << ", octaveoffset = "
+                    << clef.getOctaveOffset() << std::endl;
+
+                pitch = getPitchFromNoteInsertAction(name, accidental, clef, key);
+
+            } catch (...) {
+
+                /* was sorry */ QMessageBox::warning
+                    (this,"",  tr("Unknown note insert action %1").arg(name));
+                return ;
+            }
+
+            TmpStatusMsg msg(tr("Inserting note"), this);
+
+            NOTATION_DEBUG << "Inserting note at pitch " << pitch << endl;
+            currentInserter->insertNote(*segment, insertionTime,
+                pitch, accidental);
         }
     }
-        
-    int pitch = 0;
-    Accidental accidental =
-        Accidentals::NoAccidental;
-
-    timeT insertionTime = getInsertionTime();
-    static Rosegarden::Key key = segment->getKeyAtTime(insertionTime);
-    static Clef clef = segment->getClefAtTime(insertionTime);
-
-    try {
-
-        std::cerr << "NewNotationView::slotInsertNoteFromAction: time = " << insertionTime
-                  << ", key = " << key.getName() 
-                  << ", clef = " << clef.getClefType() 
-                  << ", octaveoffset = " << clef.getOctaveOffset() << std::endl;
-
-        pitch = getPitchFromNoteInsertAction(name, accidental, clef, key);
-
-    } catch (...) {
-
-        /* was sorry */ QMessageBox::warning
-            (this,"",  tr("Unknown note insert action %1").arg(name));
-        return ;
-    }
-
-    TmpStatusMsg msg(tr("Inserting note"), this);
-
-    NOTATION_DEBUG << "Inserting note at pitch " << pitch << endl;
-
-    currentInserter->insertNote(*segment, insertionTime, pitch, accidental);
-
 }
 
 void NewNotationView::slotInsertRest()
@@ -1796,21 +1822,29 @@ void NewNotationView::slotInsertRest()
     Segment *segment = getCurrentSegment();
     if (!segment) return;
     
-    NoteRestInserter *currentInserter = dynamic_cast<NoteRestInserter *> (m_notationWidget->getCurrentTool());
-    if (currentInserter) {
-        if(!currentInserter->isaRestInserter()) {
-            slotSwitchToRests();
+    NoteRestInserter *currentInserter = 0;
+    if(m_notationWidget) {
+        currentInserter = dynamic_cast<NoteRestInserter *>
+            (m_notationWidget->getCurrentTool());
+
+        if(!currentInserter) {
+            //set the NoteRestInserter as current
+            slotSetNoteRestInserter();
+            //re-fetch the current tool for analysis
+            currentInserter = dynamic_cast<NoteRestInserter *>
+                (m_notationWidget->getCurrentTool());
         }
-    } else {
-        NOTATION_DEBUG << "NewNotationView::slotInsertRest() : expected "
-                       << "NoteRestInserter as current tool.  Silent exit.";
-        return;
+    
+        if (currentInserter) {
+            if (!currentInserter->isaRestInserter()) {
+                slotSwitchToRests();
+            }
+           timeT insertionTime = getInsertionTime();
+
+           currentInserter->insertNote(*segment, insertionTime,
+               0, Accidentals::NoAccidental, true);
+        }
     }
-
-    timeT insertionTime = getInsertionTime();
-
-    currentInserter->insertNote(*segment, insertionTime,
-                                0, Accidentals::NoAccidental, true);
 }
 
 void
@@ -1824,7 +1858,8 @@ NewNotationView::slotToggleDot()
             /* was sorry QMessageBox::warning(this, "", tr("No note duration selected"));
             */
             NOTATION_DEBUG << "NewNotationView::slotToggleDot : expected "
-                       << "NoteRestInserter as current tool.  Silent exit.";
+                << "NoteRestInserter as current tool.  Silent exit."
+                << endl;       
             return ;
         }
         Note note = currentInserter->getCurrentNote();
@@ -1857,7 +1892,6 @@ NewNotationView::slotNoteAction()
     //Set defaults for duration_ shortcut calls
     bool rest = false;  
     int dots = 0;
-    bool durationShortcutCalled = false;
 
     if (m_notationWidget) {
         NoteRestInserter *currentTool = dynamic_cast<NoteRestInserter *>
@@ -2866,7 +2900,6 @@ NewNotationView::slotJogRight()
                                               false,  // don't use notation timings
                                               *selection));
 }
-
 
 }
 
