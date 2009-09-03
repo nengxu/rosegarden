@@ -18,13 +18,12 @@
 #ifndef _RG_NOTERESTINSERTER_H_
 #define _RG_NOTERESTINSERTER_H_
 
+#include "base/Event.h"
 #include "base/NotationTypes.h"
 #include "NotationTool.h"
 #include "NotationElement.h"
 #include "NoteStyle.h"
 #include <QString>
-#include "base/Event.h"
-
 
 namespace Rosegarden
 {
@@ -73,18 +72,25 @@ public:
      * Returns the state of the tool.  true, if it in rest insertert mode.
      */
     bool isaRestInserter() { return m_isaRestInserter; };
+
     /**
      * Sets the state of the tool. true for rest inserting, false for
      * note inserting.
      */
     void setToRestInserter(bool rest) {m_isaRestInserter = rest;};
 
+    /**
+     * Show the menu if there is one.
+     * This is an over ride of BaseTool::showMenu().
+     */
+    virtual void showMenu();
+
 public slots:
     /// Set the type of note (quaver, breve...) which will be inserted
     void slotSetNote(Note::Type);
 
     /// Set the number of dots the inserted note will have
-    void slotSetDots(unsigned int dots);  //Same as code as RestInserter
+    void slotSetDots(unsigned int dots);
  
     /// Set the accidental for the notes which will be inserted
     void slotSetAccidental(Accidental, bool follow);
@@ -124,9 +130,8 @@ protected slots:
 
     void slotEraseSelected();
     void slotSelectSelected();
-    // Consider a slotToggleNoteRest() instead
-    void slotRestsSelected();  //Check real need for this
-    void slotNotesSelected();  //Check real need for this
+    void slotRestsSelected();
+    void slotNotesSelected();
 
 protected:
     //--------------- Data members ---------------------------------

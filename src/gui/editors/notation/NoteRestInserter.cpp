@@ -48,7 +48,7 @@
 #include <QIcon>
 #include <QRegExp>
 #include <QString>
-
+#include <QMenu>
 
 namespace Rosegarden
 {
@@ -61,7 +61,7 @@ NoteRestInserter::NoteRestInserter(NotationWidget* widget) :
     m_accidental(Accidentals::NoAccidental),
     m_lastAccidental(Accidentals::NoAccidental),
     m_followAccidental(false),
-    m_isaRestInserter(false) // this ctor isn't used by RestInserter, so this can't be true
+    m_isaRestInserter(false)
 {
     QIcon icon;
 
@@ -82,18 +82,22 @@ NoteRestInserter::NoteRestInserter(NotationWidget* widget) :
         a = createAction(m_actionsAccidental[i][1], m_actionsAccidental[i][0]);
     }
 
-    createAction("toggle_dot", SLOT(slotToggleDot()));
+    createAction("switch_dots_on", SLOT(slotToggleDot()));
+    createAction("switch_dots_off", SLOT(slotToggleDot()));
 
     createAction("select", SLOT(slotSelectSelected()));
     createAction("erase", SLOT(slotEraseSelected()));
-    createAction("rests", SLOT(slotRestsSelected()));
-    createAction("notes", SLOT(slotNotesSelected()));
+    createAction("switch_to_notes", SLOT(slotRestsSelected()));
+    createAction("switch_to_rests", SLOT(slotNotesSelected()));
 
     connect(m_widget, SIGNAL(changeAccidental(Accidental, bool)),
             this, SLOT(slotSetAccidental(Accidental, bool)));
 
     // Push down the default RadioAction on Accidentals.
     invokeInParentView("no_accidental");
+
+//    enterActionState("in_note_mode");
+//    leaveActionState("in_dot_mode");
 }
 
 NoteRestInserter::NoteRestInserter(QString rcFileName, QString menuName,
@@ -201,6 +205,40 @@ NoteRestInserter::handleMouseRelease(const NotationMouseEvent *e)
     }
 }
 
+void NoteRestInserter::showMenu()
+{
+    NOTATION_DEBUG << "NoteRestInserter::showMenu() : enter."
+        << endl;
+    if (!hasMenu())
+        return ;
+
+    if (!m_menu)
+        createMenu();
+
+    if (m_menu) {
+        NOTATION_DEBUG << "NoteRestInserter::showMenu() : morphing menu."
+            << endl;
+        //Morph Context menu.
+        if (isaRestInserter()) {
+            leaveActionState("in_note_mode");
+        } else {
+            enterActionState("in_note_mode");
+        }
+
+        if (!m_noteDots) {
+            leaveActionState("in_dot_mode");
+        } else {
+            enterActionState("in_dot_mode");
+        }
+
+        m_menu->exec(QCursor::pos());
+
+    } else {
+        NOTATION_DEBUG << "NoteRestInserter::showMenu() : no menu to show."
+            << endl;
+    }
+}
+
 void
 NoteRestInserter::insertNote(Segment &segment, timeT insertionTime,
                          int pitch, Accidental accidental,
@@ -262,7 +300,7 @@ NoteRestInserter::computeLocationAndPreview(const NotationMouseEvent *e)
     }
 
     double x = e->sceneX;
-    int y = e->sceneY;
+//    int y = e->sceneY;  //Shut up compile warning about non-use
 
     // If we're inserting grace notes, then we need to "dress to the
     // right", as it were
@@ -379,6 +417,10 @@ NoteRestInserter::computeLocationAndPreview(const NotationMouseEvent *e)
 
 void NoteRestInserter::showPreview()
 {
+    if (isaRestInserter()) {
+        // Sorry, no preview available for rests.
+        return;
+    }
     if (!m_clickStaff) return;
     Segment &segment = m_clickStaff->getSegment();
 
@@ -603,12 +645,9 @@ void NoteRestInserter::slotSetNote(Note::Type nt)
     m_noteType = nt;
 }
 
-void NoteRestInserter::slotSetDots(unsigned int dots)
+ void NoteRestInserter::slotSetDots(unsigned int dots)
 {
-    QAction* dotsAction = findActionInParentView("toggle_dot");
-	
-    if (dotsAction && m_noteDots != dots) {
-        dotsAction->setChecked(dots > 0);
+    if (m_noteDots != dots) {
         slotToggleDot();
         m_noteDots = dots;
     }

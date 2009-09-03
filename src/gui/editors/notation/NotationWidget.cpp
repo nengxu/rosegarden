@@ -156,8 +156,6 @@ NotationWidget::NotationWidget() :
     //!!! 
     NoteRestInserter *noteRestInserter = dynamic_cast<NoteRestInserter *>
         (m_toolBox->getTool(NoteRestInserter::ToolName));
-    noteRestInserter->slotSetNote(Note::Crotchet);
-    noteRestInserter->slotSetDots(0);
     m_currentTool = noteRestInserter;
     m_currentTool->ready();
 }
