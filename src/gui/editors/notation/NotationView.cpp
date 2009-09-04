@@ -480,12 +480,12 @@ NewNotationView::setupActions()
 
     // These actions do as their names imply, and in this case, the toggle will
     // call one or the other of these
-    // These rely on .tc script keeping the right state visible
+    // These rely on .rc script keeping the right state visible
     createAction("switch_to_rests", SLOT(slotSwitchToRests()));
     createAction("switch_to_notes", SLOT(slotSwitchToNotes()));
 
     // These actions always just pass straight to the toggle.
-    // These rely on .tc script keeping the right state visible
+    // These rely on .rc script keeping the right state visible
     createAction("switch_dots_on", SLOT(slotToggleDot()));
     createAction("switch_dots_off", SLOT(slotToggleDot()));
 
@@ -1568,7 +1568,8 @@ NewNotationView::morphDurationMonobar()
     }
     // Retrieve duration and dot values
     int dots = currentInserter->getCurrentNote().getDots();
-        
+    Note::Type note = currentInserter->getCurrentNote().getNoteType();
+
     // Determine duration tooolbar mode
     DurationMonobarModeType newMode = InsertingNotes;
     if (currentInserter->isaRestInserter()) {
@@ -1591,7 +1592,7 @@ NewNotationView::morphDurationMonobar()
     NOTATION_DEBUG << "NewNotationView::morphDurationMonobar: morphing to "
         << modeStr << endl;
 
-    if (newMode == m_durationMode) {
+    if (newMode == m_durationMode && note != Note::Shortest && dots) {
         NOTATION_DEBUG << "NewNotationView::morphDurationMonobar: new "
             << "mode and last mode are the same.  exit wothout morphing."
             << endl;
@@ -1648,6 +1649,15 @@ NewNotationView::morphDurationMonobar()
         NOTATION_DEBUG << "NewNotationView::morphDurationMonobar:  None of "
             << "The standard four modes were selected for newMode. "
             << "How did that happen?" << endl;
+    }
+
+    // This code to manage shortest dotted note selection.
+    // Disable the shortcut in the menu for shortest duration.
+    if (note == Note::Shortest && !dots) {
+        NOTATION_DEBUG << "NewNotationView::morphDurationMonobar:  shortest "
+            << "note / no dots.  disable off +. action";
+        QAction *switchDots = findAction("switch_dots_on");
+        switchDots->setEnabled(false);
     }
 }
 
@@ -1863,6 +1873,21 @@ NewNotationView::slotToggleDot()
 
         Note::Type noteType = note.getNoteType();
         int noteDots = (note.getDots() ? 0 : 1); // Toggle the dot state
+        
+        if (noteDots && noteType == Note::Shortest)
+        {
+            // This might have been invoked via a keboard shortcut or other
+            // toggling the +. button when the shortest note was pressed.
+            // RG does not render dotted versions of its shortest duration
+            // and rounds it up to the next duration.
+            // Following Rg's lead on this makes the inteface feel off since
+            // This moves the toggle to the next longest duration without
+            // switching the pallete to dots.
+            // So just leave the duration alone and don't toggle the dot
+            // in this case.
+            noteDots = 0;
+            //noteType++;  //Assumes assending order of basic durations.
+        }
 
         QString actionName(NotationStrings::getReferenceName(Note(noteType,noteDots)));
         actionName.replace(QRegExp("-"), "_");

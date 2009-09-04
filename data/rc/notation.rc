@@ -644,7 +644,6 @@
   <Action name="switch_dots_off" />
 <Separator/>
   <!-- Reference names, but with _ instead of - -->
-  <Action name="dummy_1" icon="duration-not-available" checked="false" group="duration_toolbar" />
   <Action name="breve" icon="breve" checked="false" group="duration_toolbar" tooltip="Double Whole Note (5)" />
   <Action name="semibreve" icon="semibreve" checked="false" group="duration_toolbar" tooltip="Whole Note (1)" />
   <Action name="minim" icon="minim" checked="false" group="duration_toolbar" tooltip="Half Note (2)" />
@@ -654,6 +653,7 @@
   <Action name="demisemi" icon="demisemi" checked="false" group="duration_toolbar" tooltip="Thirty-Second Note (3)" />
   <Action name="hemidemisemi" icon="hemidemisemi" checked="false" group="duration_toolbar" tooltip="Sixty-Fourth Note (0)" />
   <!-- was Dotted Notes Toolbar -->
+  <Action name="dotted_breve" icon="dotted-breve" checked="false" group="duration_toolbar" tooltip="Dotted Double Whole Note" />
   <Action name="dotted_semibreve" icon="dotted-semibreve" checked="false" group="duration_toolbar" tooltip="Dotted Whole Note" />
   <Action name="dotted_minim" icon="dotted-minim" checked="false" group="duration_toolbar" tooltip="Dotted Half Note" />
   <Action name="dotted_crotchet" icon="dotted-crotchet" checked="false" group="duration_toolbar" tooltip="Dotted Quarter Note" />
@@ -670,13 +670,14 @@
   <Action name="rest_demisemi" icon="rest-demisemi" checked="false" group="duration_toolbar" tooltip="Thirty-Second Rest (3)" />
   <Action name="rest_hemidemisemi" icon="rest-hemidemisemi" checked="false" group="duration_toolbar" tooltip="Sixty-Fourth Rest (0)" />
   <!-- was Dotted Rests Toolbar -->
+  <Action name="rest_dotted_breve" icon="dotted-rest-breve" checked="false" group="duration_toolbar" tooltip="Dotted Double Whole Rest" />
   <Action name="rest_dotted_semibreve" icon="dotted-rest-semibreve" checked="false" group="duration_toolbar" tooltip="Dotted Whole Rest" />
   <Action name="rest_dotted_minim" icon="dotted-rest-minim" checked="false" group="duration_toolbar" tooltip="Dotted Half Rest" />
   <Action name="rest_dotted_crotchet" icon="dotted-rest-crotchet" checked="false" group="duration_toolbar" tooltip="Dotted Quarter Rest" />
   <Action name="rest_dotted_quaver" icon="dotted-rest-quaver" checked="false" group="duration_toolbar" tooltip="Dotted Eighth Rest" />
   <Action name="rest_dotted_semiquaver" icon="dotted-rest-semiquaver" checked="false" group="duration_toolbar" tooltip="Dotted Sixteenth Rest" />
   <Action name="rest_dotted_demisemi" icon="dotted-rest-demisemi" checked="false" group="duration_toolbar" tooltip="Dotted Thirty-Second Rest" />
-  <Action name="dummy_2" icon="duration-not-available" checked="false" group="duration_toolbar" />
+  <Action name="dummy_1" icon="duration-not-available" checked="false" group="duration_toolbar" />
 <Separator/>
   <Action name="triplet_mode" />
   <Action name="chord_mode"/>
@@ -784,10 +785,6 @@
 
 <State name="note_rest_tool_current">
   <enable>
-    <Action name="switch_to_notes"/>
-    <Action name="switch_to_rests"/>
-    <Action name="switch_dots_on" />
-    <Action name="switch_dots_off" />
     <Action name="insert_note_actionmenu"/>
   </enable>
 </State>
@@ -1039,19 +1036,19 @@
   </enable>
   <disable>
     <Action name="dummy_1" />
-    <Action name="dummy_2" />
   </disable>
   <visible>
     <Action name="switch_to_rests" />
     <Action name="switch_dots_off" />
     <Action name="dummy_1" />
+    <Action name="dotted_breve" />
     <Action name="dotted_semibreve" />
     <Action name="dotted_minim" />
     <Action name="dotted_crotchet" />
     <Action name="dotted_quaver" />
     <Action name="dotted_semiquaver" />
     <Action name="dotted_demisemi" />
-    <Action name="dummy_2" />
+    <Action name="dummy_1" />
   </visible>
 </State>
 
@@ -1085,21 +1082,20 @@
   </enable>
   <disable>
     <Action name="dummy_1" />
-    <Action name="dummy_2" />
     <Action name="chord_mode" />
     <Action name="grace_mode" />
   </disable>
   <visible>
     <Action name="switch_to_notes" />
     <Action name="switch_dots_off" />
-    <Action name="dummy_1" />
+    <Action name="rest_dotted_breve" />
     <Action name="rest_dotted_semibreve" />
     <Action name="rest_dotted_minim" />
     <Action name="rest_dotted_crotchet" />
     <Action name="rest_dotted_quaver" />
     <Action name="rest_dotted_semiquaver" />
     <Action name="rest_dotted_demisemi" />
-    <Action name="dummy_2" />
+    <Action name="dummy_1" />
   </visible>
 </State>
 

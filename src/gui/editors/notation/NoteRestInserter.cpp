@@ -231,7 +231,16 @@ void NoteRestInserter::showMenu()
             enterActionState("in_dot_mode");
         }
 
-        m_menu->exec(QCursor::pos());
+        // This code to manage shortest dotted note selection.
+        // Disable the shortcut in the menu for shortest duration.
+        if (m_noteType == Note::Shortest && !m_noteDots) {
+            QAction *switchDots = findAction("switch_dots_on");
+            switchDots->setEnabled(false);
+            m_menu->exec(QCursor::pos());
+            switchDots->setEnabled(true);
+        } else {
+            m_menu->exec(QCursor::pos());
+        }
 
     } else {
         NOTATION_DEBUG << "NoteRestInserter::showMenu() : no menu to show."
@@ -648,7 +657,6 @@ void NoteRestInserter::slotSetNote(Note::Type nt)
  void NoteRestInserter::slotSetDots(unsigned int dots)
 {
     if (m_noteDots != dots) {
-        slotToggleDot();
         m_noteDots = dots;
     }
 }
@@ -699,18 +707,17 @@ void NoteRestInserter::slotDoubleFlat()
 
 void NoteRestInserter::slotToggleDot()
 {
-    m_noteDots = (m_noteDots) ? 0 : 1;
-    Note note(m_noteType, m_noteDots);
-    QString actionName(NotationStrings::getReferenceName(note));
-    actionName.replace(QRegExp("-"), "_");
-	
-    QAction* action = findActionInParentView(actionName);
-	
-    if (!action) {
-        std::cerr << "WARNING: No such action as " << actionName << std::endl;
-    } else {
-        action->setChecked(true);
-    }
+    QObject *s = sender();
+    QString actionName = s->objectName();
+    
+    // Use fact that switch_dots_on/_off is same name
+    // in parent view.  If changes, then a check
+    // will need to be made.
+    NOTATION_DEBUG << "NoteRestInserter::slotToggleDot: entered. "
+        << "Calling action name = " << actionName << endl;
+
+    invokeInParentView(actionName);
+
 }
 
 void NoteRestInserter::slotToggleAutoBeam()
