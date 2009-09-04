@@ -212,6 +212,9 @@ protected slots:
      * When complete, trigger?  Anything else?
      */
     void runFlacDecoder();
+    void startFlacDecoder(QString path, QStringList files);
+    // similar to startFlacEncoder
+    void updateAudioPath(int exitCode, QProcess::ExitStatus);
 
 };
 

@@ -3415,7 +3415,12 @@ void
 RosegardenMainWindow::importProject(QString filePath)
 {
     //setup "rosegarden-project-package" process
-    QProcess *proc = new QProcess;
+    ProjectPackager *dialog = new ProjectPackager(this, m_doc, ProjectPackager::Unpack, filePath);
+    if (dialog->exec() != QDialog::Accepted) {
+        return;
+    }
+    //setup "rosegarden-project-package" process
+/*    QProcess *proc = new QProcess;
     QStringList procArgs;
     procArgs << "--unpack";
     procArgs << filePath;
@@ -3425,13 +3430,13 @@ RosegardenMainWindow::importProject(QString filePath)
 
     if ((proc->exitStatus() != QProcess::NormalExit) || proc->exitCode()) {
         CurrentProgressDialog::freeze();
-        /* was sorry */ QMessageBox::warning(this, filePath, tr("Failed to import project file \"%1\""));
+// was sorry QMessageBox::warning(this, filePath, tr("Failed to import project file \"%1\""));
         CurrentProgressDialog::thaw();
         delete proc;
         return ;
     }
 
-    delete proc;
+    delete proc;*/
 
     QString rgFile = filePath;
     rgFile.replace(QRegExp(".rg.rgp$"), ".rg");
@@ -6849,9 +6854,9 @@ RosegardenMainWindow::slotPluginSelected(InstrumentId instrumentId,
         // AudioPluginInstance.
         //
         if (inst->isAssigned()) {
-            RG_DEBUG << "RosegardenMainWindow::slotPluginSelected - "
-            << " setting identifier for mapper id " << inst->getMappedId()
-            << " to " << inst->getIdentifier() << endl;
+//            RG_DEBUG << "RosegardenMainWindow::slotPluginSelected - "
+//            << " setting identifier for mapper id " << inst->getMappedId()
+//            << " to " << inst->getIdentifier() << endl;
 
             StudioControl::setStudioObjectProperty
             (inst->getMappedId(),
@@ -7074,10 +7079,10 @@ RosegardenMainWindow::slotChangePluginProgram(InstrumentId instrumentId,
         return ;
     }
 
-    RG_DEBUG << "RosegardenMainWindow::slotChangePluginProgram - "
-    << "setting plugin program ("
-    << inst->getMappedId() << ") from " << inst->getProgram()
-    << " to " << program << endl;
+//    RG_DEBUG << "RosegardenMainWindow::slotChangePluginProgram - "
+//    << "setting plugin program ("
+//    << inst->getMappedId() << ") from " << inst->getProgram()
+//    << " to " << program << endl;
 
     inst->setProgram(qstrtostr(program));
 
