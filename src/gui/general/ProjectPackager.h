@@ -71,6 +71,9 @@ protected:
     QProgressBar       *m_progress;
     QLabel             *m_info;
     QProcess           *m_process;
+   // so we can easily delete the script after we have used it
+    QFile               m_script;
+
 
     /** Returns a QStringList containing a sorted|uniqed list of audio files
      * used by m_doc
@@ -94,6 +97,11 @@ protected:
  * slots?) or some XML hacking.
  *
  */
+
+    // to avoid troubles, check that flac is available. It is fast and could
+    // possibly avoid troubles.
+    void sanityCheck();
+
 
 protected slots:
     /**
@@ -128,6 +136,9 @@ protected slots:
      *
      *   9. ???
      */
+     // run this after the sanity check
+    void runPackUnpack(int exitCode, QProcess::ExitStatus);
+
     void runPack();
 
     /** Create a temporary working directory and assemble copied files to that
@@ -211,10 +222,11 @@ protected slots:
      *
      * When complete, trigger?  Anything else?
      */
-    void runFlacDecoder();
-    void startFlacDecoder(QString path, QStringList files);
-    // similar to startFlacEncoder
+    void startFlacDecoder(QStringList files);
+    // similar to startFlacEncoder - with path built into file names
     void updateAudioPath(int exitCode, QProcess::ExitStatus);
+    void unpackStep2(int exitCode, QProcess::ExitStatus);
+    void unpackStep3(int exitCode, QProcess::ExitStatus);
 
 };
 
