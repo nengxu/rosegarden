@@ -34,6 +34,8 @@
 #include <QLabel>
 #include <QProgressBar>
 #include <QMessageBox>
+#include <QDir>
+#include <QFile>
 
 #include <iostream>
 
@@ -203,24 +205,32 @@ ProjectPackager::runPack()
 //
 //      Qt method for copying files?  (Probably is one.  QFile?  QDir?)
 
-#ifdef COME_BACK_LATER
-    QString tmpDir("~/rosegarden-project-packager-tmp");
-    QString dataDir("");
-    if (tmpDir.exists()) {
+    QString path0("rosegarden-project-packager-tmp");
+    QString path1 = path0 + "/test";
+    int start1, stop1;
+    start1 = m_filename.findRev('/');
+    stop1 = m_filename.findRev('.');
+    path1 = m_filename.mid(start1, stop1);
+    std::string t123 = path1.toStdString();
+    std::string t122 = audioFiles[0].toStdString();
+ 
+    QDir tmpDir;
+    if (tmpDir.exists(path0)) {
         // If the directory exists, it's left over from an aborted previous run.
         // Should we clean it up silently, or warn and abort?  At this stage in
         // development, let's ignore it and carry on
-    } // else
-
-    // make the temporary working directory
-    if (tmpDir.mkdir()) {
-        // copy m_filename
-    } else {
-        puke(tr("<qt>Could not create temporary working directory %1.<br>Processing aborted!</qt>"));
-        return;
+        tmpDir.remove(path0);
+        std::cout << "Removing path: " << path0.toStdString() << std::endl;
     }
 
-#endif
+    // make the temporary working directory
+    if (tmpDir.mkdir(path0)) {
+        QFile::copy("README", path1);
+        // copy m_filename
+    } else {
+        puke(tr("<qt>Could not create temporary working directory.<br>Processing aborted!</qt>"));
+        return;
+    }
 
 
     /* 1. find suitable place to write a tmp directory (should it be /tmp or
