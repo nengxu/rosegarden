@@ -158,7 +158,7 @@ ProjectPackager::sanityCheck() {
 
     // wait up to 30 seconds for process to start
     m_info->setText(tr("Checking for flac..."));
-    if( !m_process->waitForStarted()) {
+    if (!m_process->waitForStarted()) {
         puke(tr("Couldn't start sanity check."));
         return;
     }
@@ -171,13 +171,13 @@ ProjectPackager::runPackUnpack(int exitCode, QProcess::ExitStatus) {
     if( exitCode == 0) {
        delete m_process;
     } else {
-        puke(tr("Flac was not found. Flac is necessary for Import and Export."));
+        puke(tr("<qt><p>The <b>flac</b> command was not found.</p><p>FLAC is a lossless audio compression format used to reduce the size of Rosegarden project packages with no loss of audio quality.  Please install FLAC and try again.  This utility is typically available to most distros as a package called \"flac\".</p>"));
         return;
     }
 
     switch (m_mode) {
-        case ProjectPackager::Unpack:  runUnpack();    break;
-        case ProjectPackager::Pack:    runPack();  break;
+        case ProjectPackager::Unpack:  runUnpack(); break;
+        case ProjectPackager::Pack:    runPack();   break;
     }
 }
 
