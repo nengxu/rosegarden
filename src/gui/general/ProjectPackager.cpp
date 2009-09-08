@@ -36,6 +36,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 
 #include <iostream>
 
@@ -396,6 +397,7 @@ ProjectPackager::compressPackage()
     // originally specified.
 }
 
+
 ///////////////////////////
 //                       //
 // UNPACKING OPERATIONS  //
@@ -404,70 +406,48 @@ ProjectPackager::compressPackage()
 void
 ProjectPackager::runUnpack()
 {
-    std::cout << "ProjectPackager::runUnpack()" << std::endl;
+    std::cout << "ProjectPackager::runUnpack() - unpacking " << qstrtostr(m_filename) << std::endl;
     m_info->setText(tr("Unpacking project..."));
 
-    /* As far as I can see the process should be:
-     * 1) get the user working diretory
-     * 2) use equivalent of tar -xf xxx.rgp to that directory
-     * 3) build a list of flac files with path to files
-     * 4) run startFlacDecoder - this works!!!
-     * 5) find the code to update the audio path in the rg file and run it.
-     * 6) return to RosegardenMainWindow and correctly continue the processing
-     */
+    // The first chain of the operation running tar xf m_filename always
+    // executed successfully and returned exit status 0, but never produced any
+    // files on disk for some reason.  I don't know why.  I never could find
+    // where they had ever been written anywhere.  So I give up.  We'll defer
+    // unpacking the files and shove that into the backend decoder script.  We
+    // don't need to unpack the thing to list its contents anyway.
 
     m_process = new QProcess;
-    m_process->start("tar", QStringList() << "-xf" << m_filename);
-    connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
-            this, SLOT(unpackStep2(int, QProcess::ExitStatus)));
 
-    // wait up to 30 seconds for process to start
-    m_info->setText(tr("Running tar..."));
-    if( !m_process->waitForStarted()) {
-        puke(tr("Couldn't start tar."));
-        return;
-    }
+    // We can't assume foo.rgp actually contains foo.rg, it could
+    // contain bar.rg and bar/ if the user was evil, and users tend to be.
+    //
+    // So while there are other ways to get here, Ilan had already written all
+    // of this code to process a text file, and we'll just go that route.
+    QString ofile("/tmp/rosegarden-project-package-filelist");
 
-    m_progress->setValue(50);
-}
+    // merge stdout and sterr for laziness of debugging (any errors in here mean
+    // bad news)
+    m_process->setProcessChannelMode(QProcess::MergedChannels);
 
-void
-ProjectPackager::unpackStep2(int exitCode, QProcess::ExitStatus)
-{
-     if( exitCode == 0) {
+    // equivalent of [command] > ofile
+    m_process->setStandardOutputFile(ofile, QIODevice::Truncate);
+
+    // This is a very fast operation, just listing the files in a tarball
+    // straight to a file on disk without involving a terminal, so we
+    // will do this one as a waitForFinished() and risk blocking here
+    m_process->start("tar", QStringList() << "tf" << m_filename);
+    m_process->waitForStarted();
+    std::cout << "process started: tar tf " << qstrtostr(m_filename) << std::endl;
+    m_process->waitForFinished();
+
+    if (m_process->exitCode() == 0) {
        delete m_process;
     } else {
-        puke(tr("Unable to extract files using tar."));
-        return;
-    }
-    std::cout << "test 123" << std::endl;
-
-    m_process = new QProcess;
-    m_process->start("tar", QStringList() << "-tf " << m_filename << " > /tmp/rosegarden-filelist");
-    connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
-            this, SLOT(unpackStep3(int, QProcess::ExitStatus)));
-
-    // wait up to 30 seconds for process to start
-    m_info->setText(tr("Running tar again..."));
-    if( !m_process->waitForStarted()) {
-        puke(tr("Couldn't start tar."));
+        puke(tr("<qt>Unable to obtain list of files using tar.  Process exited with status code %1</qt>").arg(m_process->exitCode()));
         return;
     }
 
-    m_progress->setValue(60);
-}
-
-void
-ProjectPackager::unpackStep3(int exitCode, QProcess::ExitStatus)
-{
-    if( exitCode == 0) {
-       delete m_process;
-    } else {
-        puke(tr("Unable to obtain list of files using tar."));
-        return;
-    }
-
-      QFile contents("/tmp/rosegarden-filelist");
+    QFile contents(ofile);
 
     if (!contents.open(QIODevice::ReadOnly | QIODevice::Text)) {
         puke(tr("<qt>Unable to read to temporary file list.<br>Processing aborted.</qt>"));
@@ -477,20 +457,17 @@ ProjectPackager::unpackStep3(int exitCode, QProcess::ExitStatus)
     QTextStream in1(&contents);
     QString line;
     QStringList files;
-    while(true) {
+    while (true) {
         line = in1.readLine(1000);
-        if( line.isEmpty()) break;
-        if( line.find(".flac", 0) > 0) {
+        if (line.isEmpty()) break;
+        if (line.find(".flac", 0) > 0) {
             files << line;
             std::cout << line.toStdString() << std::endl;
         }
     }
     contents.close();
-//    contents.remove();
-//    files << "zynfidel/rg-20050622-003944-7.wav.rgp.flac";
-//    files << "zynfidel/C-chord.wav.rgp.flac";
-//    files << "zynfidel/F-chord.wav.rgp.flac";
-    startFlacDecoder( files);
+
+    startFlacDecoder(files);
 }
 
 
@@ -506,7 +483,7 @@ ProjectPackager::startFlacDecoder(QStringList files)
     if (m_script.exists()) m_script.remove();
 
     if (!m_script.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        puke(tr("<qt>Unable to write to temporary backend processing script %1.<br>Processing aborted.</qt>"));
+        puke(tr("<qt>Unable to write to temporary backend processing script %1.<br>Processing aborted.</qt>").arg(scriptName));
         return;
     }
 
@@ -515,8 +492,19 @@ ProjectPackager::startFlacDecoder(QStringList files)
         << "# operations so they could be managed by a single QProcess.  If you find this script"   << endl
         << "# it is likely that something has gone terribly wrong. See http://rosegardenmusic.com" << endl;
 
-    QStringList::const_iterator si;
     int errorPoint = 1;
+
+    // The working directory must be the key to why tar is not failing, but
+    // failing to do anything detectable.  Let's cut apart m_filename...
+    QFileInfo fi(m_filename);
+    QString dirname = fi.path();
+    QString basename = QString("%1.%2").arg(fi.baseName()).arg(fi.completeSuffix());
+
+    // There were mysterious stupid problems running tar xf in a separate
+    // QProcess step, so screw it, let's just throw it into this script!
+    out << "tar xzf " << basename << " || exit " << errorPoint++ << endl;
+
+    QStringList::const_iterator si;
     int len;
     for (si = files.constBegin(); si != files.constEnd(); ++si) {
         std::string o1 = (*si).toLocal8Bit().constData();
@@ -526,16 +514,13 @@ ProjectPackager::startFlacDecoder(QStringList files)
         // without specifying the output file they will turn into xxx.wav.rgp.wav
         // thus it is best to specify the output as xxx.wav
         len = o1.find(".wav");
-        o2 = o1.substr(0,len+4);
+        o2 = o1.substr(0, len + 4);
 
         // we'll eschew anything fancy or pretty in this disposable script and
         // just write a command on each line, terminating with an || exit n
         // which can be used to figure out at which point processing broke, for
         // cheap and easy error reporting without a lot of fancy stream wiring
-        out << "flac -d " <<  o1 << " -o " << o2 << " || exit " << errorPoint << endl;
-//      out << "flac -d " <<  o1 << " -o " << o2 << endl;   // simple version
-        // I would like to delete the flac file after conversion and add this to the scipt
-        out << "rm " << o1 << endl;
+        out << "flac -d " <<  o1 << " -o " << o2 << " && rm " << o1 <<  " || exit " << errorPoint << endl;
         errorPoint++;
     }
 
@@ -543,9 +528,10 @@ ProjectPackager::startFlacDecoder(QStringList files)
 
     // run the assembled script
     m_process = new QProcess;
-    // if setWorkingDirectory is needed at all, it should point to the
-    // directory where the rgp file is located. So far, I don't see the need.
-//    m_process->setWorkingDirectory(path);
+
+    // set to the working directory extracted from m_filename above, as this is
+    // was apparently the reason why tar always failed to do anything
+    m_process->setWorkingDirectory(dirname);
     m_process->start("bash", QStringList() << scriptName);
     connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(updateAudioPath(int, QProcess::ExitStatus)));
@@ -557,10 +543,11 @@ ProjectPackager::startFlacDecoder(QStringList files)
 void
 ProjectPackager::updateAudioPath(int exitCode, QProcess::ExitStatus) {
     std::cout << "update Audio path " << exitCode << std::endl;
-    if( exitCode == 0) {
+
+    if (exitCode == 0) {
         delete m_process;
     } else {
-        puke(tr("Wasn't able to run flac"));
+        puke(tr("<qt>Extracting and decoding files failed with exit status %1. Checking %2 for the line that ends with \"exit %1\" may be useful for diagnostic purposes.<br>Processing aborted.</qt>").arg(exitCode).arg(m_script.fileName()));
         return;
     }
 
@@ -568,6 +555,8 @@ ProjectPackager::updateAudioPath(int exitCode, QProcess::ExitStatus) {
     accept();
     exitCode++; // break point
 }
+
+
 }
 
 #include "ProjectPackager.moc"

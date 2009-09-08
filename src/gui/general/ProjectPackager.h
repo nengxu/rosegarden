@@ -185,49 +185,28 @@ protected slots:
      */
     void compressPackage();
 
-    /**
-     * Try to unpack an existing .rgd file, which will entail:
+    /** The first stage of unpacking an .rgp file:
      *
-     *   1. QProcess a tar xzf command
+     * 1. QProcess out a tar tf to obtain a list of files from the .rgp tarball
      *
-     *   2. decompress the included FLAC files back to .wav
+     * 2. Comb this assembled list for .flac files
      *
-     *   3. ???
-     *
-     */
-    /** Begin the unpacking process by running 'tar xzf' against the incoming
-     * filename in situ.  That should be fine.
-     *
-     * When complete, trigger startFlacDecoder()
+     * 3. Pass this list to the decoder backend
      */
     void runUnpack();
 
-    /** We don't have a live document from which to discover the files this time
-     * around. We'll need to look at the disk after unpacking the tarball.  We
-     * may be able to use QFile methods for this and avoid using a QProcess, and
-     * an extra link in the processing chain.
-     */
-    //void discoverFiles()
-
-    /** Discover the flac files and assemble a purpose-built script to decode
-     * them.  If flac leaves the original .flac files intact, we should
-     * incorporate removing them into this script, and get it all done in one
-     * QProcess operation.
-     *
-     * It seems like changing out the audio path would best be done here at this
-     * stage too, but we don't have a live document at this point, so I guess we
-     * want to incorporate that step into the code behind File -> Import Project
-     * Package out at the RosegardenMainWindow level instead, and just make sure
-     * to keep track of what it should be set to for when that step arrives.
-     *
-     * When complete, trigger?  Anything else?
-     */
+    /** Assemble a script to:
+      *
+      * 1. Actually unpack the tarball (tar xzf)
+      *
+      * 2. Decode the .flac files and remove them
+      */
     void startFlacDecoder(QStringList files);
-    // similar to startFlacEncoder - with path built into file names
-    void updateAudioPath(int exitCode, QProcess::ExitStatus);
-    void unpackStep2(int exitCode, QProcess::ExitStatus);
-    void unpackStep3(int exitCode, QProcess::ExitStatus);
 
+    // This probably just winds up being end of chain cleanup code that doesn't
+    // actually update the audio path, which should probably get done in
+    // RosegardenMainWindow, if at all.  To decide later.
+    void updateAudioPath(int exitCode, QProcess::ExitStatus);
 };
 
 
