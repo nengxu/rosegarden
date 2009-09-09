@@ -220,7 +220,7 @@ ProjectPackager::runPack()
     // "/home/jsmith/rosegarden" )  (note that Rosegarden stores such things
     // internally as std::strings for obscure legacy reasons)
     AudioFileManager *manager = &m_doc->getAudioFileManager();
-    std::string audioPath = manager->getAudioPath();
+    QString audioPath = strtoqstr(manager->getAudioPath());
 
     // the base tmp directory where we'll assemble all the files
     QString tmpDirName = QString("%1/rosegarden-project-packager-tmp").arg(QDir::homePath());
@@ -253,19 +253,47 @@ ProjectPackager::runPack()
         rm.waitForFinished();
     }
 
-
     // make the temporary working directory
     if (tmpDir.mkdir(tmpDirName)) {
         QFileInfo fi(m_filename);
-        // QFileInfo::baseName() given /tmp/foo/bar/rat.rgp returns rat, which
-        // is convenient, since we have to change the extension anyway
+        // QFileInfo::baseName() given /tmp/foo/bar/rat.rgp returns rat
+        //
+        // m_filename comes in already having an .rgp extension, but the file
+        // was saved .rg
+        QString oldName = QString("%1/%2.rg").arg(fi.path()).arg(fi.baseName());
         QString newName = QString("%1/%2.rg").arg(tmpDirName).arg(fi.baseName());
-        std::cout << "cp " << m_filename.toStdString() << " " << newName.toStdString() << std::endl;
-//        QFile::copy("README", path1);
-        // copy m_filename
+        std::cout << "cp " << oldName.toStdString() << " " << newName.toStdString() << std::endl;
+
+        // copy m_filename(.rgp) as $tmp/m_filename.rg
+        QFile::copy(oldName, newName);
+
+        // remove the original file
+        //
+        // (well no, let's save that for final cleanup in the very end stage)
+//        QFile::remove(m_filename);
     } else {
         puke(tr("<qt>Could not create temporary working directory.<br>Processing aborted!</qt>"));
         return;
+    }
+
+    // make the data subdir
+//    QString fullDataDirName = QString("%1/%2").arg(tmpDirName).arg(dataDirName);
+//    tmpDir.mkdir(fullDataDirName);
+    tmpDir.mkdir(dataDirName);    
+
+
+    // copy the audio files (do not remove the originals!)
+    QStringList::const_iterator si;
+    for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
+    
+        QString srcFile = QString("%1/%2").arg(audioPath).arg(*si);
+        QString dstFile = QString("%1/%2/%3").arg(tmpDirName).arg(dataDirName).arg(*si);
+        QString dstFilePk = QString("%1.pk").arg(dstFile);
+
+        std::cout << "cp " << srcFile.toStdString() << " " << dstFile.toStdString() << std::endl;
+        std::cout << "cp " << srcFile.toStdString() << " " << dstFilePk.toStdString() << std::endl;
+        QFile::copy(srcFile, dstFile);
+        QFile::copy(srcFile, dstFilePk);
     }
 
 
@@ -318,7 +346,7 @@ return;
      * save this for one of the last things to refine later and don't worry
      * overmuch going in)
      */
-
+/*
     std::cout << "Audio files test:" << std::endl;
     QStringList::const_iterator si;
     for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {

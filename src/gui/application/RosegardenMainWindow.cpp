@@ -3422,7 +3422,6 @@ RosegardenMainWindow::importProject(QString filePath)
 
     // open the true filename contained within and extracted from the package (foo.rgp might have
     // contained bar.rg)
-    std::cout << "RMW has true filename of: " << dialog->getTrueFilename().toStdString() << std::endl;
     openURL(dialog->getTrueFilename());
 }
 
@@ -4553,6 +4552,11 @@ RosegardenMainWindow::slotExportProject()
     rgFile.replace(QRegExp(".rg.rgp$"), ".rg");
     rgFile.replace(QRegExp(".rgp$"), ".rg");
 
+    // I have a ton of weird files and suspect problems with this, but maybe
+    // not:
+    std::cout << "getValidWriteFileName() returned " << fileName.toStdString() << std::endl;
+    std::cout << "                         rgFile: " << fileName.toStdString() << std::endl;
+
     CurrentProgressDialog::freeze();
 
     QString errMsg;
@@ -4563,28 +4567,11 @@ RosegardenMainWindow::slotExportProject()
         return ;
     }
 
-    //setup "rosegarden-project-package" process
+    // Launch the project packager script-in-a-dialog in Pack mode:
     ProjectPackager *dialog = new ProjectPackager(this, m_doc, ProjectPackager::Pack, fileName);
     if (dialog->exec() != QDialog::Accepted) {
         return;
     }
-
-//    QProcess *proc = new QProcess;
-//    QStringList procArgs;
-//    procArgs << "--pack";
-//    procArgs << rgFile;
-//    procArgs << fileName;
-//
-//    proc->execute("rosegarden-project-package", procArgs);
-//
-//    if ((proc->exitStatus() != QProcess::NormalExit) || proc->exitCode()) {
-//        /* was sorry */ QMessageBox::warning(this, "", tr("Failed to export to project file \"%1\"").arg(fileName));
-//        CurrentProgressDialog::thaw();
-//        delete proc;
-//      return ;
-//    }
-
-//    delete proc;
 }
 
 void
