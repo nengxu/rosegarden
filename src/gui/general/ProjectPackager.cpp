@@ -222,33 +222,46 @@ ProjectPackager::runPack()
     AudioFileManager *manager = &m_doc->getAudioFileManager();
     std::string audioPath = manager->getAudioPath();
 
-//  QDir::homePath() and so on
+    // the base tmp directory where we'll assemble all the files
+    QString tmpDirName = QString("%1/rosegarden-project-packager-tmp").arg(QDir::homePath());
 
-//      Stitch together QDirs?
-//
-//      Qt method for copying files?  (Probably is one.  QFile?  QDir?)
+    // the data directory where audio and other files will go
+    QFileInfo fi(m_filename);
+    QString dataDirName = fi.baseName();
 
-    QString path0("rosegarden-project-packager-tmp");
-    QString path1 = path0 + "/test";
-    int start1, stop1;
-    start1 = m_filename.findRev('/');
-    stop1 = m_filename.findRev('.');
-    path1 = m_filename.mid(start1, stop1);
-    std::string t123 = path1.toStdString();
-    std::string t122 = audioFiles[0].toStdString();
- 
-    QDir tmpDir;
-    if (tmpDir.exists(path0)) {
-        // If the directory exists, it's left over from an aborted previous run.
-        // Should we clean it up silently, or warn and abort?  At this stage in
-        // development, let's ignore it and carry on
-        tmpDir.remove(path0);
-        std::cout << "Removing path: " << path0.toStdString() << std::endl;
+    std::cout << "using tmp data directory: " << tmpDirName.toStdString() << "/" << dataDirName.toStdString() << std::endl;
+
+    QDir tmpDir(tmpDirName);
+
+    // if the directory already exists, just hose it
+    //
+    // The first version of this tried to do it the right way with
+    // QDir::entryList() and QFile::remove() but it was a lot of trouble to
+    // write, and it worked a little too well, erasing itself from existence.
+    //
+    // Oops.  O_o
+    //
+    // So let's just go with QProcess rm -rf then.  Somebody else can replace
+    // this with Qt-based code later if anybody really cares.
+    if (tmpDir.exists()) {
+        // I lost track whether m_process is deleted at this stage, and since
+        // this is a local scope blocking QProcess, let's just create a new one
+        QProcess rm;
+        rm.start("rm", QStringList() << "-rf" << tmpDirName);
+        rm.waitForStarted();
+        std::cout << "process started: rm -rf " << qstrtostr(tmpDirName) << std::endl;
+        rm.waitForFinished();
     }
 
+
     // make the temporary working directory
-    if (tmpDir.mkdir(path0)) {
-        QFile::copy("README", path1);
+    if (tmpDir.mkdir(tmpDirName)) {
+        QFileInfo fi(m_filename);
+        // QFileInfo::baseName() given /tmp/foo/bar/rat.rgp returns rat, which
+        // is convenient, since we have to change the extension anyway
+        QString newName = QString("%1/%2.rg").arg(tmpDirName).arg(fi.baseName());
+        std::cout << "cp " << m_filename.toStdString() << " " << newName.toStdString() << std::endl;
+//        QFile::copy("README", path1);
         // copy m_filename
     } else {
         puke(tr("<qt>Could not create temporary working directory.<br>Processing aborted!</qt>"));
@@ -256,6 +269,7 @@ ProjectPackager::runPack()
     }
 
 
+return;
     /* 1. find suitable place to write a tmp directory (should it be /tmp or
      * under ~ somewhere, eg. ~/tmp or maybe even a Qt class can figure it out
      * so we don't have to)
@@ -454,14 +468,6 @@ ProjectPackager::runUnpack()
     // equivalent of [command] > ofile
     m_process->setStandardOutputFile(ofile, QIODevice::Truncate);
 
-    // escape spaces put in place by evil users  (what other not strictly
-    // illegal but incredibly stupid characters might there be we should also
-    // escape? probably a half ton of them)
-//    QString escapedFilename = m_filename;
-    //escapedFilename.replace(QRegExp(" "), "\\ ");
-//    std::cout << "escape test: m_filename: " << qstrtostr(m_filename) << std::endl
-//              << "        escapedFilename: " << qstrtostr(escapedFilename) << std::endl;
-
     // This is a very fast operation, just listing the files in a tarball
     // straight to a file on disk without involving a terminal, so we
     // will do this one as a waitForFinished() and risk blocking here
@@ -502,7 +508,7 @@ ProjectPackager::runUnpack()
         }
 
     }
-    contents.close();
+    contents.remove();
 
     QString completeTrueFilename = getTrueFilename();
 
