@@ -6825,12 +6825,11 @@ RosegardenMainWindow::slotPluginSelected(InstrumentId instrumentId,
         if (inst->isAssigned()) {
             RG_DEBUG << "RosegardenMainWindow::slotPluginSelected - "
             << " setting identifier for mapper id " << inst->getMappedId()
-            << " to " << inst->getIdentifier() << endl;
+            << " to " << strtoqstr(inst->getIdentifier()) << endl;
 
-            StudioControl::setStudioObjectProperty
-            (inst->getMappedId(),
-             MappedPluginSlot::Identifier,
-             strtoqstr(inst->getIdentifier()));
+            StudioControl::setStudioObjectProperty(inst->getMappedId(),
+                                                   MappedPluginSlot::Identifier,
+                                                   strtoqstr(inst->getIdentifier()));
         } else {
             // create a studio object at the sequencer
             MappedObjectId newId =
@@ -6838,7 +6837,7 @@ RosegardenMainWindow::slotPluginSelected(InstrumentId instrumentId,
                 (MappedObject::PluginSlot);
 
             RG_DEBUG << "RosegardenMainWindow::slotPluginSelected - "
-            << " new MappedObjectId = " << newId << endl;
+                     << " new MappedObjectId = " << newId << endl;
 
             // set the new Mapped ID and that this instance
             // is assigned
@@ -7050,7 +7049,7 @@ RosegardenMainWindow::slotChangePluginProgram(InstrumentId instrumentId,
 
     RG_DEBUG << "RosegardenMainWindow::slotChangePluginProgram - "
              << "setting plugin program ("
-             << inst->getMappedId() << ") from " << inst->getProgram()
+             << inst->getMappedId() << ") from " << strtoqstr(inst->getProgram())
              << " to " << program << endl;
 
     inst->setProgram(qstrtostr(program));
