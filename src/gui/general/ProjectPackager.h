@@ -64,6 +64,11 @@ public:
                     QString filename);
     ~ProjectPackager() { };
 
+    /** Return the true filename as discovered when analyzing the contents of
+     * the .rgp file.  foo.rgp might contain bar.rg and directory bar/
+     */
+    QString getTrueFilename();
+
 protected:
     RosegardenDocument *m_doc;
     int                 m_mode;
@@ -71,8 +76,15 @@ protected:
     QProgressBar       *m_progress;
     QLabel             *m_info;
     QProcess           *m_process;
-   // so we can easily delete the script after we have used it
+    
+    /// The backend script has to be accessed from multiple locations
     QFile               m_script;
+
+    /** The real filename contained within the project package.  It is necessary
+     * to discover and transmit this because foo.rgp might really contain bar.rg
+     * and data files in bar/ if the user ever renamed the file for some reason
+     */
+    QString             m_trueFilename;
 
 
     /** Returns a QStringList containing a sorted|uniqed list of audio files
@@ -203,10 +215,9 @@ protected slots:
       */
     void startFlacDecoder(QStringList files);
 
-    // This probably just winds up being end of chain cleanup code that doesn't
-    // actually update the audio path, which should probably get done in
-    // RosegardenMainWindow, if at all.  To decide later.
-    void updateAudioPath(int exitCode, QProcess::ExitStatus);
+    /** Final unpack stage
+     */
+    void finishUnpack(int exitCode, QProcess::ExitStatus);
 };
 
 

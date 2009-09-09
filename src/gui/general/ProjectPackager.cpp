@@ -37,6 +37,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QRegExp>
 
 #include <iostream>
 
@@ -52,7 +53,8 @@ ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document, 
         QDialog(parent),
         m_doc(document),
         m_mode(mode),
-        m_filename(filename)
+        m_filename(filename),
+        m_trueFilename(filename)
 {
     // (I'm not sure why RG_DEBUG didn't work from in here.  Having to use
     // iostream is mildly irritating, as QStrings have to be converted, but
@@ -91,6 +93,26 @@ ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document, 
     layout->addWidget(ok, 3, 1);
 
     sanityCheck();
+}
+
+QString
+ProjectPackager::getTrueFilename()
+{
+    // get the path from the original m_filename, which is wherever the unpacked
+    // .rgp file sat on disk, eg. /home/melvin/Documents/
+    QFileInfo origFI(m_filename);
+    QString dirname = origFI.path();
+
+    std::cout << "ProjectPackager::getTrueFilename() - directory component is: " << dirname.toStdString() << std::endl;
+
+    // get the filename component from the true m_trueFilename discovered while
+    // unpacking the .rgp + extension (eg. foo.rgp yields bar.rg here)
+    QFileInfo trueFI(m_trueFilename);
+    QString basename = QString("%1.%2").arg(trueFI.baseName()).arg(trueFI.completeSuffix());
+
+    std::cout << "                                          name component is: " << basename.toStdString() << std::endl;
+
+    return QString("%1/%2").arg(dirname).arg(basename);
 }
 
 void
@@ -432,9 +454,20 @@ ProjectPackager::runUnpack()
     // equivalent of [command] > ofile
     m_process->setStandardOutputFile(ofile, QIODevice::Truncate);
 
+    // escape spaces put in place by evil users  (what other not strictly
+    // illegal but incredibly stupid characters might there be we should also
+    // escape? probably a half ton of them)
+//    QString escapedFilename = m_filename;
+    //escapedFilename.replace(QRegExp(" "), "\\ ");
+//    std::cout << "escape test: m_filename: " << qstrtostr(m_filename) << std::endl
+//              << "        escapedFilename: " << qstrtostr(escapedFilename) << std::endl;
+
     // This is a very fast operation, just listing the files in a tarball
     // straight to a file on disk without involving a terminal, so we
     // will do this one as a waitForFinished() and risk blocking here
+    //
+    // (note that QProcess apparently handles escaping any spaces &c. in
+    // m_filename here)
     m_process->start("tar", QStringList() << "tf" << m_filename);
     m_process->waitForStarted();
     std::cout << "process started: tar tf " << qstrtostr(m_filename) << std::endl;
@@ -462,12 +495,34 @@ ProjectPackager::runUnpack()
         if (line.isEmpty()) break;
         if (line.find(".flac", 0) > 0) {
             files << line;
-            std::cout << line.toStdString() << std::endl;
+            std::cout << "Discovered for decoding: " <<  line.toStdString() << std::endl;
+        } else if (line.find(".rg", 0) > 0) {
+            m_trueFilename = line;
+            std::cout << "Discovered true filename: " << m_trueFilename.toStdString() << std::endl;
         }
+
     }
     contents.close();
 
-    startFlacDecoder(files);
+    QString completeTrueFilename = getTrueFilename();
+
+    QFileInfo fi(completeTrueFilename);
+    if (fi.exists()) {
+        QMessageBox::StandardButton reply =  QMessageBox::critical(this,
+                tr("Rosegarden - Fatal processing error!"),
+                tr("<qt><p>It appears that you have already unpacked this project package.</p><p>Would you like to load %1 now?</p></qt>").arg(completeTrueFilename),
+                QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
+
+        if (reply == QMessageBox::Ok) {
+            // If they choose Ok, we'll accept() here to abort processing and
+            // tell RosegardenMainWindow to load m_trueFilename
+            accept();
+        } else {
+            reject();
+        }
+     } else {
+         startFlacDecoder(files);
+     }
 }
 
 
@@ -502,7 +557,7 @@ ProjectPackager::startFlacDecoder(QStringList files)
 
     // There were mysterious stupid problems running tar xf in a separate
     // QProcess step, so screw it, let's just throw it into this script!
-    out << "tar xzf " << basename << " || exit " << errorPoint++ << endl;
+    out << "tar xzf \"" << basename << "\" || exit " << errorPoint++ << endl;
 
     QStringList::const_iterator si;
     int len;
@@ -520,7 +575,10 @@ ProjectPackager::startFlacDecoder(QStringList files)
         // just write a command on each line, terminating with an || exit n
         // which can be used to figure out at which point processing broke, for
         // cheap and easy error reporting without a lot of fancy stream wiring
-        out << "flac -d " <<  o1 << " -o " << o2 << " && rm " << o1 <<  " || exit " << errorPoint << endl;
+        //
+        // (let's just try escaping spaces &c. with surrounding " and see if
+        // that is good enough)
+        out << "flac -d \"" <<  o1 << "\" -o \"" << o2 << "\" && rm \"" << o1 <<  "\" || exit " << errorPoint << endl;
         errorPoint++;
     }
 
@@ -534,15 +592,25 @@ ProjectPackager::startFlacDecoder(QStringList files)
     m_process->setWorkingDirectory(dirname);
     m_process->start("bash", QStringList() << scriptName);
     connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
-            this, SLOT(updateAudioPath(int, QProcess::ExitStatus)));
+            this, SLOT(finishUnpack(int, QProcess::ExitStatus)));
+
+    // wait up to 30 seconds for process to start
+    m_info->setText(tr("Decoding audio files..."));
+    if (!m_process->waitForStarted()) {
+        puke(tr("<qt>Could not start backend processing script %1.</qt>").arg(scriptName));
+        return;
+    }
 }
 
 
 // After checking, there is no need to update the audio path.
 // It works perfectly well as is. Just remove the script.
+//
+// (Confirmed here.  Import /tmp/foo.rgp to zynfidel.rg and live audio file path
+// is /tmp/zynfidel so this test passes and the extra hackery has been removed)
 void
-ProjectPackager::updateAudioPath(int exitCode, QProcess::ExitStatus) {
-    std::cout << "update Audio path " << exitCode << std::endl;
+ProjectPackager::finishUnpack(int exitCode, QProcess::ExitStatus) {
+    std::cout << "ProjectPackager::finishUnpack - exit code: " << exitCode << std::endl;
 
     if (exitCode == 0) {
         delete m_process;
