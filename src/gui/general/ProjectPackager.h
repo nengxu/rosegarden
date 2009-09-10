@@ -86,6 +86,9 @@ protected:
      */
     QString             m_trueFilename;
 
+    QString             m_packTmpDirName;
+    QString             m_packDataDirName;
+
 
     /** Returns a QStringList containing a sorted|uniqed list of audio files
      * used by m_doc
@@ -124,7 +127,11 @@ protected slots:
     /** Remove a directory full of files.  Used to remove the tmp working
      * directory after a pack, or to clean up from an aborted pack
      */
-    void rmdir(const QDir dir, const QString &tmpDirName);
+    void rmTmpDir();
+
+    /** If user cancels, clean up tmp dir
+     */
+    void reject();
 
     /**
      * Begin the packing process.
@@ -154,7 +161,7 @@ protected slots:
      * fucker at the end of the encoder script and cut out a million lines of
      * extra code.
      */
-    void startFlacEncoder(QString path, QStringList files, const QString &tmpDirName, const QString &dataDirName);
+    void startFlacEncoder(QStringList files);
 
     /** Final pack stage
      */

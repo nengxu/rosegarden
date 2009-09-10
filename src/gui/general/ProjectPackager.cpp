@@ -55,7 +55,10 @@ ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document, 
         m_doc(document),
         m_mode(mode),
         m_filename(filename),
-        m_trueFilename(filename)
+        m_trueFilename(filename),
+        m_packTmpDirName("fatal error"),
+        m_packDataDirName("fatal error")
+
 {
     // (I'm not sure why RG_DEBUG didn't work from in here.  Having to use
     // iostream is mildly irritating, as QStrings have to be converted, but
@@ -134,13 +137,15 @@ ProjectPackager::puke(QString error)
 }
 
 void
-ProjectPackager::rmdir(const QDir dir, const QString &tmpDirName)
+ProjectPackager::rmTmpDir()
 {
-    if (dir.exists()) {
+    std::cout << "ProjectPackager - rmTmpDir() removing " << m_packTmpDirName.toStdString() << std::endl;
+    QDir d;
+    if (d.exists(m_packTmpDirName)) {
         QProcess rm;
-        rm.start("rm", QStringList() << "-rf" << tmpDirName);
+        rm.start("rm", QStringList() << "-rf" << m_packTmpDirName);
         rm.waitForStarted();
-        std::cout << "process started: rm -rf " << qstrtostr(tmpDirName) << std::endl;
+        std::cout << "process started: rm -rf " << qstrtostr(m_packTmpDirName) << std::endl;
         rm.waitForFinished();
     }
 
@@ -163,6 +168,14 @@ ProjectPackager::rmdir(const QDir dir, const QString &tmpDirName)
 //            std::cout << "rmdir: " << di.next().toStdString() << (d.remove(di.next()) ? "OK" : "FAILED") << std::endl;
 //        }
 //    }
+}
+
+void
+ProjectPackager::reject()
+{
+    std::cout << "User pressed cancel" << std::endl;
+    rmTmpDir();
+    QDialog::reject();
 }
 
 QStringList
@@ -256,28 +269,28 @@ ProjectPackager::runPack()
     QString audioPath = strtoqstr(manager->getAudioPath());
 
     // the base tmp directory where we'll assemble all the files
-    QString tmpDirName = QString("%1/rosegarden-project-packager-tmp").arg(QDir::homePath());
+    m_packTmpDirName = QString("%1/rosegarden-project-packager-tmp").arg(QDir::homePath());
 
     // the data directory where audio and other files will go
     QFileInfo fi(m_filename);
-    QString dataDirName = fi.baseName();
+    m_packDataDirName = fi.baseName();
 
-    std::cout << "using tmp data directory: " << tmpDirName.toStdString() << "/" << dataDirName.toStdString() << std::endl;
+    std::cout << "using tmp data directory: " << m_packTmpDirName.toStdString() << "/" << m_packDataDirName.toStdString() << std::endl;
 
-    QDir tmpDir(tmpDirName);
+    QDir tmpDir(m_packTmpDirName);
 
-    // if the directory already exists, just hose it
-    rmdir(tmpDir, tmpDirName);
+    // if the tmp directory already exists, just hose it
+    rmTmpDir();
 
     // make the temporary working directory
-    if (tmpDir.mkdir(tmpDirName)) {
+    if (tmpDir.mkdir(m_packTmpDirName)) {
         QFileInfo fi(m_filename);
         // QFileInfo::baseName() given /tmp/foo/bar/rat.rgp returns rat
         //
         // m_filename comes in already having an .rgp extension, but the file
         // was saved .rg
         QString oldName = QString("%1/%2.rg").arg(fi.path()).arg(fi.baseName());
-        QString newName = QString("%1/%2.rg").arg(tmpDirName).arg(fi.baseName());
+        QString newName = QString("%1/%2.rg").arg(m_packTmpDirName).arg(fi.baseName());
         std::cout << "cp " << oldName.toStdString() << " " << newName.toStdString() << std::endl;
 
         // copy m_filename(.rgp) as $tmp/m_filename.rg
@@ -289,7 +302,7 @@ ProjectPackager::runPack()
     }
 
     // make the data subdir
-    tmpDir.mkdir(dataDirName);    
+    tmpDir.mkdir(m_packDataDirName);    
 
 
     // copy the audio files (do not remove the originals!)
@@ -297,7 +310,7 @@ ProjectPackager::runPack()
     for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
     
         QString srcFile = QString("%1/%2").arg(audioPath).arg(*si);
-        QString dstFile = QString("%1/%2/%3").arg(tmpDirName).arg(dataDirName).arg(*si);
+        QString dstFile = QString("%1/%2/%3").arg(m_packTmpDirName).arg(m_packDataDirName).arg(*si);
         QString dstFilePk = QString("%1.pk").arg(dstFile);
 
         std::cout << "cp " << srcFile.toStdString() << " " << dstFile.toStdString() << std::endl;
@@ -328,8 +341,20 @@ ProjectPackager::runPack()
         QString directory = settings.value("open_file", QDir::homePath()).toString();
         settings.endGroup();
 
-        extraFiles <<  FileDialog::getOpenFileNames(this, "Open File", directory, tr("All files") + " (*)", 0, 0);
-        
+        // must iterate over a copy of the QStringList returned by
+        // (Q)FileDialog::getOpenFileNames for some reason
+        //
+        // NOTE: This still doesn't work.  I can only add one filename.
+        // Something broken in the subclass of QFileDialog?  Bad code?  I'm just
+        // leaving it unresolved for now. One file at a time at least satisfies
+        // the bare minimum requirements
+        QStringList files =  FileDialog::getOpenFileNames(this, "Open File", directory, tr("All files") + " (*)", 0, 0);
+        extraFiles << files;
+       
+        //!!!  It would be nice to show the list of files already chosen and
+        // added, in some nice little accumulator list widget, but this would
+        // require doing something more complicated than using QMessageBox
+        // static convenience functions, and it's probably just not worth it
         reply =  QMessageBox::information(this,
                 tr("Rosegarden"),
                 tr("<qt><p>Would you like to include any additional files?</p></qt>"),
@@ -347,7 +372,7 @@ ProjectPackager::runPack()
         // the complete filename stuck on the end
         QFileInfo efi(*si);
         QString basename = QString("%1.%2").arg(efi.baseName()).arg(efi.completeSuffix());
-        QString dstFile = QString("%1/%2/%3").arg(tmpDirName).arg(dataDirName).arg(basename);
+        QString dstFile = QString("%1/%2/%3").arg(m_packTmpDirName).arg(m_packDataDirName).arg(basename);
 
         std::cout << "cp " << srcFile.toStdString() << " " << dstFile.toStdString() << std::endl;
         QFile::copy(srcFile, dstFile);
@@ -359,11 +384,11 @@ ProjectPackager::runPack()
     // and now we have everything discovered, uncovered, added, smothered,
     // scattered and splattered, and we're ready to pack the flac files and
     // get the hell out of here!
-    startFlacEncoder(audioPath, audioFiles, tmpDirName, dataDirName);
+    startFlacEncoder(audioFiles);
 }
 
 void
-ProjectPackager::startFlacEncoder(QString path, QStringList files, const QString &tmpDirName, const QString &dataDirName)
+ProjectPackager::startFlacEncoder(QStringList files)
 {
     // we can't do a oneliner bash script straight out of a QProcess command
     // line, so we'll have to create a purpose built script and run that
@@ -387,7 +412,7 @@ ProjectPackager::startFlacEncoder(QString path, QStringList files, const QString
     QStringList::const_iterator si;
     int errorPoint = 1;
     for (si = files.constBegin(); si != files.constEnd(); ++si) {
-        QString o = QString("%1/%2").arg(dataDirName).arg(*si);
+        QString o = QString("%1/%2").arg(m_packDataDirName).arg(*si);
 
         // default flac behavior is to encode
         //
@@ -401,18 +426,18 @@ ProjectPackager::startFlacEncoder(QString path, QStringList files, const QString
 
     // Throw tar on the ass end of this script and save an extra processing step
     //
-    // first cheap trick, dataDirName.rg is our boy and we know it
-    QString rgFile = QString("%1.rg").arg(dataDirName);
+    // first cheap trick, m_packDataDirName.rg is our boy and we know it
+    QString rgFile = QString("%1.rg").arg(m_packDataDirName);
 
     // second cheap trick, don't make a tarball in tmpdir and move it, just
     // write it at m_filename and shazam, nuke the tmpdir behind us and peace out
-    out << "tar czf \"" << m_filename << "\" " << rgFile.toLocal8Bit() << " " <<  dataDirName.toLocal8Bit() <<  "/ || exit " << errorPoint++ << endl;
+    out << "tar czf \"" << m_filename << "\" " << rgFile.toLocal8Bit() << " " <<  m_packDataDirName.toLocal8Bit() <<  "/ || exit " << errorPoint++ << endl;
 
     m_script.close();
 
     // run the assembled script
     m_process = new QProcess;
-    m_process->setWorkingDirectory(tmpDirName);
+    m_process->setWorkingDirectory(m_packTmpDirName);
     m_process->start("bash", QStringList() << scriptName);
     connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(finishPack(int, QProcess::ExitStatus)));
@@ -441,7 +466,7 @@ ProjectPackager::finishPack(int exitCode, QProcess::ExitStatus) {
     QString basename = QString("%1/%2.rg").arg(dirname).arg(fi.baseName());
     QFile::remove(basename);
 
-    //rmdir( tmp working dir needs refactoring to get in here
+    rmTmpDir();
     accept();
     exitCode++; // break point
 }
