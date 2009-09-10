@@ -121,47 +121,27 @@ protected slots:
      */
     void puke(QString error);
 
+    /** Remove a directory full of files.  Used to remove the tmp working
+     * directory after a pack, or to clean up from an aborted pack
+     */
+    void rmdir(const QDir dir, const QString &tmpDirName);
+
     /**
-     * Begin the packing process, which will entail:
+     * Begin the packing process.
      *
-     *   1. discover audio files used by the composition
-     *
-     *   2. pull out copies to a tmp directory
-     *
-     *   3. compress audio files with FLAC (preferably using the library,
-     *   although that is quite hopeless for the moment, due to the assert()
-     *   conflict)
-     *
-     *   4. prompt user for additional files
-     *
-     *   5. add them
-     *
-     *   6. final directory structure looks like:
-     *
-     *       ./export_filename.rg
-     *       ./export_filename/[wav files compressed with FLAC]
-     *       ./export_filename/[misc files]
-     *
-     *   7. tarball this (tar czf)
-     *
-     *   8. rename it to .rgp from .tar.gz
-     *
-     *   9. ???
+     *   - discover audio files used by the composition
+     *   - remove old tmp directory (if exists)
+     *   - create tmp directory
+     *   - copy .rg file from the main window save operation into tmp dir
+     *   - copy audio files into tmp dir
+     *   - prompt for extra files
+     *   - copy extra files
+     *   - hand off to the decoder backend non-blocking QProcess slot
      */
      // run this after the sanity check
     void runPackUnpack(int exitCode, QProcess::ExitStatus);
 
     void runPack();
-
-    /** Create a temporary working directory and assemble copied files to that
-     * location for further processing.  The copy operations could take some
-     * time, so we probably need a QProcess slot for this, and assemble the
-     * various copy operations into one backend script to execute from that
-     * QProcess.
-     *
-     * When complete, trigger startFlacEncoder()
-     */
-    void assembleFiles(QString path, QStringList files);
 
     /** Assemble the various flac encoding operations into one backend script to
      * operate from a single QProcess, so this chewing can take place without
@@ -170,32 +150,12 @@ protected slots:
      * to hook this up to m_status and give some indication of progress,
      * instead of just leaving it in "busy" mode.
      *
-     * When complete, trigger promptAdditionalFiles()
+     * And you know what?  It worked for unpack, do it here too.  Just tar the
+     * fucker at the end of the encoder script and cut out a million lines of
+     * extra code.
      */
     void startFlacEncoder(QString path, QStringList files);
 
-    // flac may leave the original .wav files intact, in which case we need to
-    // clean them up, but we can probably build that into the purpose-built
-    // script created by the preceding chain link without having to insert
-    // another one here.  Probably.
-
-    /** Prompt the user for any additional files they wish to include in the
-     * project package.  This will require a bit of thought.  Once the list is
-     * assembled, copy the files to the temporary working location.
-     *
-     * When complete, trigger compressPackage()
-     */
-    void promptAdditionalFiles();
-
-    /** Turn the whole assembled shebang into a completed .rgp file.  If this
-     * would require more than one QProcess, perhaps do another temporary
-     * backend script, since we will have had so many of them by then, what the
-     * hell.
-     *
-     * We can probably arrange it so this is the final link in the chain, and
-     * signals the end of the pack operation.
-     */
-    void compressPackage();
 
     /** The first stage of unpacking an .rgp file:
      *

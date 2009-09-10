@@ -21,6 +21,7 @@
 #include "base/Composition.h"
 #include "base/Track.h"
 #include "gui/general/IconLoader.h"
+#include "gui/widgets/FileDialog.h"
 #include "misc/ConfigGroups.h"
 #include "misc/Strings.h"
 #include "sound/AudioFile.h"
@@ -37,7 +38,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QRegExp>
+#include <QDirIterator>
 
 #include <iostream>
 
@@ -130,6 +131,38 @@ ProjectPackager::puke(QString error)
 
     // Well, that was the theory.  In practice it apparently isn't so easy to do
     // the bash equivalent of a spontaneous "exit 1" inside a QDialog.  Hrm.
+}
+
+void
+ProjectPackager::rmdir(const QDir dir, const QString &tmpDirName)
+{
+    if (dir.exists()) {
+        QProcess rm;
+        rm.start("rm", QStringList() << "-rf" << tmpDirName);
+        rm.waitForStarted();
+        std::cout << "process started: rm -rf " << qstrtostr(tmpDirName) << std::endl;
+        rm.waitForFinished();
+    }
+
+// Bleargh, bollocks to this!  Using a QDirIterator is the right way to handle
+// the possibility of there being extra unexpected subdirectories full of files,
+// but there are sort order issues and all manner of other ills.  While we live
+// on Linux, let's just say the hell with it and do an rm -rf
+//
+//    if (dir.exists()) {
+//        // first find and remove all the files
+//        QDirIterator fi(dir.path(), QDir::Files, QDirIterator::Subdirectories);
+//        while (fi.hasNext()) {
+//            std::cout << "rm " << fi.next().toStdString() << (QFile::remove(fi.next()) ? "OK" : "FAILED") << std::endl;
+//        }
+//
+//        // then clean up the empty directories
+//        QDirIterator di(dir.path(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+//        while (di.hasNext()) {
+//            QDir d;
+//            std::cout << "rmdir: " << di.next().toStdString() << (d.remove(di.next()) ? "OK" : "FAILED") << std::endl;
+//        }
+//    }
 }
 
 QStringList
@@ -234,24 +267,7 @@ ProjectPackager::runPack()
     QDir tmpDir(tmpDirName);
 
     // if the directory already exists, just hose it
-    //
-    // The first version of this tried to do it the right way with
-    // QDir::entryList() and QFile::remove() but it was a lot of trouble to
-    // write, and it worked a little too well, erasing itself from existence.
-    //
-    // Oops.  O_o
-    //
-    // So let's just go with QProcess rm -rf then.  Somebody else can replace
-    // this with Qt-based code later if anybody really cares.
-    if (tmpDir.exists()) {
-        // I lost track whether m_process is deleted at this stage, and since
-        // this is a local scope blocking QProcess, let's just create a new one
-        QProcess rm;
-        rm.start("rm", QStringList() << "-rf" << tmpDirName);
-        rm.waitForStarted();
-        std::cout << "process started: rm -rf " << qstrtostr(tmpDirName) << std::endl;
-        rm.waitForFinished();
-    }
+    rmdir(tmpDir, tmpDirName);
 
     // make the temporary working directory
     if (tmpDir.mkdir(tmpDirName)) {
@@ -277,8 +293,6 @@ ProjectPackager::runPack()
     }
 
     // make the data subdir
-//    QString fullDataDirName = QString("%1/%2").arg(tmpDirName).arg(dataDirName);
-//    tmpDir.mkdir(fullDataDirName);
     tmpDir.mkdir(dataDirName);    
 
 
@@ -294,93 +308,62 @@ ProjectPackager::runPack()
         std::cout << "cp " << srcFile.toStdString() << " " << dstFilePk.toStdString() << std::endl;
         QFile::copy(srcFile, dstFile);
         QFile::copy(srcFile, dstFilePk);
+
+        // we should update the progress bar in some pleasant way here based on
+        // total files, but I don't feel like sorting that out
     }
 
+    // deal with adding any extra files
+    QStringList extraFiles;
 
-return;
-    /* 1. find suitable place to write a tmp directory (should it be /tmp or
-     * under ~ somewhere, eg. ~/tmp or maybe even a Qt class can figure it out
-     * so we don't have to)
-     *
-     * THOUGHTS: let's use ~/rosegarden-project-packager-tmp and warn if it
-     * isn't empty when we start, etc.  We'll want to do this in userland in
-     * case they have a partitioning scheme that limits system disk usage.  Most
-     * users don't bother with this kind of thing these days, but I do, and I
-     * can't be alone. (I also do this on my system. Ilan)
-     *
-     * What we'll want to do is take the full path/to/filename coming into this
-     * thing for later use, and in the interim we work with the "basename" part
-     * of the filename, relative to this temporary working location.  Let's
-     * build it like
-     *
-     * ~/rosegarden-project-packager-tmp/m_filename.rg
-     * ~/rosegarden-project-packager-tmp/m_filename/[included files]
-     *
-     * Then once the whole shebang is rolled up, copy it back to the fully
-     * qualified original filename, in the originally specified location.
-     *
-     * The whole scheme as currently laid out may not yet have enough QProcess
-     * chain links to get every operation done, but if so, that's why we have
-     * text editors and fingers, right?
-     *
-     *
-     *
-     * 3. save/cp m_filename.rg to eg. /tmp/$m_filename.rg (NOTE: don't assume
-     * the code that called us in RosegardenMainWindow is at all sacred.)
-     * 2. mkdir m_filename there (eg. /tmp/$m_filename)
-     * 4. cp extracted audioFiles from $audioPath/$audioFiles to /tmp/$m_filename/$audioFiles (use iterator as in sample code below)
-     * 5. run external flac utility on /tmp/$m_filename/$audioFiles
-     * 6. prompt for additional files, and add them under /$m_filename directory if any
-     * 7. run tar czf command that includes ./$m_filename.rg and ./m_filename directory
-     * &c.
-     * (at some stage in the overall process we need to change the audio path,
-     * manager->setAudioPath() to point to...  Hrm.  Not sure how to handle
-     * this, actually, as audio paths stored internally are absolute except for
-     * the ~ but we probably can't know where this will actually be extracted,
-     * so we're probably going to get that wrong.  I think this is something the
-     * original script never got right either.  So we probably want to do that
-     * when UN-packing, after we KNOW where the files are.  Instead of feeding
-     * the user a "can't find audio file rg-123.wav, use this file dialog to
-     * point me at it because I'm Rosegarden and I'm brain damaged"
-     *
-     * save this for one of the last things to refine later and don't worry
-     * overmuch going in)
-     */
-/*
-    std::cout << "Audio files test:" << std::endl;
-    QStringList::const_iterator si;
-    for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
-        std::string o = (*si).toLocal8Bit().constData();
-        std::cout << audioPath << " " << o << std::endl;
+    QMessageBox::StandardButton reply = QMessageBox::information(this,
+            tr("Rosegarden"),
+            tr("<qt><p>Rosegarden can add any number of extra files you may desire to a project package.  For example, you may wish to include an explanatory text file, a bank definition for ZynAddSubFX, or perhaps some cover art.  It's all up to you!</p><p>Would you like to include any additional files?</p></qt>"),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+    while (reply == QMessageBox::Yes) {
+
+        // it would take some trouble to make the last used paths thing work
+        // here, where we're building a list of files from potentially anywhere,
+        // so we'll just use the open_file path as it was last set elsewhere,
+        // and leave it at that until somebody complains
+        QSettings settings;
+        settings.beginGroup(LastUsedPathsConfigGroup);
+        QString directory = settings.value("open_file", QDir::homePath()).toString();
+        settings.endGroup();
+
+        extraFiles <<  FileDialog::getOpenFileNames(this, "Open File", directory, tr("All files") + " (*)", 0, 0);
+        
+        reply =  QMessageBox::information(this,
+                tr("Rosegarden"),
+                tr("<qt><p>Would you like to include any additional files?</p></qt>"),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     }
 
-    // for testing only.  we actually begin with assembleFiles()
-    startFlacEncoder(strtoqstr(audioPath), audioFiles);
+    // copy the extra files (do not remove the originals!)
+    // (iterator previously declared)
+    for (si = extraFiles.constBegin(); si != extraFiles.constEnd(); ++si) {
+    
+        // each QStringList item from the FileDialog will include the full path
+        QString srcFile = (*si);
 
+        // so we cut it up to swap the source dir for the dest dir while leaving
+        // the complete filename stuck on the end
+        QFileInfo efi(*si);
+        QString basename = QString("%1.%2").arg(efi.baseName()).arg(efi.completeSuffix());
+        QString dstFile = QString("%1/%2/%3").arg(tmpDirName).arg(dataDirName).arg(basename);
 
-    /*
-    m_process = new QProcess;
-    m_process->start("convert-ly", QStringList() << "-e" << m_filename);
-    connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
-            this, SLOT(runUnpack(int, QProcess::ExitStatus)));
+        std::cout << "cp " << srcFile.toStdString() << " " << dstFile.toStdString() << std::endl;
+        QFile::copy(srcFile, dstFile);
 
-    // wait up to 30 seconds for process to start
-    if (m_process->waitForStarted()) {
-        m_info->setText(tr("<b>convert-ly</b> started..."));
-    } else {
-        puke(tr("<qt><p>Could not run <b>convert-ly</b>!</p><p>Please install LilyPond and ensure that the \"convert-ly\" and \"lilypond\" commands are available on your path.  If you perform a <b>Run Command</b> (typically <b>Alt+F2</b>) and type \"convert-ly\" into the box, you should not get a \"command not found\" error.  If you can do that without getting an error, but still see this error message, please consult <a href=\"mailto:rosegarden-user@lists.sourceforge.net\">rosegarden-user@lists.sourceforge.net</a> for additional help.</p><p>Processing terminated due to fatal errors.</p></qt>"));
+        // we should update the progress bar in some pleasant way here based on
+        // total files, but I don't feel like sorting that out
     }
 
-    m_progress->setValue(25);
-    * */
-}
-
-void
-ProjectPackager::assembleFiles(QString path, QStringList files)
-{
-    // We have the document audio path and a list of necessary audio files put
-    // together in the calling code, assembled into the incoming path and files
-    // variables
+    // and now we have everything discovered, uncovered, added, smothered,
+    // scattered and splattered, and we're ready to pack the flac files and
+    // get the hell out of here!
+    startFlacEncoder(audioPath, audioFiles);
 }
 
 void
@@ -434,31 +417,6 @@ ProjectPackager::startFlacEncoder(QString path, QStringList files)
     connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(runTar(int, QProcess::ExitStatus)));
 // in runTar kill m_script
-}
-
-void
-ProjectPackager::promptAdditionalFiles()
-{
-    // Users need to be prompted "Is there anything else you want to add?" and
-    // given a chance to keep adding stuff until they're bored.  Keep looping
-    // and assembling files into a QStringList until they're bored.  That part
-    // of the processing won't block anything.   Then once that list is
-    // assembled, do the QProcess bit all in a single QProcess as seems most
-    // befitting when actual code exists here
-}
-
-void
-ProjectPackager::compressPackage()
-{
-    // Once all the ducks are in a row, we need to run final QProcess to
-    // complete the process of turning all of this into a .tar.gz file that has
-    // an .rgp extension.  Come to think of it, the way the original script
-    // worked was always pretty screwy with respect to where it created the
-    // temporary directory to work out of.  What we want to do is pick one place
-    // (probably ~/rosegarden-project-packager-tmp let's just say) and want to
-    // have done all the processing up to here in that location.  When it's all
-    // said and done, we'll mv the resulting .rgp file to the filename
-    // originally specified.
 }
 
 
