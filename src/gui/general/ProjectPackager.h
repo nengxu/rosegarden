@@ -156,6 +156,9 @@ protected slots:
      */
     void startFlacEncoder(QString path, QStringList files, const QString &tmpDirName, const QString &dataDirName);
 
+    /** Final pack stage
+     */
+    void finishPack(int exitCode, QProcess::ExitStatus);
 
     /** The first stage of unpacking an .rgp file:
      *
