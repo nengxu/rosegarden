@@ -154,7 +154,7 @@ protected slots:
      * fucker at the end of the encoder script and cut out a million lines of
      * extra code.
      */
-    void startFlacEncoder(QString path, QStringList files);
+    void startFlacEncoder(QString path, QStringList files, const QString &tmpDirName, const QString &dataDirName);
 
 
     /** The first stage of unpacking an .rgp file:
