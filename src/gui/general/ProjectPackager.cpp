@@ -216,6 +216,30 @@ ProjectPackager::getAudioFiles()
     return list;
 }
 
+QStringList
+ProjectPackager::getPluginFilesAndRewriteXML(const QString newPath)
+{
+    QStringList list;
+    list << "/test/1/2/3/";
+
+    // find the original .rg file which will be m_filename - .rgd + .rg
+    //
+    // parse it for files referred to by plugins
+    //
+    // accumulate the original paths to these files in list
+    //
+    // after adding a path to list, rewrite the XML to change the path
+    // component
+    //
+    // for example, original file was /usr/share/sounds/k3b_error.wav
+    // new path is written  $newPath/k3b_error.wav
+    //
+    // (also rewrite the audio path along the way)
+
+    return list;
+}
+
+
 // to avoid problems, we check for flac, which is an integral part of the process.
 // we also use tar, but we can safely assume that tar exists.
 void
@@ -324,6 +348,29 @@ ProjectPackager::runPack()
 
     // deal with adding any extra files
     QStringList extraFiles;
+
+    // first, if the composition includes synth plugins, there may be assorted
+    // random audio files, soundfonts, and who knows what else in use by these
+    // plugins
+    //
+    // obtain a list of these files, and rewrite the XML to update the referring
+    // path from its original source to point to our bundled copy instead
+    QString newPath = QString("%1/%2").arg(m_packTmpDirName).arg(m_packDataDirName);
+    extraFiles = getPluginFilesAndRewriteXML(newPath);
+
+    // [insert call to XML parser/rewriter here]
+    //
+    // parser/rewriter has to:
+    //
+    // 1 find data files associated with plugins
+    // 2 assemble a list to return to add to extraFiles string list here
+    // 3 after recording the original path, alter the original path and rewrite
+    // it (also doing this for the document audio path)
+    //
+    // If we do the above here and add it to extraFiles then if the user has any
+    // other extra files to add by hand, it all processes out the same way with
+    // no extra bundling code required (unless we want to flac any random extra
+    // .wav files, and I say no, let's not get that complicated)
 
     QMessageBox::StandardButton reply = QMessageBox::information(this,
             tr("Rosegarden"),
@@ -553,8 +600,8 @@ ProjectPackager::runUnpack()
 
     QFileInfo fi(completeTrueFilename);
     if (fi.exists()) {
-        QMessageBox::StandardButton reply =  QMessageBox::critical(this,
-                tr("Rosegarden - Fatal processing error!"),
+        QMessageBox::StandardButton reply =  QMessageBox::warning(this,
+                tr("Rosegarden"),
                 tr("<qt><p>It appears that you have already unpacked this project package.</p><p>Would you like to load %1 now?</p></qt>").arg(completeTrueFilename),
                 QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
 

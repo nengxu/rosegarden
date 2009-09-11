@@ -100,6 +100,15 @@ protected:
      */
     QStringList getAudioFiles();
 
+    /** Returns a QStringList containing a sorted|uniqued list of extra files
+     * used by plugins
+     *
+     * While assembling that list, rewrites the static .rg file stored on disk
+     * to update the path component of these various file references, as well as
+     * the document audio path
+     */
+    QStringList getPluginFilesAndRewriteXML(const QString newPath);
+
 /* General questions not resolved yet:
  *
  * When do we change the audio file path from whatever it was to the new one
