@@ -217,12 +217,12 @@ ProjectPackager::getAudioFiles()
 }
 
 QStringList
-ProjectPackager::getPluginFilesAndRewriteXML(const QString newPath)
+ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const QString newPath)
 {
     QStringList list;
     list << "/test/1/2/3/";
 
-    // find the original .rg file which will be m_filename - .rgd + .rg
+    // work on fileToModify
     //
     // parse it for files referred to by plugins
     //
@@ -303,22 +303,30 @@ ProjectPackager::runPack()
 
     QDir tmpDir(m_packTmpDirName);
 
+    // get the original filename saved by RosegardenMainWindow and the name of
+    // the new one we'll be including in the bundle (name isn't changing, path
+    // component changes from one to the other)
+    // QFileInfo::baseName() given /tmp/foo/bar/rat.rgp returns rat
+    //
+    // m_filename comes in already having an .rgp extension, but the file
+    // was saved .rg
+    QString oldName = QString("%1/%2.rg").arg(fi.path()).arg(fi.baseName());
+    QString newName = QString("%1/%2.rg").arg(m_packTmpDirName).arg(fi.baseName());
+
     // if the tmp directory already exists, just hose it
     rmTmpDir();
 
     // make the temporary working directory
     if (tmpDir.mkdir(m_packTmpDirName)) {
-        QFileInfo fi(m_filename);
-        // QFileInfo::baseName() given /tmp/foo/bar/rat.rgp returns rat
-        //
-        // m_filename comes in already having an .rgp extension, but the file
-        // was saved .rg
-        QString oldName = QString("%1/%2.rg").arg(fi.path()).arg(fi.baseName());
-        QString newName = QString("%1/%2.rg").arg(m_packTmpDirName).arg(fi.baseName());
-        std::cout << "cp " << oldName.toStdString() << " " << newName.toStdString() << std::endl;
 
-        // copy m_filename(.rgp) as $tmp/m_filename.rg
-        QFile::copy(oldName, newName);
+        // We'll want to move this copy logic until after we've hacked the file,
+        // but I'm leaving it here and commenting it out for now
+
+
+//        std::cout << "cp " << oldName.toStdString() << " " << newName.toStdString() << std::endl;
+//
+//        // copy m_filename(.rgp) as $tmp/m_filename.rg
+//        QFile::copy(oldName, newName);
 
     } else {
         puke(tr("<qt>Could not create temporary working directory.<br>Processing aborted!</qt>"));
@@ -327,7 +335,6 @@ ProjectPackager::runPack()
 
     // make the data subdir
     tmpDir.mkdir(m_packDataDirName);    
-
 
     // copy the audio files (do not remove the originals!)
     QStringList::const_iterator si;
@@ -356,17 +363,8 @@ ProjectPackager::runPack()
     // obtain a list of these files, and rewrite the XML to update the referring
     // path from its original source to point to our bundled copy instead
     QString newPath = QString("%1/%2").arg(m_packTmpDirName).arg(m_packDataDirName);
-    extraFiles = getPluginFilesAndRewriteXML(newPath);
+    extraFiles = getPluginFilesAndRewriteXML(oldName, newPath);
 
-    // [insert call to XML parser/rewriter here]
-    //
-    // parser/rewriter has to:
-    //
-    // 1 find data files associated with plugins
-    // 2 assemble a list to return to add to extraFiles string list here
-    // 3 after recording the original path, alter the original path and rewrite
-    // it (also doing this for the document audio path)
-    //
     // If we do the above here and add it to extraFiles then if the user has any
     // other extra files to add by hand, it all processes out the same way with
     // no extra bundling code required (unless we want to flac any random extra

@@ -106,8 +106,11 @@ protected:
      * While assembling that list, rewrites the static .rg file stored on disk
      * to update the path component of these various file references, as well as
      * the document audio path
+     *
+     * \p fileToModify  the .rg file we need to work on
+     * \p newPath       the new path component we need to switch in
      */
-    QStringList getPluginFilesAndRewriteXML(const QString newPath);
+    QStringList getPluginFilesAndRewriteXML(const QString fileToModify, const QString newPath);
 
 /* General questions not resolved yet:
  *
