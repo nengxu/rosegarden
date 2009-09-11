@@ -327,7 +327,7 @@ ProjectPackager::runPack()
 
     QMessageBox::StandardButton reply = QMessageBox::information(this,
             tr("Rosegarden"),
-            tr("<qt><p>Rosegarden can add any number of extra files you may desire to a project package.  For example, you may wish to include an explanatory text file, a bank definition for ZynAddSubFX, or perhaps some cover art.  It's all up to you!</p><p>Would you like to include any additional files?</p></qt>"),
+            tr("<qt><p>Rosegarden can add any number of extra files you may desire to a project package.  For example, you may wish to include an explanatory text file, a soundfont, a bank definition for ZynAddSubFX, or perhaps some cover art.  It's all up to you!</p><p>Would you like to include any additional files?</p></qt>"),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
     while (reply == QMessageBox::Yes) {
