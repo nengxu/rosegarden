@@ -341,13 +341,14 @@ ProjectPackager::runPack()
     for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
     
         QString srcFile = QString("%1/%2").arg(audioPath).arg(*si);
+        QString srcFilePk = QString("%1.pk").arg(srcFile);
         QString dstFile = QString("%1/%2/%3").arg(m_packTmpDirName).arg(m_packDataDirName).arg(*si);
         QString dstFilePk = QString("%1.pk").arg(dstFile);
 
         std::cout << "cp " << srcFile.toStdString() << " " << dstFile.toStdString() << std::endl;
         std::cout << "cp " << srcFile.toStdString() << " " << dstFilePk.toStdString() << std::endl;
         QFile::copy(srcFile, dstFile);
-        QFile::copy(srcFile, dstFilePk);
+        QFile::copy(srcFilePk, dstFilePk);
 
         // we should update the progress bar in some pleasant way here based on
         // total files, but I don't feel like sorting that out
