@@ -25,6 +25,7 @@
 #include <QLabel>
 #include <QProcess>
 #include <QStringList>
+#include <QXmlDefaultHandler>
 
 
 namespace Rosegarden
@@ -46,13 +47,19 @@ class ProjectPackageHandler: public QXmlDefaultHandler {
 
 public:
     bool startDocument();
-    bool endElement( const QString&, const QString&, const QString& );
-    bool startElement( const QString&, const QString&, const QString &, const QXmlAttributes &attrs );
-    QString audioPath;
-    QStringList audioFiles;
+    bool endElement(const QString&, const QString&, const QString&);
+    bool startElement(const QString&, const QString&, const QString &, const QXmlAttributes &attrs);
+
+    /** We will encounter assorted data files with fixed paths.  For instance,
+     * a sampler plugin set to use /usr/share/sounds/k3b_error.wav
+     *
+     * The "/usr/share/sounds" component needs to be replaced with newPath
+     */
+    QString newPath;
+    QStringList dataFiles;
 
 private:
-    bool inRosegarden, inAudiofiles;
+    bool m_inRosegarden, m_inAudioFiles, m_inSynth;
 };
 
 
@@ -63,6 +70,7 @@ private:
  *  applications for various purposes to make the thing run.
  *
  *  \author D. Michael McIntyre
+ *  \author Ilan Tal
  */
 
 class ProjectPackager : public QDialog
@@ -77,8 +85,8 @@ public:
      * complain if there is a problem.  We no longer need a version target,
      * since the version is tied to Rosegarden itself.
      *
-     * The filename parameter should be a temporary file set elsewhere and
-     * passed in.
+     * The calling code creates an .rg file with an .rgd extension and passes
+     * this filename to us via the \arg filename parameter.
      */
     static const int ConfTest  = 0;
     static const int Pack      = 1;

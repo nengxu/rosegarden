@@ -60,42 +60,41 @@ namespace Rosegarden
 bool
 ProjectPackageHandler::startDocument()
 {
-    inRosegarden = false;
-    inAudiofiles = false;
-    audioFiles = QStringList();
-    audioPath = QString();
+    m_inRosegarden = false;
+    m_inAudioFiles = false;
+    m_inSynth = false;
     return true;
 }
 
 bool
 ProjectPackageHandler::endElement(const QString&, const QString&, const QString &name)
 {
-    if (name == "rosegarden-data" ) inRosegarden = false;
-    if (name == "audiofiles") inAudiofiles = false;
+    if (name == "rosegarden-data" ) m_inRosegarden = false;
+    if (name == "audiofiles") m_inAudioFiles = false;
     return true;
 }
 
 bool
 ProjectPackageHandler::startElement(const QString&, const QString&, const QString &name, const QXmlAttributes &attrs)
 {
-    if (inRosegarden && name == "audiofiles" ) inAudiofiles = true;
-    else if (inAudiofiles && name == "audio") {
+    if (m_inRosegarden && name == "audiofiles") m_inAudioFiles = true;
+    else if (m_inAudioFiles && name == "audio") {
         int i, n = attrs.count();
         QString tmp1;
 
-        for (i=0; i<n; i++) {
+        for (i = 0; i < n; i++) {
             if (attrs.localName(i) == "file") {
-                audioFiles << attrs.value(i);
+                dataFiles << attrs.value(i);
                 tmp1 = attrs.value(i);
                 std::cerr << "found file: " << tmp1.toStdString() <<std::endl;
             }
         }
     }
-    else if (inAudiofiles && name == "audioPath") {
-        if (attrs.localName(0) == "value") audioPath = attrs.value(0);
-        std::cerr << "path: " << audioPath.toStdString() <<std::endl;
+    else if (m_inAudioFiles && name == "audioPath") {
+//        if (attrs.localName(0) == "value") audioPath = attrs.value(0);
+//        std::cerr << "path: " << audioPath.toStdString() <<std::endl;
     }
-    else if (name == "rosegarden-data" ) inRosegarden = true;
+    else if (name == "rosegarden-data" ) m_inRosegarden = true;
 
     return true;
 }
@@ -294,7 +293,7 @@ ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const Q
 
     return list;
 
-
+/*
 
 bool
 ProjectPackager::xmlParse(QString fileContents, QString &errMsg, bool permanent, bool &cancelled)
@@ -321,7 +320,7 @@ ProjectPackager::xmlParse(QString fileContents, QString &errMsg, bool permanent,
     QString audioPath = handler.audioPath;
 
     return ok;
-}
+}*/
 
 }
 
