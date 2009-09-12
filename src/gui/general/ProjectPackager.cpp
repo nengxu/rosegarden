@@ -222,7 +222,6 @@ QStringList
 ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const QString newPath)
 {
     QStringList list;
-    list << "/test/1/2/3/";
 
     // work on fileToModify
     //
@@ -237,6 +236,54 @@ ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const Q
     // new path is written  $newPath/k3b_error.wav
     //
     // (also rewrite the audio path along the way)
+
+
+    // read the input file
+    QString inText;
+
+    bool readOK = GzipFile::readFromFile(fileToModify, inText);
+    if (!readOK) {
+        puke(tr("<qt><pUnable to read %1.</p><p>Processing aborted.</p></qt>").arg(fileToModify));
+        return QStringList();
+    }
+
+    // the input stream
+    QTextStream inStream(&inText, QIODevice::ReadOnly);
+
+    // the output stream
+    QString outText;
+    QTextStream outStream(&outText, QIODevice::WriteOnly);
+    outStream.setEncoding(QTextStream::UnicodeUTF8);
+
+
+    QString line;
+
+    do {
+        line = inStream.readLine(1000);
+
+        // insert processing here
+
+        outStream << line << endl;
+
+/*      if (line.find(".flac", 0) > 0) {
+            files << line;
+            std::cout << "Discovered for decoding: " <<  line.toStdString() << std::endl;
+        } else if ((line.find(".rg", 0) > 0) && !haveRG) {
+            m_trueFilename = line;
+            std::cout << "Discovered true filename: " << m_trueFilename.toStdString() << std::endl;
+            haveRG = true;
+        }*/
+
+    } while (!inStream.atEnd());
+
+
+    // write the modified data to the output file
+    QString ofileName = QString("%1.tmp").arg(fileToModify);
+    bool writeOK = GzipFile::writeToFile(ofileName, outText);
+    if (!writeOK) {
+        puke(tr("<qt><pUnable to write %1.</p><p>Processing aborted.</p></qt>").arg(ofileName));
+        return QStringList();
+    }
 
     return list;
 }
@@ -367,6 +414,7 @@ ProjectPackager::runPack()
     // path from its original source to point to our bundled copy instead
     QString newPath = QString("%1/%2").arg(m_packTmpDirName).arg(m_packDataDirName);
     extraFiles = getPluginFilesAndRewriteXML(oldName, newPath);
+return;
 
     // If we do the above here and add it to extraFiles then if the user has any
     // other extra files to add by hand, it all processes out the same way with
