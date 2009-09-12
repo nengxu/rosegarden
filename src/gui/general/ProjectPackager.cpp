@@ -40,6 +40,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDirIterator>
+#include <QSet>
 
 #include <iostream>
 
@@ -210,10 +211,28 @@ ProjectPackager::getAudioFiles()
         }
     }
 
-    // This requires Qt 4.5 or later to work, and it really seems worth it.  All
-    // the hand wringing I did about if or whether or how, shazam man, it's this
-    // simple to settle all of those questions.  It's irresistable.
-    list.removeDuplicates();
+    // QStringList::removeDuplicates() would have been easy, but it's only in Qt
+    // 4.5.0 and up.  So here's the algorithm from Qt 4.5.0, courtesy of (and
+    // originally Copyright 2009) Nokia
+
+    QStringList *that = &list;
+
+    int n = that->size();
+    int j = 0;
+    QSet<QString> seen;
+    seen.reserve(n);
+    for (int i = 0; i < n; ++i) {
+        const QString &s = that->at(i);
+        if (seen.contains(s))
+            continue;
+        seen.insert(s);
+        if (j != i)
+            (*that)[j] = s;
+        ++j;
+    }
+    if (n != j)
+        that->erase(that->begin() + j, that->end());
+//    return n - j;
 
     return list;
 }
@@ -360,10 +379,12 @@ ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const Q
     }
 
     // swap the .tmp modified copy back to the original filename
-//    QFile::remove(fileToModify);
-//    QFile::copy(ofileName, fileToModify);
+    QFile::remove(fileToModify);
+    QFile::copy(ofileName, fileToModify);
+    QFile::remove(ofileName);
 
 //    std::cout << "cp " << ofileName.toStdString() << " " << fileToModify.toStdString() << std::endl;
+//    QMessageBox::information(this,"", "Go look at files in progress while the script pauses", QMessageBox::Ok, QMessageBox::Ok);
 
     return list;
 }
@@ -448,15 +469,6 @@ ProjectPackager::runPack()
     // make the temporary working directory
     if (tmpDir.mkdir(m_packTmpDirName)) {
 
-        // We'll want to move this copy logic until after we've hacked the file,
-        // but I'm leaving it here and commenting it out for now
-
-
-//        std::cout << "cp " << oldName.toStdString() << " " << newName.toStdString() << std::endl;
-//
-//        // copy m_filename(.rgp) as $tmp/m_filename.rg
-//        QFile::copy(oldName, newName);
-
     } else {
         puke(tr("<qt>Could not create temporary working directory.<br>Processing aborted!</qt>"));
         return;
@@ -499,6 +511,12 @@ ProjectPackager::runPack()
     // other extra files to add by hand, it all processes out the same way with
     // no extra bundling code required (unless we want to flac any random extra
     // .wav files, and I say no, let's not get that complicated)
+
+    // Copy the modified .rg file to the working tmp dir
+    std::cout << "cp " << oldName.toStdString() << " " << newName.toStdString() << std::endl;
+
+    // copy m_filename(.rgp) as $tmp/m_filename.rg
+    QFile::copy(oldName, newName);
 
     QMessageBox::StandardButton reply = QMessageBox::information(this,
             tr("Rosegarden"),
@@ -850,8 +868,8 @@ ProjectPackager::finishUnpack(int exitCode, QProcess::ExitStatus) {
     // we don't care about the extra files here in upack, so we just ignore the
     // list it returns
     QFileInfo fi(m_filename);
-    QString newPath = fi.baseName();
-    QString oldName = QString("%1/%2.rg").arg(fi.path()).arg(fi.baseName());
+    QString newPath = QString("%1/%2").arg(fi.path()).arg(fi.baseName());
+    QString oldName = QString("%1.rg").arg(newPath);
     getPluginFilesAndRewriteXML(oldName, newPath);
 
     m_script.remove();
