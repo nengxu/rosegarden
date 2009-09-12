@@ -359,6 +359,12 @@ ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const Q
         return QStringList();
     }
 
+    // swap the .tmp modified copy back to the original filename
+//    QFile::remove(fileToModify);
+//    QFile::copy(ofileName, fileToModify);
+
+//    std::cout << "cp " << ofileName.toStdString() << " " << fileToModify.toStdString() << std::endl;
+
     return list;
 }
 
@@ -549,7 +555,7 @@ ProjectPackager::runPack()
         // we should update the progress bar in some pleasant way here based on
         // total files, but I don't feel like sorting that out
     }
-return;
+
     // and now we have everything discovered, uncovered, added, smothered,
     // scattered and splattered, and we're ready to pack the flac files and
     // get the hell out of here!
@@ -820,11 +826,16 @@ ProjectPackager::startFlacDecoder(QStringList files)
 }
 
 
-// After checking, there is no need to update the audio path.
-// It works perfectly well as is. Just remove the script.
+// Finish up, and then hack the document audio path, the audio path associated
+// with any plugins, and the path to any data the plugins refer to, so these
+// will all be pointing at where the file resides now that we have unpacked it,
+// and we leave nothing to chance.
 //
-// (Confirmed here.  Import /tmp/foo.rgp to zynfidel.rg and live audio file path
-// is /tmp/zynfidel so this test passes and the extra hackery has been removed)
+// NOTE: along the way we're taking a typical audio path like "~/rosegarden" and
+// writing out something hard coded for the "~".  We assume users in other
+// locations will be working with the .rgp file, and we'll adapt it to their
+// surroundings when they unpack it in those surroundings.  Also, the plugin
+// audio path was already hard coded to "/home/$(whoami)/wherever" anyway.
 void
 ProjectPackager::finishUnpack(int exitCode, QProcess::ExitStatus) {
     std::cout << "ProjectPackager::finishUnpack - exit code: " << exitCode << std::endl;
@@ -835,6 +846,13 @@ ProjectPackager::finishUnpack(int exitCode, QProcess::ExitStatus) {
         puke(tr("<qt>Extracting and decoding files failed with exit status %1. Checking %2 for the line that ends with \"exit %1\" may be useful for diagnostic purposes.<br>Processing aborted.</qt>").arg(exitCode).arg(m_script.fileName()));
         return;
     }
+
+    // we don't care about the extra files here in upack, so we just ignore the
+    // list it returns
+    QFileInfo fi(m_filename);
+    QString newPath = fi.baseName();
+    QString oldName = QString("%1/%2.rg").arg(fi.path()).arg(fi.baseName());
+    getPluginFilesAndRewriteXML(oldName, newPath);
 
     m_script.remove();
     accept();
