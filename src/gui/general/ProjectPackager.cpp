@@ -434,6 +434,9 @@ ProjectPackager::runPack()
 {
     m_info->setText(tr("Packing project..."));
 
+    // go into spinner mode
+    m_progress->setMaximum(0);
+
     QStringList audioFiles = getAudioFiles();
 
     // get the audio path from the Document via the AudioFileManager (eg.
@@ -474,11 +477,24 @@ ProjectPackager::runPack()
         return;
     }
 
+    m_info->setText(tr("Copying audio files..."));
+
+    // leave spinner mode
+    m_progress->setMaximum(100);
+    m_progress->setValue(0);
+
+    // count total audio files
+    int af = 0;
+    QStringList::const_iterator si;
+    for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si)
+        af++;
+    int afStep = 100 / af;
+
     // make the data subdir
     tmpDir.mkdir(m_packDataDirName);    
 
     // copy the audio files (do not remove the originals!)
-    QStringList::const_iterator si;
+    af = 0;
     for (si = audioFiles.constBegin(); si != audioFiles.constEnd(); ++si) {
     
         QString srcFile = QString("%1/%2").arg(audioPath).arg(*si);
@@ -491,8 +507,7 @@ ProjectPackager::runPack()
         QFile::copy(srcFile, dstFile);
         QFile::copy(srcFilePk, dstFilePk);
 
-        // we should update the progress bar in some pleasant way here based on
-        // total files, but I don't feel like sorting that out
+        m_progress->setValue(afStep * ++af);
     }
 
     // deal with adding any extra files
@@ -554,8 +569,20 @@ ProjectPackager::runPack()
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     }
 
+    m_info->setText(tr("Copying plugin data and extra files..."));
+
+    // reset progress bar
+    m_progress->setValue(0);
+
+    // count total audio files
+    int ef = 0;
+    for (si = extraFiles.constBegin(); si != extraFiles.constEnd(); ++si)
+        ef++;
+    int efStep = 100 / af;
+
     // copy the extra files (do not remove the originals!)
     // (iterator previously declared)
+    ef = 0;
     for (si = extraFiles.constBegin(); si != extraFiles.constEnd(); ++si) {
     
         // each QStringList item from the FileDialog will include the full path
@@ -570,8 +597,7 @@ ProjectPackager::runPack()
         std::cout << "cp " << srcFile.toStdString() << " " << dstFile.toStdString() << std::endl;
         QFile::copy(srcFile, dstFile);
 
-        // we should update the progress bar in some pleasant way here based on
-        // total files, but I don't feel like sorting that out
+        m_progress->setValue(efStep * ++ef);
     }
 
     // and now we have everything discovered, uncovered, added, smothered,
@@ -583,6 +609,13 @@ ProjectPackager::runPack()
 void
 ProjectPackager::startFlacEncoder(QStringList files)
 {
+    m_info->setText(tr("Packing project..."));
+
+    // (we could do some kind of QProcess monitoring, but I'm feeling lazy at
+    // the moment and this will at least make us look busy while we chew)
+    // go into spinner mode
+    m_progress->setMaximum(0);
+
     // we can't do a oneliner bash script straight out of a QProcess command
     // line, so we'll have to create a purpose built script and run that
     QString scriptName("/tmp/rosegarden-flac-encoder-backend");
@@ -675,6 +708,11 @@ ProjectPackager::runUnpack()
 {
     std::cout << "ProjectPackager::runUnpack() - unpacking " << qstrtostr(m_filename) << std::endl;
     m_info->setText(tr("Unpacking project..."));
+
+    // go into spinner mode, and we'll just leave it there for the duration of
+    // the unpack too, because the operations are either too fast or too hard to
+    // divide into discrete steps, and I'm bored with progress bars
+    m_progress->setMaximum(0);
 
     m_process = new QProcess;
 
