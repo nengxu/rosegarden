@@ -30,6 +30,32 @@
 namespace Rosegarden
 {
 
+/** It is easy to discover the audio files through the currently loaded live
+ * document, but hunting down all the files used by plugins in this fashion
+ * looks like a fool's errand, and then there's the need to rewrite the paths on
+ * all of those individual files.  Ugh.
+ *
+ * We do, in fact, need an XML parser to hack the "dead" copy on disk when doing
+ * the pack (to rewrite the paths on all of those individual filfes) and when
+ * doing the unpack too (to make sure the extracted .rg file points to the real
+ * physical location of the associated data files, and leaves nothing to chance)
+ *
+ * \author Ilan Tal
+ */
+class ProjectPackageHandler: public QXmlDefaultHandler {
+
+public:
+    bool startDocument();
+    bool endElement( const QString&, const QString&, const QString& );
+    bool startElement( const QString&, const QString&, const QString &, const QXmlAttributes &attrs );
+    QString audioPath;
+    QStringList audioFiles;
+
+private:
+    bool inRosegarden, inAudiofiles;
+};
+
+
 /** Implement functionality equivalent to the old external
  *  rosegarden-project-package script.  The script used the external dcop and
  *  kdialog command line utlities to provide a user interface.  We'll do the
@@ -112,23 +138,9 @@ protected:
      */
     QStringList getPluginFilesAndRewriteXML(const QString fileToModify, const QString newPath);
 
-/* General questions not resolved yet:
- *
- * When do we change the audio file path from whatever it was to the new one
- * we're creating?  At pack time or unpack time?  Did the old script even do
- * this?
- *
- * I suppose we could do it in both places.  Harmless enough isn't it?  No,
- * scratch that, do it when we pack, because we're packing with a live document,
- * but doing it on an unpack requires...  Well either code hooks (signals and
- * slots?) or some XML hacking.
- *
- */
-
     // to avoid troubles, check that flac is available. It is fast and could
     // possibly avoid troubles.
     void sanityCheck();
-
 
 protected slots:
     /**
