@@ -51,33 +51,15 @@
 namespace Rosegarden
 {
 
-bool ProjectPackager::xmlParse(QString fileContents, QString &errMsg, bool permanent, bool &cancelled)
+
+///////////////////////////
+//                       //
+//      XML PARSER       //
+//                       //
+///////////////////////////
+bool
+ProjectPackageHandler::startDocument()
 {
-    cancelled = false;
-
-    ProjectPackageHandler handler;
-    QXmlInputSource source;
-    source.setData(fileContents);
-    QXmlSimpleReader reader;
-    reader.setContentHandler(&handler);
-
-    START_TIMING;
-    bool ok = reader.parse(source);
-    PRINT_ELAPSED("ProjectPackager::xmlParse (reader.parse())");
-
-    if (!ok) {
-
-
-    }
-    // Michael, I need to store the results somewhere but it isn't clear at the moment
-    // where the best place is
-    QStringList audioFiles = handler.audioFiles;
-    QString audioPath = handler.audioPath;
-
-    return ok;
-}
-
-bool ProjectPackageHandler::startDocument() {
     inRosegarden = false;
     inAudiofiles = false;
     audioFiles = QStringList();
@@ -85,37 +67,45 @@ bool ProjectPackageHandler::startDocument() {
     return true;
 }
 
-bool ProjectPackageHandler::endElement( const QString&, const QString&, const QString &name ) {
-    if( name == "rosegarden-data" ) inRosegarden = false;
-    if( name == "audiofiles") inAudiofiles = false;
+bool
+ProjectPackageHandler::endElement(const QString&, const QString&, const QString &name)
+{
+    if (name == "rosegarden-data" ) inRosegarden = false;
+    if (name == "audiofiles") inAudiofiles = false;
     return true;
 }
 
-bool ProjectPackageHandler::startElement( const QString&, const QString&, const QString &name, const QXmlAttributes &attrs ) {
-    if( inRosegarden && name == "audiofiles" ) inAudiofiles = true;
-    else if( inAudiofiles && name == "audio") {
+bool
+ProjectPackageHandler::startElement(const QString&, const QString&, const QString &name, const QXmlAttributes &attrs)
+{
+    if (inRosegarden && name == "audiofiles" ) inAudiofiles = true;
+    else if (inAudiofiles && name == "audio") {
         int i, n = attrs.count();
         QString tmp1;
 
-        for( i=0; i<n; i++) {
-            if( attrs.localName(i) == "file") {
+        for (i=0; i<n; i++) {
+            if (attrs.localName(i) == "file") {
                 audioFiles << attrs.value(i);
                 tmp1 = attrs.value(i);
                 std::cerr << "found file: " << tmp1.toStdString() <<std::endl;
             }
         }
     }
-    else if( inAudiofiles && name == "audioPath") {
-        if( attrs.localName(0) == "value") audioPath = attrs.value(0);
+    else if (inAudiofiles && name == "audioPath") {
+        if (attrs.localName(0) == "value") audioPath = attrs.value(0);
         std::cerr << "path: " << audioPath.toStdString() <<std::endl;
     }
-    else if( name == "rosegarden-data" ) inRosegarden = true;
+    else if (name == "rosegarden-data" ) inRosegarden = true;
 
     return true;
-  }
+}
 
 
-
+///////////////////////////
+//                       //
+//   PROJECT PACKAGER    //
+//                       //
+///////////////////////////
 ProjectPackager::ProjectPackager(QWidget *parent, RosegardenDocument *document,  int mode, QString filename) :
         QDialog(parent),
         m_doc(document),
@@ -303,6 +293,36 @@ ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const Q
     // (also rewrite the audio path along the way)
 
     return list;
+
+
+
+bool
+ProjectPackager::xmlParse(QString fileContents, QString &errMsg, bool permanent, bool &cancelled)
+{
+    cancelled = false;
+
+    ProjectPackageHandler handler;
+    QXmlInputSource source;
+    source.setData(fileContents);
+    QXmlSimpleReader reader;
+    reader.setContentHandler(&handler);
+
+    START_TIMING;
+    bool ok = reader.parse(source);
+    PRINT_ELAPSED("ProjectPackager::xmlParse (reader.parse())");
+
+    if (!ok) {
+
+
+    }
+    // Michael, I need to store the results somewhere but it isn't clear at the moment
+    // where the best place is
+    QStringList audioFiles = handler.audioFiles;
+    QString audioPath = handler.audioPath;
+
+    return ok;
+}
+
 }
 
 
