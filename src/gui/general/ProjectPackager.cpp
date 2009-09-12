@@ -223,21 +223,6 @@ ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const Q
 {
     QStringList list;
 
-    // work on fileToModify
-    //
-    // parse it for files referred to by plugins
-    //
-    // accumulate the original paths to these files in list
-    //
-    // after adding a path to list, rewrite the XML to change the path
-    // component
-    //
-    // for example, original file was /usr/share/sounds/k3b_error.wav
-    // new path is written  $newPath/k3b_error.wav
-    //
-    // (also rewrite the audio path along the way)
-
-
     // read the input file
     QString inText;
 
@@ -256,23 +241,112 @@ ProjectPackager::getPluginFilesAndRewriteXML(const QString fileToModify, const Q
     outStream.setEncoding(QTextStream::UnicodeUTF8);
 
 
+    // synth plugin XML:
+    //
+    //  <synth identifier="dssi:/usr/lib/dssi/fluidsynth-dssi.so:FluidSynth-DSSI" bypassed="false" >
+    //       <configure key="__ROSEGARDEN__:__RESERVED__:ProjectDirectoryKey" value="/home/michael/rosegarden/"/>
+    //       <configure key="load" value="/home/michael/data/soundfonts/PC51f.sf2"/>
+    //  </synth>    
+    QString pluginAudioPathKey("<configure key=\"__ROSEGARDEN__:__RESERVED__:ProjectDirectoryKey\" value=\"");
+    QString pluginAudioDataKey("<configure key=\"load\" value=\"");
+
+    // audio path XML:
+    //
+    //  <audiofiles>
+    //       <audioPath value="~/rosegarden/"/>
+    //  </audiofiles>
+    QString audioPathKey("<audioPath value=\"");
+
+    QString valueTagEndKey("\"/>");
+    
+
+    // process the input line by line and stream it all back out, making any
+    // necessary modifications along the way
     QString line;
 
     do {
+
         line = inStream.readLine(1000);
 
-        // insert processing here
+        if (line.contains(pluginAudioPathKey)) {
+            int s = line.indexOf(pluginAudioPathKey) + pluginAudioPathKey.length();
+            int e = line.indexOf(valueTagEndKey);
+
+            // extract the substring
+            QString extract = line.mid(s, e - s);
+            std::cout << "extracted value string:  value=\"" << extract.toStdString() << "\"" << std::endl;
+
+            // alter the path component
+            QFileInfo fi(extract);
+            extract = QString("%1/%2.%3").arg(newPath).arg(fi.baseName()).arg(fi.completeSuffix());
+
+            // construct a new line around the altered substring
+            extract.prepend(pluginAudioPathKey);
+            extract.append(valueTagEndKey);
+
+            std::cout << "old line: " << line.toStdString() << std::endl;
+
+            line = extract;
+
+            std::cout << "new line: " << line.toStdString() << std::endl; 
+
+        } else if (line.contains(pluginAudioDataKey)) {
+
+            // note that "plugin audio data" is a bit of a misnomer, as this
+            // could contain a soundfont or who knows what else; they're handled
+            // the same way regardless, as "extra files" to add to the package
+
+            int s = line.indexOf(pluginAudioDataKey) + pluginAudioDataKey.length();
+            int e = line.indexOf(valueTagEndKey);
+
+            QString extract = line.mid(s, e - s);
+            std::cout << "extracted value string:  value=\"" << extract.toStdString() << "\"" << std::endl;
+
+            // save the extracted path to the list of extra files (and this is
+            // the one part of these three block copied implementations that
+            // differs significantly--really should refactor this into some
+            // function, but I decided just not to bother)
+            list << extract;
+
+            // alter the path component (note that we added extract to files
+            // BEFORE changing its path)
+            QFileInfo fi(extract);
+            extract = QString("%1/%2.%3").arg(newPath).arg(fi.baseName()).arg(fi.completeSuffix());
+
+            // construct a new line around the altered substring
+            extract.prepend(pluginAudioDataKey);
+            extract.append(valueTagEndKey);
+
+            std::cout << "old line: " << line.toStdString() << std::endl;
+
+            line = extract;
+
+            std::cout << "new line: " << line.toStdString() << std::endl; 
+
+        } else if (line.contains(audioPathKey)) {
+
+            int s = line.indexOf(audioPathKey) + audioPathKey.length();
+            int e = line.indexOf(valueTagEndKey);
+
+            QString extract = line.mid(s, e - s);
+            std::cout << "extracted value string:  value=\"" << extract.toStdString() << "\"" << std::endl;
+
+            // alter the path component
+            QFileInfo fi(extract);
+            extract = QString("%1/%2.%3").arg(newPath).arg(fi.baseName()).arg(fi.completeSuffix());
+
+            // construct a new line around the altered substring
+            extract.prepend(audioPathKey);
+            extract.append(valueTagEndKey);
+
+            std::cout << "old line: " << line.toStdString() << std::endl;
+
+            line = extract;
+
+            std::cout << "new line: " << line.toStdString() << std::endl; 
+        }
 
         outStream << line << endl;
-
-/*      if (line.find(".flac", 0) > 0) {
-            files << line;
-            std::cout << "Discovered for decoding: " <<  line.toStdString() << std::endl;
-        } else if ((line.find(".rg", 0) > 0) && !haveRG) {
-            m_trueFilename = line;
-            std::cout << "Discovered true filename: " << m_trueFilename.toStdString() << std::endl;
-            haveRG = true;
-        }*/
 
     } while (!inStream.atEnd());
 
@@ -414,7 +488,6 @@ ProjectPackager::runPack()
     // path from its original source to point to our bundled copy instead
     QString newPath = QString("%1/%2").arg(m_packTmpDirName).arg(m_packDataDirName);
     extraFiles = getPluginFilesAndRewriteXML(oldName, newPath);
-return;
 
     // If we do the above here and add it to extraFiles then if the user has any
     // other extra files to add by hand, it all processes out the same way with
@@ -476,7 +549,7 @@ return;
         // we should update the progress bar in some pleasant way here based on
         // total files, but I don't feel like sorting that out
     }
-
+return;
     // and now we have everything discovered, uncovered, added, smothered,
     // scattered and splattered, and we're ready to pack the flac files and
     // get the hell out of here!
