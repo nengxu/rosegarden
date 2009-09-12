@@ -25,42 +25,10 @@
 #include <QLabel>
 #include <QProcess>
 #include <QStringList>
-#include <QXmlDefaultHandler>
 
 
 namespace Rosegarden
 {
-
-/** It is easy to discover the audio files through the currently loaded live
- * document, but hunting down all the files used by plugins in this fashion
- * looks like a fool's errand, and then there's the need to rewrite the paths on
- * all of those individual files.  Ugh.
- *
- * We do, in fact, need an XML parser to hack the "dead" copy on disk when doing
- * the pack (to rewrite the paths on all of those individual filfes) and when
- * doing the unpack too (to make sure the extracted .rg file points to the real
- * physical location of the associated data files, and leaves nothing to chance)
- *
- * \author Ilan Tal
- */
-class ProjectPackageHandler: public QXmlDefaultHandler {
-
-public:
-    bool startDocument();
-    bool endElement(const QString&, const QString&, const QString&);
-    bool startElement(const QString&, const QString&, const QString &, const QXmlAttributes &attrs);
-
-    /** We will encounter assorted data files with fixed paths.  For instance,
-     * a sampler plugin set to use /usr/share/sounds/k3b_error.wav
-     *
-     * The "/usr/share/sounds" component needs to be replaced with newPath
-     */
-    QString newPath;
-    QStringList dataFiles;
-
-private:
-    bool m_inRosegarden, m_inAudioFiles, m_inSynth;
-};
 
 
 /** Implement functionality equivalent to the old external
