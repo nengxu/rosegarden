@@ -204,7 +204,7 @@ MatrixScene::getPriorSegment()
 Segment *
 MatrixScene::getNextSegment()
 {
-    if (m_currentSegmentIndex + 1 >= m_segments.size()) return 0;
+    if ((unsigned int) m_currentSegmentIndex + 1 >= m_segments.size()) return 0;
     return m_segments[m_currentSegmentIndex+1];
 }
 

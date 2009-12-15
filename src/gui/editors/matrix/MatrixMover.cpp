@@ -107,15 +107,10 @@ MatrixMover::handleLeftButtonPress(const MatrixMouseEvent *e)
             newSelection->addEvent(event);
         }
         m_scene->setSelection(newSelection, true);
-//            m_mParentView->canvas()->update();
         selection = newSelection;
     } else {
         m_scene->setSingleSelectedEvent(m_currentViewSegment,
                                         m_currentElement, true);
-//            m_mParentView->setSingleSelectedEvent(m_currentViewSegment->getSegment(),
-//                                                  m_currentElement->event(),
-//                                                  true);
-//            m_mParentView->canvas()->update();
     }
     
     long velocity = m_widget->getCurrentVelocity();
@@ -129,9 +124,13 @@ MatrixMover::handleLeftButtonPress(const MatrixMouseEvent *e)
         for (EventSelection::eventcontainer::iterator i =
                  selection->getSegmentEvents().begin();
              i != selection->getSegmentEvents().end(); ++i) {
+
+            // allow calculation of height relative to transpose
+            long pitchOffset = selection->getSegment().getTranspose();
             
             MatrixElement *duplicate = new MatrixElement
-                (m_scene, new Event(**i), m_widget->isDrumMode());
+                (m_scene, new Event(**i),
+                 m_widget->isDrumMode(), pitchOffset);
 /*
   duplicate->setLayoutY(element->getLayoutY());
   duplicate->setLayoutX(element->getLayoutX());

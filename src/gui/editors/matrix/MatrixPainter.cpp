@@ -67,6 +67,7 @@ void MatrixPainter::handleMidButtonPress(const MatrixMouseEvent *e)
 {
     // note: middle button == third button (== left+right at the same time)
     // pass
+    e = e;
 }
 
 
@@ -164,7 +165,10 @@ void MatrixPainter::handleLeftButtonPress(const MatrixMouseEvent *e)
     ev->set<Int>(BaseProperties::PITCH, e->pitch);
     ev->set<Int>(BaseProperties::VELOCITY, velocity);
 
-    m_currentElement = new MatrixElement(m_scene, ev, m_widget->isDrumMode());
+    // allow calculation of height relative to transpose
+    long pitchOffset = m_currentViewSegment->getSegment().getTranspose();
+
+    m_currentElement = new MatrixElement(m_scene, ev, m_widget->isDrumMode(), pitchOffset);
 
     // preview
     m_scene->playNote(m_currentViewSegment->getSegment(), e->pitch, velocity);
@@ -209,7 +213,12 @@ MatrixPainter::handleMouseMove(const MatrixMouseEvent *e)
     Event *oldEv = m_currentElement->event();
     delete m_currentElement;
     delete oldEv;
-    m_currentElement = new MatrixElement(m_scene, ev, m_widget->isDrumMode());
+
+    // allow calculation of height relative to transpose
+    long pitchOffset = 0;
+    if (m_currentViewSegment) pitchOffset = m_currentViewSegment->getSegment().getTranspose();
+
+    m_currentElement = new MatrixElement(m_scene, ev, m_widget->isDrumMode(), pitchOffset);
 
     if (preview) {
         m_scene->playNote(m_currentViewSegment->getSegment(), e->pitch, velocity);
@@ -295,6 +304,7 @@ void MatrixPainter::stow()
 
 void MatrixPainter::slotMatrixScrolled(int newX, int newY)
 {
+    newX = newY = 42;
 /*!!!
     if (!m_currentElement)
         return ;
