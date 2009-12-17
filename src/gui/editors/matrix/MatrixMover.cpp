@@ -115,30 +115,23 @@ MatrixMover::handleLeftButtonPress(const MatrixMouseEvent *e)
     
     long velocity = m_widget->getCurrentVelocity();
     event->get<Int>(BaseProperties::VELOCITY, velocity);
+
+    long pitchOffset = m_currentViewSegment->getSegment().getTranspose();
+
     long pitch = 60;
     event->get<Int>(BaseProperties::PITCH, pitch);
-    m_scene->playNote(m_currentViewSegment->getSegment(), pitch, velocity);
+    m_scene->playNote(m_currentViewSegment->getSegment(), pitch + (pitchOffset * -1), velocity);
     m_lastPlayedPitch = pitch;
-    
+
     if (m_quickCopy && selection) {
         for (EventSelection::eventcontainer::iterator i =
                  selection->getSegmentEvents().begin();
              i != selection->getSegmentEvents().end(); ++i) {
 
-            // allow calculation of height relative to transpose
-            long pitchOffset = selection->getSegment().getTranspose();
-            
             MatrixElement *duplicate = new MatrixElement
                 (m_scene, new Event(**i),
                  m_widget->isDrumMode(), pitchOffset);
-/*
-  duplicate->setLayoutY(element->getLayoutY());
-  duplicate->setLayoutX(element->getLayoutX());
-  duplicate->setWidth(element->getWidth());
-  duplicate->setHeight(element->getHeight());
-  duplicate->setCanvasZ(-1);
-  m_currentViewSegment->positionElement(duplicate);
-*/
+
             m_duplicateElements.push_back(duplicate);
         }
     }
@@ -168,29 +161,25 @@ MatrixMover::handleMouseMove(const MatrixMouseEvent *e)
 
     emit hoveredOverNoteChanged(newPitch, true, newTime);
 
+    // get a basic pitch difference calculation comparing the current element's
+    // pitch to the clicked pitch (this does not take the transpose factor into
+    // account, so in a -9 segment, the initial result winds up being 9
+    // semitones too low)
     using BaseProperties::PITCH;
     int diffPitch = 0;
     if (m_currentElement->event()->has(PITCH)) {
         diffPitch = newPitch - m_currentElement->event()->get<Int>(PITCH);
     }
-/*
-    int diffY =
-        int(((m_currentViewSegment->getLayoutYForHeight(newPitch) -
-              m_currentViewSegment->getElementHeight() / 2) -
-             m_currentElement->getLayoutY()));
-*/
+    
     EventSelection* selection = m_scene->getSelection();
 
-//    MatrixElement *element = 0;
-//    int maxY = m_currentViewSegment->getCanvasYForHeight(0);
+    // factor in transpose to adjust the height calculation
+    long pitchOffset = selection->getSegment().getTranspose();
+    diffPitch += (pitchOffset * -1);
 
     for (EventSelection::eventcontainer::iterator it =
              selection->getSegmentEvents().begin();
          it != selection->getSegmentEvents().end(); ++it) {
-
-//        MatrixElement *element = m_currentViewSegment->getElement(*it);
-//        if (!element) continue;
-
 
         MatrixElement *element = 0;
         ViewElementList::iterator vi = m_currentViewSegment->findEvent(*it);
@@ -213,32 +202,15 @@ MatrixMover::handleMouseMove(const MatrixMouseEvent *e)
                              
         element->setSelected(true);
             
-//        int newX = getSnapGrid().getRulerScale()->
-//            getXForTime(newTime + diffTime);
-
-//        if (newX < 0) newX = 0;
-
-//        int newY = int(element->getLayoutY() + diffY);
-
-//            if (newY < 0) newY = 0;
-//            if (newY > maxY) newY = maxY;
-
-//            element->setLayoutX(newX);
-//            element->setLayoutY(newY);
-
-//            m_currentViewSegment->positionElement(element);
-        
-//        }
     }
 
     if (newPitch != m_lastPlayedPitch) {
         long velocity = m_widget->getCurrentVelocity();
         m_currentElement->event()->get<Int>(BaseProperties::VELOCITY, velocity);
-        m_scene->playNote(m_currentViewSegment->getSegment(), newPitch, velocity);
+        m_scene->playNote(m_currentViewSegment->getSegment(), newPitch + (pitchOffset * -1), velocity);
         m_lastPlayedPitch = newPitch;
     }
 
-//    m_mParentView->canvas()->update();
     return FollowMode(FollowHorizontal | FollowVertical);
 }
 
@@ -259,6 +231,9 @@ MatrixMover::handleMouseRelease(const MatrixMouseEvent *e)
     if (newPitch > 127) newPitch = 127;
     if (newPitch < 0) newPitch = 0;
 
+    // get a basic pitch difference calculation comparing the current element's
+    // pitch to the pitch the mouse was released at (see note in
+    // handleMouseMove)
     using BaseProperties::PITCH;
     timeT diffTime = newTime - m_currentElement->getViewAbsoluteTime();
     int diffPitch = 0;
@@ -266,7 +241,11 @@ MatrixMover::handleMouseRelease(const MatrixMouseEvent *e)
         diffPitch = newPitch - m_currentElement->event()->get<Int>(PITCH);
     }
 
-    EventSelection *selection = m_scene->getSelection();
+    EventSelection* selection = m_scene->getSelection();
+
+    // factor in transpose to adjust the height calculation
+    long pitchOffset = selection->getSegment().getTranspose();
+    diffPitch += (pitchOffset * -1);
 
     if ((diffTime == 0 && diffPitch == 0) || selection->getAddedEvents() == 0) {
         for (size_t i = 0; i < m_duplicateElements.size(); ++i) {
@@ -274,7 +253,6 @@ MatrixMover::handleMouseRelease(const MatrixMouseEvent *e)
             delete m_duplicateElements[i];
         }
         m_duplicateElements.clear();
-//        m_mParentView->canvas()->update();
         m_currentElement = 0;
         return;
     }
@@ -282,7 +260,7 @@ MatrixMover::handleMouseRelease(const MatrixMouseEvent *e)
     if (newPitch != m_lastPlayedPitch) {
         long velocity = m_widget->getCurrentVelocity();
         m_currentElement->event()->get<Int>(BaseProperties::VELOCITY, velocity);
-        m_scene->playNote(m_currentViewSegment->getSegment(), newPitch, velocity);
+        m_scene->playNote(m_currentViewSegment->getSegment(), newPitch + (pitchOffset * -1), velocity);
         m_lastPlayedPitch = newPitch;
     }
 
