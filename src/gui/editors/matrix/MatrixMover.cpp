@@ -120,7 +120,15 @@ MatrixMover::handleLeftButtonPress(const MatrixMouseEvent *e)
 
     long pitch = 60;
     event->get<Int>(BaseProperties::PITCH, pitch);
-    m_scene->playNote(m_currentViewSegment->getSegment(), pitch + (pitchOffset * -1), velocity);
+
+    // We used to m_scene->playNote() here, but the new concert pitch matrix was
+    // playing chords the first time I clicked a note.  Investigation with
+    // KMidiMon revealed two notes firing nearly simultaneously, and with
+    // segments of 0 transpose, they were simply identical to each other.  One
+    // of them came from here, and this was the one sounding at the wrong pitch
+    // in transposed segments.  I've simply removed it with no apparent ill side
+    // effects, and a problem solved super cheap.
+
     m_lastPlayedPitch = pitch;
 
     if (m_quickCopy && selection) {

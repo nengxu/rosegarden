@@ -160,9 +160,9 @@ MatrixElement::reconfigure(timeT time, timeT duration, int pitch, int velocity)
     // set the Y position taking m_pitchOffset into account, subtracting the
     // opposite of whatever the originating segment transpose was
 
-    std::cout << "TRANSPOSITION TEST: event pitch: "
-              << (pitch ) << " m_pitchOffset: " << m_pitchOffset
-              << std::endl;
+//    std::cout << "TRANSPOSITION TEST: event pitch: "
+//              << (pitch ) << " m_pitchOffset: " << m_pitchOffset
+//              << std::endl;
 
     m_item->setPos(x0, (127 - pitch - m_pitchOffset) * (resolution + 1));
 }

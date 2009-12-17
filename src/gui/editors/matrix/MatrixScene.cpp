@@ -873,6 +873,8 @@ MatrixScene::constrainToSegmentArea(QPointF &scenePos)
 void
 MatrixScene::playNote(Segment &segment, int pitch, int velocity)
 {
+//    std::cout << "Scene is playing a note of pitch: " << pitch
+//              << " + " <<  segment.getTranspose() << std::endl;
     if (!m_document) return;
 
     Instrument *instrument = m_document->getStudio().getInstrumentFor(&segment);

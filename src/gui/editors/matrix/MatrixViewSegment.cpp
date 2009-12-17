@@ -88,7 +88,7 @@ MatrixViewSegment::makeViewElement(Event* e)
     // transpose bits
     long pitchOffset = getSegment().getTranspose();
 
-    std::cout << "I am segment \"" << getSegment().getLabel() << "\"" << std::endl;
+//    std::cout << "I am segment \"" << getSegment().getLabel() << "\"" << std::endl;
 
     return new MatrixElement(m_scene, e, m_drum, pitchOffset);
 }
