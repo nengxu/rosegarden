@@ -68,7 +68,37 @@ MatrixMover::handleLeftButtonPress(const MatrixMouseEvent *e)
 
     if (!e->element) return;
 
+    // We want to use MatrixViewSegment::findEvent(), and we want a view segment
+    // attached to the scene's current segment.  The scene's
+    // getCurrentViewSegment() does not seem to be working properly, and I can't
+    // figure out why, so I'm coming around my ass to get to my elbow this way
+    // instead:
+    Segment *segment = m_scene->getCurrentSegment();
+
+    if (!segment) return;
+    MatrixViewSegment *mvs = new MatrixViewSegment(m_scene, segment, false);
+
+    // set the current view segment to the one that's viewing the scene's
+    // currently active segment
+    m_currentViewSegment = mvs;
+
+    if (!m_currentViewSegment) return;
+
+    // Search the current view segment for the event just clicked on.  If it's
+    // not in there, we have to return.  Trying to change the active segment in
+    // here just turns the arrow tool into a "click gray elements from outside
+    // this segment to make unexpected copies" tool.  We have to just bail, and
+    // expect the user to pre-select which segment is active.  (I don't think
+    // notation has this limitation, but this overlapping stuff in the matrix is
+    // newer and buggier, and this was an expedient approach.)
+    ViewElementList::iterator i = m_currentViewSegment->findEvent(e->element->event());
+    if (i == m_currentViewSegment->getViewElementList()->end()) {
+        std::cout << "Active segment does not contain this event.  Punching out." << std::endl;
+        return;
+    }
+
     m_currentViewSegment = e->viewSegment;
+
     m_currentElement = e->element;
     m_clickSnappedLeftTime = e->snappedLeftTime;
 
