@@ -68,32 +68,26 @@ MatrixMover::handleLeftButtonPress(const MatrixMouseEvent *e)
 
     if (!e->element) return;
 
-    // We want to use MatrixViewSegment::findEvent(), and we want a view segment
-    // attached to the scene's current segment.  The scene's
-    // getCurrentViewSegment() does not seem to be working properly, and I can't
-    // figure out why, so I'm coming around my ass to get to my elbow this way
-    // instead:
+    // Check the scene's current segment (apparently not necessarily the same
+    // segment referred to by the scene's current view segment) for this event;
+    // return if not found, indicating that this event is from some other,
+    // non-active segment.
+    //
+    // I think notation just makes whatever segment active when you click an
+    // event outside the active segment, and I think that's what this code
+    // attempted to do too.  I couldn't get that to work at all.  This is better
+    // than being able to click on non-active elements to create new events by
+    // accident, and will probably fly.  Especially since the multi-segment
+    // matrix is new, and we're defining the terms of how it works.
     Segment *segment = m_scene->getCurrentSegment();
-
     if (!segment) return;
-    MatrixViewSegment *mvs = new MatrixViewSegment(m_scene, segment, false);
+    bool found = false;
+    for (Segment::iterator i = segment->begin(); i != segment->end(); ++i) {
+        if ((*i) == e->element->event()) found = true;
+    }
 
-    // set the current view segment to the one that's viewing the scene's
-    // currently active segment
-    m_currentViewSegment = mvs;
-
-    if (!m_currentViewSegment) return;
-
-    // Search the current view segment for the event just clicked on.  If it's
-    // not in there, we have to return.  Trying to change the active segment in
-    // here just turns the arrow tool into a "click gray elements from outside
-    // this segment to make unexpected copies" tool.  We have to just bail, and
-    // expect the user to pre-select which segment is active.  (I don't think
-    // notation has this limitation, but this overlapping stuff in the matrix is
-    // newer and buggier, and this was an expedient approach.)
-    ViewElementList::iterator i = m_currentViewSegment->findEvent(e->element->event());
-    if (i == m_currentViewSegment->getViewElementList()->end()) {
-        std::cout << "Active segment does not contain this event.  Punching out." << std::endl;
+    if (!found) {
+        MATRIX_DEBUG << "Clicked element not owned by active segment.  Returning..." << endl;
         return;
     }
 
