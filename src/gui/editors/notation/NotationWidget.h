@@ -240,7 +240,8 @@ private:
     int m_lastH;
 
     QWidget *m_changerWidget;
-    Thumbwheel  *m_segmentChanger;
+    Thumbwheel  *m_HsegmentChanger;
+    Thumbwheel  *m_VsegmentChanger;
     int m_lastSegmentChangerValue;
 
     StandardRuler *m_topStandardRuler; // I own this

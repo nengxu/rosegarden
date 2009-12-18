@@ -157,23 +157,37 @@ NotationWidget::NotationWidget() :
     m_pannerLayout->setSpacing(0);
     m_panner->setLayout(m_pannerLayout);
 
-    // the segment changer roller
+    // the segment changer roller(s) (we have to have one horizontal one, and
+    // one vertical one, to accommodate different layout modes)
     m_changerWidget = new QFrame;
     QVBoxLayout *changerWidgetLayout = new QVBoxLayout;
     m_changerWidget->setLayout(changerWidgetLayout);
 
     bool useRed = true;
-    m_segmentChanger = new Thumbwheel(Qt::Vertical, useRed);
-    m_segmentChanger->setFixedWidth(18);
-    m_segmentChanger->setMinimumValue(-120);
-    m_segmentChanger->setMaximumValue(120);
-    m_segmentChanger->setDefaultValue(0);
-    m_segmentChanger->setShowScale(true);
-    m_segmentChanger->setValue(60);
-    m_lastSegmentChangerValue = m_segmentChanger->getValue();
-    connect(m_segmentChanger, SIGNAL(valueChanged(int)), this,
+    m_HsegmentChanger = new Thumbwheel(Qt::Vertical, useRed);
+    m_HsegmentChanger->setFixedWidth(18);
+    m_HsegmentChanger->setMinimumValue(-120);
+    m_HsegmentChanger->setMaximumValue(120);
+    m_HsegmentChanger->setDefaultValue(0);
+    m_HsegmentChanger->setShowScale(true);
+    m_HsegmentChanger->setValue(60);
+    m_lastSegmentChangerValue = m_HsegmentChanger->getValue();
+    connect(m_HsegmentChanger, SIGNAL(valueChanged(int)), this,
             SLOT(slotSegmentChangerMoved(int)));
-    changerWidgetLayout->addWidget(m_segmentChanger);
+    changerWidgetLayout->addWidget(m_HsegmentChanger);
+
+    m_VsegmentChanger = new Thumbwheel(Qt::Horizontal, useRed);
+    m_VsegmentChanger->setFixedHeight(18);
+    m_VsegmentChanger->setMinimumValue(-120);
+    m_VsegmentChanger->setMaximumValue(120);
+    m_VsegmentChanger->setDefaultValue(0);
+    m_VsegmentChanger->setShowScale(true);
+    m_VsegmentChanger->setValue(60);
+    m_lastSegmentChangerValue = m_VsegmentChanger->getValue();
+    connect(m_VsegmentChanger, SIGNAL(valueChanged(int)), this,
+            SLOT(slotSegmentChangerMoved(int)));
+    changerWidgetLayout->addWidget(m_VsegmentChanger);
+    m_VsegmentChanger->hide();
 
     m_pannerLayout->addWidget(m_changerWidget);
 
@@ -553,6 +567,10 @@ NotationWidget::locatePanner(bool tall)
         m_panner->setMaximumWidth(80);
         m_hpanner->setMaximumWidth(80);
         m_pannerLayout->setDirection(QBoxLayout::TopToBottom);
+        m_HsegmentChanger->hide();
+        m_VsegmentChanger->show();
+        m_lastSegmentChangerValue = m_VsegmentChanger->getValue();
+        m_HsegmentChanger->setValue(m_lastSegmentChangerValue);
         m_layout->addWidget(m_panner, PANNED_ROW, VPANNER_COL);
     } else {
         m_panner->setMaximumHeight(80);
@@ -560,6 +578,10 @@ NotationWidget::locatePanner(bool tall)
         m_panner->setMaximumWidth(QWIDGETSIZE_MAX);
         m_hpanner->setMaximumWidth(QWIDGETSIZE_MAX);
         m_pannerLayout->setDirection(QBoxLayout::LeftToRight);
+        m_VsegmentChanger->hide();
+        m_HsegmentChanger->show();
+        m_lastSegmentChangerValue = m_HsegmentChanger->getValue();
+        m_VsegmentChanger->setValue(m_lastSegmentChangerValue);
         m_layout->addWidget(m_panner, PANNER_ROW, HEADER_COL, 1, 2);
     }
 }
@@ -1540,8 +1562,6 @@ NotationWidget::slotSegmentChangerMoved(int v)
 
     m_lastSegmentChangerValue = v;
     updateSegmentChangerBackground();
-    // trip a header update so the headers stay in sync with the current segment
-    slotHScroll();
 }
 
 void
@@ -1571,7 +1591,8 @@ NotationWidget::updateSegmentChangerBackground()
     // set up some tooltips...  I don't like this much, and it wants some kind
     // of dedicated float thing eventually, but let's not go nuts on a
     // last-minute feature
-    m_segmentChanger->setToolTip(tr("<qt>Rotate wheel to change the active segment</qt>"));
+    m_HsegmentChanger->setToolTip(tr("<qt>Rotate wheel to change the active segment</qt>"));
+    m_VsegmentChanger->setToolTip(tr("<qt>Rotate wheel to change the active segment</qt>"));
     m_changerWidget->setToolTip(tr("<qt>Segment: \"%1\"<br>Track: %2 \"%3\"</qt>")
                                 .arg(QString::fromStdString(m_scene->getCurrentSegment()->getLabel()))
                                 .arg(trackPosition)
