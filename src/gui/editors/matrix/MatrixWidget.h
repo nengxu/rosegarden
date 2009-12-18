@@ -104,6 +104,8 @@ public:
     void setTempoRulerVisible(bool visible);
     void setChordNameRulerVisible(bool visible);
 
+    void updateSegmentChangerBackground();
+
 signals:
     void editTriggerSegment(int);
     void toolChanged(QString);

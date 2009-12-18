@@ -636,6 +636,7 @@ MatrixWidget::slotCurrentSegmentPrior()
     if (!m_scene) return;
     Segment *s = m_scene->getPriorSegment();
     if (s) m_scene->setCurrentSegment(s);
+    updateSegmentChangerBackground();
 }
 
 void
@@ -644,6 +645,7 @@ MatrixWidget::slotCurrentSegmentNext()
     if (!m_scene) return;
     Segment *s = m_scene->getNextSegment();
     if (s) m_scene->setCurrentSegment(s);
+    updateSegmentChangerBackground();
 }
 
 Device *
@@ -1130,7 +1132,12 @@ MatrixWidget::slotSegmentChangerMoved(int v)
     }
 
     m_lastSegmentChangerValue = v;
+    updateSegmentChangerBackground();
+}
 
+void
+MatrixWidget::updateSegmentChangerBackground()
+{
     // set the changer widget background to the now current segment's
     // background, and reset the tooltip style to compensate
     Colour c = m_document->getComposition().getSegmentColourMap().getColourByIndex(m_scene->getCurrentSegment()->getColourIndex());

@@ -45,6 +45,8 @@
 #include "base/MidiDevice.h"
 #include "base/SoftSynthDevice.h"
 #include "base/MidiTypes.h"
+#include "base/ColourMap.h"
+#include "base/Colour.h"
 
 #include "document/RosegardenDocument.h"
 
@@ -77,6 +79,7 @@
 #include <QToolTip>
 #include <QToolButton>
 #include <QSettings>
+#include <QLabel>
 
 namespace Rosegarden
 {
@@ -154,6 +157,27 @@ NotationWidget::NotationWidget() :
     m_pannerLayout->setSpacing(0);
     m_panner->setLayout(m_pannerLayout);
 
+    // the segment changer roller
+    m_changerWidget = new QFrame;
+    QVBoxLayout *changerWidgetLayout = new QVBoxLayout;
+    m_changerWidget->setLayout(changerWidgetLayout);
+
+    bool useRed = true;
+    m_segmentChanger = new Thumbwheel(Qt::Vertical, useRed);
+    m_segmentChanger->setFixedWidth(18);
+    m_segmentChanger->setMinimumValue(-120);
+    m_segmentChanger->setMaximumValue(120);
+    m_segmentChanger->setDefaultValue(0);
+    m_segmentChanger->setShowScale(true);
+    m_segmentChanger->setValue(60);
+    m_lastSegmentChangerValue = m_segmentChanger->getValue();
+    connect(m_segmentChanger, SIGNAL(valueChanged(int)), this,
+            SLOT(slotSegmentChangerMoved(int)));
+    changerWidgetLayout->addWidget(m_segmentChanger);
+
+    m_pannerLayout->addWidget(m_changerWidget);
+
+    // the panner
     m_hpanner = new Panner;
     m_hpanner->setMaximumHeight(80);
     m_hpanner->setBackgroundBrush(Qt::white);
@@ -459,6 +483,8 @@ NotationWidget::setSegments(RosegardenDocument *document,
     m_tempoRuler->connectSignals();
 
     m_chordNameRuler->setReady();
+
+    updateSegmentChangerBackground();
 
     slotGenerateHeaders();
     
@@ -1491,6 +1517,65 @@ NotationWidget::getCurrentDevice()
         return 0;
 
     return instrument->getDevice();
+}
+
+void
+NotationWidget::slotSegmentChangerMoved(int v)
+{
+    // see comments in slotPrimaryThumbWheelMoved() for an explanation of that
+    // mechanism, which is repurposed and simplified here
+
+    if (v < -120) v = -120;
+    if (v > 120) v = 120;
+    if (m_lastSegmentChangerValue < -120) m_lastSegmentChangerValue = -120;
+    if (m_lastSegmentChangerValue > 120) m_lastSegmentChangerValue = 120;
+
+    int steps = v - m_lastSegmentChangerValue;
+    if (steps < 0) steps *= -1;
+
+    for (int i = 0; i < steps; ++i) {
+        if (v < m_lastSegmentChangerValue) emit currentSegmentNext();
+        else if (v > m_lastSegmentChangerValue) emit currentSegmentPrior();
+    }
+
+    m_lastSegmentChangerValue = v;
+    updateSegmentChangerBackground();
+    // trip a header update so the headers stay in sync with the current segment
+    slotHScroll();
+}
+
+void
+NotationWidget::updateSegmentChangerBackground()
+{
+    // set the changer widget background to the now current segment's
+    // background, and reset the tooltip style to compensate
+    Colour c = m_document->getComposition().getSegmentColourMap().getColourByIndex(m_scene->getCurrentSegment()->getColourIndex());
+
+    // converting the Colour into a hex triplet seems to be the only consistent
+    // way to get this to work, and turns out to require obscure and little used
+    // .arg() syntax to get hex strings 2 chars wide with blanks padded as '0'
+    QChar fillChar('0');
+    QString newColorStr = QString("#%1%2%3")
+                                  .arg(QString::number(c.getRed(),   16), 2, fillChar)
+                                  .arg(QString::number(c.getGreen(), 16), 2, fillChar)
+                                  .arg(QString::number(c.getBlue(),  16), 2, fillChar);
+    QString localStyle = QString("QFrame {background: %1; color: %1; } QToolTip {background-color: #FFFBD4; color: #000000;}").arg(newColorStr);
+    m_changerWidget->setStyleSheet(localStyle);
+
+    // have to deal with all this ruckus to get a few pieces of info about the
+    // track:
+    Track *track = m_document->getComposition().getTrackById(m_scene->getCurrentSegment()->getTrack());
+    int trackPosition = m_document->getComposition().getTrackPositionById(track->getId());
+    QString trackLabel = QString::fromStdString(track->getLabel());
+
+    // set up some tooltips...  I don't like this much, and it wants some kind
+    // of dedicated float thing eventually, but let's not go nuts on a
+    // last-minute feature
+    m_segmentChanger->setToolTip(tr("<qt>Rotate wheel to change the active segment</qt>"));
+    m_changerWidget->setToolTip(tr("<qt>Segment: \"%1\"<br>Track: %2 \"%3\"</qt>")
+                                .arg(QString::fromStdString(m_scene->getCurrentSegment()->getLabel()))
+                                .arg(trackPosition)
+                                .arg(trackLabel));
 }
 
 
