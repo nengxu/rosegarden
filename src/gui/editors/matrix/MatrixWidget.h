@@ -172,6 +172,9 @@ protected slots:
     /// Trap a zoom out from the panner and sync it to the primary thumb wheel
     void slotSyncPannerZoomOut();
 
+    /// The segment control thumbwheel moved
+    void slotSegmentChangerMoved(int);
+
     void slotInitialHSliderHack(int);
 
 protected :
@@ -207,6 +210,10 @@ private:
     bool m_lastZoomWasHV;
     int m_lastV;
     int m_lastH;
+
+    QWidget *m_changerWidget;
+    Thumbwheel  *m_segmentChanger;
+    int m_lastSegmentChangerValue;
 
     PitchRuler *m_pitchRuler; // I own this
     Panned *m_pianoView; // I own this
