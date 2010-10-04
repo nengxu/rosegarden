@@ -711,7 +711,9 @@ bool RosegardenDocument::openDocument(const QString& filename,
 
     // goes boom.  why is not immediately apparent
 //    progressDlg->hide();
-//    progressDlg->close();
+    if (!squelch) {
+        progressDlg->close();
+    }
 
     return true;
 }
@@ -1637,13 +1639,13 @@ RosegardenDocument::xmlParse(QString fileContents, QString &errMsg,
     if (progress) {
         std::cout << "I am here!" << std::endl;
         connect(&handler, SIGNAL(setProgress(int)),
-                progress, SLOT(setProgress(int)));
+                progress, SLOT(setValue(int)));
 
-        connect(&handler, SIGNAL(setOperationName(QString)),
-                progress, SLOT(slotSetOperationName(QString)));
+        connect(&handler, SIGNAL(setValue(QString)),
+                progress, SLOT(setValue(QString)));
 
         connect(&handler, SIGNAL(incrementProgress(int)),
-                progress, SLOT(incrementProgress(int)));
+                progress, SLOT(setValue(int)));
         
         connect(&handler, SIGNAL(setValue(int)),
                 progress, SLOT(setValue(int)));

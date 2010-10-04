@@ -1610,7 +1610,7 @@ RosegardenMainViewWidget::slotDroppedNewAudio(QString audioDesc)
     connect(&aFM, SIGNAL(setValue(int)),
             &progressDlg, SLOT(setValue(int)));
     connect(&aFM, SIGNAL(setOperationName(QString)),
-            &progressDlg, SLOT(slotSetOperationName(QString)));
+            &progressDlg, SLOT(setLabelText(QString)));
     connect(&progressDlg, SIGNAL(canceled()),
             &aFM, SLOT(slotStopImport()));
 
@@ -1634,7 +1634,7 @@ RosegardenMainViewWidget::slotDroppedNewAudio(QString audioDesc)
             &aFM, SLOT(slotStopPreview()));
     
     
-    progressDlg.slotSetOperationName(tr("Generating audio preview..."));
+    progressDlg.setLabelText(tr("Generating audio preview..."));
     progressDlg.setValue(0);
     progressDlg.setIndeterminate(false);
     progressDlg.show();

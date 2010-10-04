@@ -1188,7 +1188,7 @@ AudioManagerDialog::addFile(const QUrl& kurl)
     connect(&aFM, SIGNAL(setValue(int)),
             &progressDlg, SLOT(setValue(int)));
     connect(&aFM, SIGNAL(setOperationName(QString)),
-            &progressDlg, SLOT(slotSetOperationName(QString)));
+            &progressDlg, SLOT(setLabelText(QString)));
     connect(&progressDlg, SIGNAL(canceled()),
             &aFM, SLOT(slotStopImport()));
 
@@ -1211,7 +1211,7 @@ AudioManagerDialog::addFile(const QUrl& kurl)
     connect(&progressDlg, SIGNAL(canceled()),
             &aFM, SLOT(slotStopPreview()));
     progressDlg.setIndeterminate(false);
-    progressDlg.slotSetOperationName(tr("Generating audio preview..."));
+    progressDlg.setLabelText(tr("Generating audio preview..."));
 
     try {
         aFM.generatePreview(id);

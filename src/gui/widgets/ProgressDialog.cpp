@@ -64,7 +64,7 @@ ProgressDialog::ProgressDialog(const QString &labelText,
     setWindowTitle(tr("Rosegarden"));
     setBar(new ProgressBar(this));
     setLabelText(labelText);
-    setMinimumDuration(500);
+    setMinimumDuration(4000);
     hide();
 /*    setModal(modal);
 //    setAttribute(Qt::WA_DeleteOnClose);
@@ -101,7 +101,7 @@ ProgressDialog::ProgressDialog(const QString &labelText,
     // don't show before this timer has elapsed
     m_showAfterTimer = new QTimer;
     m_showAfterTimer->setSingleShot(true);
-    m_showAfterTimer->start(1000);
+    m_showAfterTimer->start(5000);
     connect(m_showAfterTimer, SIGNAL(timeout()), this, SLOT(forceShow()));
 
 /*
@@ -176,12 +176,12 @@ ProgressDialog::closeEvent(QCloseEvent *e)
 }
 */
 
-void
-ProgressDialog::slotSetOperationName(QString name)
-{
-//    m_operationText = name;
-    setLabelText(name);
-}
+//void
+//ProgressDialog::setLabelText(QString name)
+//{
+////    m_operationText = name;
+//    setLabelText(name);
+//}
 /*
 void
 ProgressDialog::slotSetOperationName(QString name)
@@ -213,7 +213,7 @@ ProgressDialog::completeOperationChange()
 
     m_sleepingBetweenOperations = false;
 
-    // set the label to the text saved from slotSetOperationName()
+    // set the label to the text saved from setLabelText()
     m_label->setText(m_operationText);
 
     // increase resize only, never shrink
@@ -380,9 +380,14 @@ ProgressDialog::advance(int value)
 void
 ProgressDialog::setLabelText(QString text)
 {
-    slotSetOperationName(text);
+    setLabelText(text);
 }
 */
+
+void
+ProgressDialog::show() {
+    RG_DEBUG << "ProgressDialog::show: YeS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! I was called" << endl;
+}
 }
 
 #include "ProgressDialog.moc"

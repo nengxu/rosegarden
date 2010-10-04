@@ -3848,7 +3848,7 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
     // Clean up for notation purposes (after reinitialise, because that
     // sets the composition's end marker time which is needed here)
 
-    progressDlg.slotSetOperationName(tr("Calculating notation..."));
+    progressDlg.setLabelText(tr("Calculating notation..."));
 //    ProgressDialog::processEvents();
 
     Composition *comp = &newDoc->getComposition();

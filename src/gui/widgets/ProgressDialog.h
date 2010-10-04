@@ -92,7 +92,7 @@ public:
      * always appear to finish whatever it is chewing on before moving on to the
      * next step.
      */
-    void slotSetOperationName(QString);
+//    void slotSetOperationName(QString);
 
     /** Connected to the cancel button.  Causes canceled() to be emitted.
      */
@@ -144,6 +144,9 @@ public:
      * has been put in motion by slotSetOperationText()
      */
 //    void completeOperationChange();
+
+      void show();
+      
 
  protected:
     /** Intercept hideEvent() and determine whether we should honor it yet or
