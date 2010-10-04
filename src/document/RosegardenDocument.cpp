@@ -601,14 +601,14 @@ bool RosegardenDocument::openDocument(const QString& filename,
                                          500,
                                          (QWidget*)parent());
 
-        connect(progressDlg, SIGNAL(canceled()),
-                &m_audioFileManager, SLOT(slotStopPreview()));
+//        connect(progressDlg, SIGNAL(canceled()),
+//                &m_audioFileManager, SLOT(slotStopPreview()));
 
         CurrentProgressDialog::set(progressDlg);
         progressDlg->show();
 
         progressDlg->setAutoReset(true); // we're re-using it for the preview generation
-        progressDlg->setAutoClose(true);
+//        progressDlg->setAutoClose(true);
     }
 
     setAbsFilePath(fileInfo.absFilePath());
@@ -658,11 +658,21 @@ bool RosegardenDocument::openDocument(const QString& filename,
     // We might need a progress dialog when we generate previews, reuse the
     // previous one
     if (!squelch) {
-        progressDlg->setLabelText(tr("Generating audio previews..."));
+    
+        // Use a new dialog box, since I think the xmlparse is not disconnecting properly
+        progressDlg->close();
+        
+        progressDlg = new ProgressDialog(tr("Generating audio previews..."),
+                                         100,
+                                         500,
+                                         (QWidget*)parent());
+
+        
+//        progressDlg->setLabelText(tr("Generating audio previews..."));
 
         connect(progressDlg, SIGNAL(canceled()),
                 &m_audioFileManager, SLOT(slotStopPreview()));
-        
+        progressDlg->reset();
         progressDlg->setValue(0);
         progressDlg->show();
         
@@ -701,6 +711,7 @@ bool RosegardenDocument::openDocument(const QString& filename,
 
     // goes boom.  why is not immediately apparent
 //    progressDlg->hide();
+//    progressDlg->close();
 
     return true;
 }
@@ -1785,6 +1796,10 @@ RosegardenDocument::xmlParse(QString fileContents, QString &errMsg,
         CurrentProgressDialog::thaw();
     }
 
+    // Set to maximum just incase reading did not do this.
+    if (progress) {
+        progress->setValue(progress->maximum());
+    }
     return ok;
 }
 

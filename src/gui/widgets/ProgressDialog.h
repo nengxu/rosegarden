@@ -161,25 +161,25 @@ public:
     //--------------- Data members ---------------------------------
 
     QTimer      *m_showAfterTimer;
-    QTimer      *m_timer;
-    QTimer      *m_operationTimer;
-    bool         m_wasVisible;
-    bool         m_frozen;
-    bool         m_modal;
-    static bool  m_modalVisible;
-    bool         m_minimumTimeHasExpired;
-    bool         m_Thorn;
+//    QTimer      *m_timer;
+//    QTimer      *m_operationTimer;
+//    bool         m_wasVisible;
+//    bool         m_frozen;
+//    bool         m_modal;
+//    static bool  m_modalVisible;
+//    bool         m_minimumTimeHasExpired;
+//    bool         m_Thorn;
 
-    ProgressBar *m_progressBar;
-    QLabel      *m_label;
-    int          m_minimumDuration;
-    bool         m_autoReset;
-    bool         m_autoClose;
-    bool         m_sleepingBetweenOperations;
-    QString      m_operationText;
+//    ProgressBar *m_progressBar;
+//    QLabel      *m_label;
+//    int          m_minimumDuration;
+//    bool         m_autoReset;
+//    bool         m_autoClose;
+//    bool         m_sleepingBetweenOperations;
+//    QString      m_operationText;
     int          m_totalSteps;
     bool         m_indeterminate;
-    bool         m_deferredClose;
+//    bool         m_deferredClose;
 };
 
 

@@ -39,7 +39,7 @@ namespace Rosegarden
 {
 
 
-bool ProgressDialog::m_modalVisible = false;
+// bool ProgressDialog::m_modalVisible = false;
 
 ProgressDialog::ProgressDialog(const QString &labelText,
                                int totalSteps,
@@ -47,21 +47,25 @@ ProgressDialog::ProgressDialog(const QString &labelText,
                                QWidget *parent,
                                bool modal) :
     QProgressDialog(parent),
-    m_wasVisible(false),
-    m_frozen(false),
-    m_modal(modal),
-    m_minimumTimeHasExpired(false),
-    m_minimumDuration(1000),
-    m_sleepingBetweenOperations(false),
-    m_operationText(""),
+//    m_wasVisible(false),
+//    m_frozen(false),
+//    m_modal(modal),
+//    m_minimumTimeHasExpired(false),
+//    m_minimumDuration(1000),
+//    m_sleepingBetweenOperations(false),
+//    m_operationText(""),
     m_totalSteps(totalSteps),
-    m_deferredClose(false),
+//    m_deferredClose(false),
     m_indeterminate(false)
 
 {
     RG_DEBUG << "ProgressDialog::ProgressDialog - " << labelText << " - modal : " << modal << endl;
 
     setWindowTitle(tr("Rosegarden"));
+    setBar(new ProgressBar(this));
+    setLabelText(labelText);
+    setMinimumDuration(500);
+    hide();
 /*    setModal(modal);
 //    setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(Qt::Dialog);
@@ -93,13 +97,14 @@ ProgressDialog::ProgressDialog(const QString &labelText,
     bb->setCenterButtons(true);
 
     connect(bb, SIGNAL(rejected()), this, SLOT(cancel()));
-
+*/
     // don't show before this timer has elapsed
     m_showAfterTimer = new QTimer;
     m_showAfterTimer->setSingleShot(true);
-    m_showAfterTimer->start(showAfter);
-    connect(m_showAfterTimer, SIGNAL(timeout()), this, SLOT(slotShowNow()));
+    m_showAfterTimer->start(1000);
+    connect(m_showAfterTimer, SIGNAL(timeout()), this, SLOT(forceShow()));
 
+/*
     m_timer = new QTimer;
     m_timer->setSingleShot(true);
     QWidget::hide(); */
@@ -108,9 +113,9 @@ ProgressDialog::ProgressDialog(const QString &labelText,
 ProgressDialog::~ProgressDialog()
 {
     RG_DEBUG << "~ProgressDialog()" << endl;
-/*    m_modalVisible = false;
-    delete m_timer;
-    m_timer = 0; */
+/*    m_modalVisible = false; */
+    delete m_showAfterTimer;
+    m_showAfterTimer = 0;
 }
 
 void
@@ -118,9 +123,11 @@ ProgressDialog::setIndeterminate(bool ind)
 {
     if (m_indeterminate == ind) return;
     if (ind) {
-        m_progressBar->setRange(0, 0);
+        setRange(0, 0);
+//        m_progressBar->setRange(0, 0);
     } else {
-        m_progressBar->setRange(0, m_totalSteps);
+//        m_progressBar->setRange(0, m_totalSteps);
+        setRange(0, m_totalSteps);
     }
     m_indeterminate = ind;
 }
@@ -172,8 +179,8 @@ ProgressDialog::closeEvent(QCloseEvent *e)
 void
 ProgressDialog::slotSetOperationName(QString name)
 {
-    m_operationText = name;
-    setLabelText(m_operationText);
+//    m_operationText = name;
+    setLabelText(name);
 }
 /*
 void
@@ -253,7 +260,7 @@ ProgressDialog::slotFreeze()
     // complete the operation change
 //    if (m_sleepingBetweenOperations) completeOperationChange();
 
-    m_wasVisible = isVisible();
+/*    m_wasVisible = isVisible();
     if (isVisible()) {
         m_modalVisible = false;
         hide();
@@ -262,12 +269,13 @@ ProgressDialog::slotFreeze()
 
 //    m_timer->stop();
     m_frozen = true;
+*/
 }
 
 void
 ProgressDialog::slotThaw()
 {
-    RG_DEBUG << "ProgressDialog::slotThaw()\n";
+/*    RG_DEBUG << "ProgressDialog::slotThaw()\n";
 
     if (m_wasVisible) {
         if (m_modal) m_modalVisible = true;
@@ -278,6 +286,7 @@ ProgressDialog::slotThaw()
 //    m_timer->start(1000);
 //    m_minimumTimeHasExpired = false;
     m_frozen = false;
+*/
 }
 
 /* void
