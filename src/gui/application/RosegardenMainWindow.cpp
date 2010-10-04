@@ -1225,7 +1225,7 @@ RosegardenMainWindow::initView()
 
     enterActionState("new_file"); //@@@ JAS orig. 0
 
-    ProgressDialog::processEvents();
+//    ProgressDialog::processEvents();
 
     if (findAction("show_chord_name_ruler")->isChecked()) {
         SetWaitCursor swc;
@@ -1820,7 +1820,7 @@ RosegardenMainWindow::slotUpdateTitle(bool m)
 void
 RosegardenMainWindow::slotOpenDroppedURL(QString url)
 {
-    ProgressDialog::processEvents(); // or else we get a crash because the
+//    ProgressDialog::processEvents(); // or else we get a crash because the
     // track editor is erased too soon - it is the originator of the signal
     // this slot is connected to.
 
@@ -3849,7 +3849,7 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
     // sets the composition's end marker time which is needed here)
 
     progressDlg.slotSetOperationName(tr("Calculating notation..."));
-    ProgressDialog::processEvents();
+//    ProgressDialog::processEvents();
 
     Composition *comp = &newDoc->getComposition();
 
@@ -7651,7 +7651,7 @@ RosegardenMainWindow::slotPanic()
                                    this);
         CurrentProgressDialog::set
             (&progressDlg);
-        ProgressDialog::processEvents();
+//        ProgressDialog::processEvents();
 
         connect(m_seqManager, SIGNAL(setValue(int)),
                 &progressDlg, SLOT(setValue(int)));

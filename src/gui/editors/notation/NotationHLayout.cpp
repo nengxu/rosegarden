@@ -465,7 +465,7 @@ NotationHLayout::scanViewSegment(ViewSegment &staff, timeT startTime,
         if ((endTime > startTime) && (barNo % 20 == 0)) {
             emit setValue((barTimes.second - startTime) * 95 /
                              (endTime - startTime));
-            ProgressDialog::processEvents();
+//            ProgressDialog::processEvents();
         }
 
         throwIfCancelled();
@@ -1210,7 +1210,7 @@ NotationHLayout::finishLayout(timeT startTime, timeT endTime, bool full)
          i != m_barData.end(); ++i) {
 
         emit setValue(100 * staffNo / m_barData.size());
-        ProgressDialog::processEvents();
+//        ProgressDialog::processEvents();
 
         throwIfCancelled();
 
