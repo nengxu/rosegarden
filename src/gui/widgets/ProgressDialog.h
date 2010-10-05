@@ -40,11 +40,11 @@ class ProgressDialog : public QProgressDialog
 {
     Q_OBJECT
 public:
-    ProgressDialog(const QString &labelText,
+    ProgressDialog(const QString &labelText ,/*
                    int totalSteps,
-                   int showAfter = 500,
-                   QWidget *parent = 0,
-                   bool modal = true);
+                   int showAfter = 500, */
+                   QWidget *parent = 0 /*,
+                   bool modal = true*/);
 
     ~ProgressDialog();
 

@@ -597,18 +597,12 @@ bool RosegardenDocument::openDocument(const QString& filename,
    
     if (!squelch) {
         progressDlg = new ProgressDialog(tr("Reading file..."),
-                                         100,
-                                         500,
                                          (QWidget*)parent());
 
 //        connect(progressDlg, SIGNAL(canceled()),
 //                &m_audioFileManager, SLOT(slotStopPreview()));
 
         CurrentProgressDialog::set(progressDlg);
-        progressDlg->show();
-
-        progressDlg->setAutoReset(true); // we're re-using it for the preview generation
-//        progressDlg->setAutoClose(true);
     }
 
     setAbsFilePath(fileInfo.absFilePath());
@@ -655,27 +649,18 @@ bool RosegardenDocument::openDocument(const QString& filename,
         RG_DEBUG << "First segment starts at " << (*m_composition.begin())->getStartTime() << endl;
     }
 
-    // We might need a progress dialog when we generate previews, reuse the
-    // previous one
     if (!squelch) {
     
         // Use a new dialog box, since I think the xmlparse is not disconnecting properly
         progressDlg->close();
         
         progressDlg = new ProgressDialog(tr("Generating audio previews..."),
-                                         100,
-                                         500,
                                          (QWidget*)parent());
 
         
-//        progressDlg->setLabelText(tr("Generating audio previews..."));
-
         connect(progressDlg, SIGNAL(canceled()),
                 &m_audioFileManager, SLOT(slotStopPreview()));
-        progressDlg->reset();
-        progressDlg->setValue(0);
-        progressDlg->show();
-        
+
         connect(&m_audioFileManager, SIGNAL(setValue(int)),
                 progressDlg, SLOT(setValue(int)));
     }
@@ -709,8 +694,6 @@ bool RosegardenDocument::openDocument(const QString& filename,
 
     std::cerr << "RosegardenDocument::openDocument: Successfully opened document \"" << filename << "\"" << std::endl;
 
-    // goes boom.  why is not immediately apparent
-//    progressDlg->hide();
     if (!squelch) {
         progressDlg->close();
     }
@@ -1268,11 +1251,7 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
     if (!autosave) {
 
         progress = new ProgressDialog(tr("Saving file..."),
-                                         100,
-                                         500,
                                          (QWidget*)parent());
-
-        progress->setAutoReset(true); // not implemented yet (not understood yet)
 
     }
 
@@ -1285,17 +1264,33 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
         (*devices)[i]->setConnection(qstrtostr(connection));
     }
 
+    if (progress) {
+        progress->setValue(10);
+    }
+
     // Send out Composition (this includes Tracks, Instruments, Tempo
     // and Time Signature changes and any other sub-objects)
     //
     outStream << strtoqstr(getComposition().toXmlString())
               << endl << endl;
 
+    if (progress) {
+        progress->setValue(20);
+    }
+
     outStream << strtoqstr(getAudioFileManager().toXmlString())
               << endl << endl;
 
+    if (progress) {
+        progress->setValue(30);
+    }
+
     outStream << strtoqstr(getConfiguration().toXmlString())
               << endl << endl;
+
+    if (progress) {
+        progress->setValue(40);
+    }
 
     long totalEvents = 0;
     for (Composition::iterator segitr = m_composition.begin();
@@ -1303,10 +1298,18 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
         totalEvents += (long)(*segitr)->size();
     }
 
+    if (progress) {
+        progress->setValue(50);
+    }
+
     for (Composition::triggersegmentcontaineriterator ci =
              m_composition.getTriggerSegments().begin();
          ci != m_composition.getTriggerSegments().end(); ++ci) {
         totalEvents += (long)(*ci)->getSegment()->size();
+    }
+
+    if (progress) {
+        progress->setValue(60);
     }
 
     // output all elements
@@ -1321,6 +1324,10 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
 
         saveSegment(outStream, segment, progress, totalEvents, eventCount);
 
+    }
+
+    if (progress) {
+        progress->setValue(70);
     }
 
     // Put a break in the file
@@ -1343,6 +1350,10 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
         saveSegment(outStream, segment, progress, totalEvents, eventCount, triggerAtts);
     }
 
+    if (progress) {
+        progress->setValue(80);
+    }
+
     // Put a break in the file
     //
     outStream << endl << endl;
@@ -1351,12 +1362,19 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
     //
     outStream << strtoqstr(m_studio.toXmlString()) << endl << endl;
 
+    if (progress) {
+        progress->setValue(90);
+    }
 
     // Send out the appearance data
     outStream << "<appearance>" << endl;
     outStream << strtoqstr(getComposition().getSegmentColourMap().toXmlString("segmentmap"));
     outStream << strtoqstr(getComposition().getGeneralColourMap().toXmlString("generalmap"));
     outStream << "</appearance>" << endl << endl << endl;
+
+    if (progress) {
+        progress->setValue(95);
+    }
 
     // close the top-level XML tag
     //
@@ -1368,18 +1386,20 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
         return false;
     }
 
+    if (progress) {
+        progress->setValue(100);
+    }
+
     RG_DEBUG << endl << "RosegardenDocument::saveDocument() finished\n";
 
     if (!autosave) {
         emit documentModified(false);
         setModified(false);
         CommandHistory::getInstance()->documentSaved();
-        if (progress) {
-            progress->close();     // is deleteOnClose
-            progress = 0;
         }
-    } else {
-        if (progress) progress->setValue(0);
+    if (progress) {
+        progress->close();     // is deleteOnClose
+        progress = 0;
     }
 
     setAutoSaved(true);
@@ -2695,7 +2715,7 @@ RosegardenDocument::finalizeAudioFile(InstrumentId iid)
 
     // Create a progress dialog
     //
-    ProgressDialog *progressDlg = new ProgressDialog ( tr("Generating audio preview..."), 100, 500, (QWidget*)parent() );
+    ProgressDialog *progressDlg = new ProgressDialog ( tr("Generating audio preview..."), (QWidget*)parent() );
     progressDlg->setAutoClose(false);
     progressDlg->setAutoReset(false);
     progressDlg->show();

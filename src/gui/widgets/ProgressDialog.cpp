@@ -41,11 +41,11 @@ namespace Rosegarden
 
 // bool ProgressDialog::m_modalVisible = false;
 
-ProgressDialog::ProgressDialog(const QString &labelText,
+ProgressDialog::ProgressDialog(const QString &labelText , /*
                                int totalSteps,
-                               int showAfter,
-                               QWidget *parent,
-                               bool modal) :
+                               int showAfter,*/
+                               QWidget *parent /*,
+                               bool modal*/) :
     QProgressDialog(parent),
 //    m_wasVisible(false),
 //    m_frozen(false),
@@ -54,21 +54,21 @@ ProgressDialog::ProgressDialog(const QString &labelText,
 //    m_minimumDuration(1000),
 //    m_sleepingBetweenOperations(false),
 //    m_operationText(""),
-    m_totalSteps(totalSteps),
+//    m_totalSteps(totalSteps),
 //    m_deferredClose(false),
     m_indeterminate(false)
 
 {
-    RG_DEBUG << "ProgressDialog::ProgressDialog - " << labelText << " - modal : " << modal << endl;
+    RG_DEBUG << "ProgressDialog::ProgressDialog - " << labelText << /* " - modal : " << modal << */ endl;
 
     setWindowTitle(tr("Rosegarden"));
     setBar(new ProgressBar(this));
     setLabelText(labelText);
-    setMinimumDuration(4000);
+    setMinimumDuration(2000);
+    setAttribute(Qt::WA_DeleteOnClose);
     hide();
-/*    setModal(modal);
-//    setAttribute(Qt::WA_DeleteOnClose);
-    setWindowFlags(Qt::Dialog);
+//    setModal(modal);
+/*    setWindowFlags(Qt::Dialog);
 
     QVBoxLayout *layout = new QVBoxLayout;
     setLayout(layout);
@@ -101,7 +101,7 @@ ProgressDialog::ProgressDialog(const QString &labelText,
     // don't show before this timer has elapsed
     m_showAfterTimer = new QTimer;
     m_showAfterTimer->setSingleShot(true);
-    m_showAfterTimer->start(5000);
+    m_showAfterTimer->start(2000);
     connect(m_showAfterTimer, SIGNAL(timeout()), this, SLOT(forceShow()));
 
 /*
@@ -123,10 +123,9 @@ ProgressDialog::setIndeterminate(bool ind)
 {
     if (m_indeterminate == ind) return;
     if (ind) {
+        m_totalSteps = maximum();
         setRange(0, 0);
-//        m_progressBar->setRange(0, 0);
     } else {
-//        m_progressBar->setRange(0, m_totalSteps);
         setRange(0, m_totalSteps);
     }
     m_indeterminate = ind;

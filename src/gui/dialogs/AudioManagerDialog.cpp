@@ -529,12 +529,8 @@ AudioManagerDialog::slotExportAudio()
     if (saveFile.contains(".") == 0)
         saveFile += ".wav";
 
-    ProgressDialog progressDlg(tr("Exporting audio file..."),
-                               100,
-                               500,
-                               this);
-
-    progressDlg.setValue(0);
+    ProgressDialog *progressDlg = new ProgressDialog(tr("Exporting audio file..."),
+                               (QWidget*)this);
 
     RealTime clipStartTime = RealTime::zeroTime;
     RealTime clipDuration = sourceFile->getLength();
@@ -552,13 +548,17 @@ AudioManagerDialog::slotExportAudio()
                        sourceFile->getBytesPerFrame(),
                        sourceFile->getBitsPerSample());
 
+    progressDlg->setValue(40);
     if (sourceFile->open() == false) {
         delete destFile;
+        progressDlg->close();
         return ;
     }
 
     destFile->write();
 
+    progressDlg->setValue(80);
+    
     sourceFile->scanTo(clipStartTime);
     destFile->appendSamples(sourceFile->getSampleFrameSlice(clipDuration));
 
@@ -566,7 +566,8 @@ AudioManagerDialog::slotExportAudio()
     sourceFile->close();
     delete destFile;
 
-    progressDlg.setValue(100);
+    progressDlg->setValue(100);
+    progressDlg->close();
 }
 
 void
@@ -1173,23 +1174,19 @@ AudioManagerDialog::addFile(const QUrl& kurl)
         return false;
     }
     
-    ProgressDialog progressDlg(tr("Adding audio file..."),
-                               100,
-                               500,
-                               this);
+    ProgressDialog *progressDlg = new ProgressDialog(tr("Adding audio file..."),
+                               (QWidget*)this);
 
-    CurrentProgressDialog::set(&progressDlg);
-    progressDlg.setValue(0);
-    progressDlg.setIndeterminate(true);
-    progressDlg.show();
+    CurrentProgressDialog::set(progressDlg);
+    progressDlg->setIndeterminate(true);
     
     // Connect the progress dialog
     //
     connect(&aFM, SIGNAL(setValue(int)),
-            &progressDlg, SLOT(setValue(int)));
+            progressDlg, SLOT(setValue(int)));
     connect(&aFM, SIGNAL(setOperationName(QString)),
-            &progressDlg, SLOT(setLabelText(QString)));
-    connect(&progressDlg, SIGNAL(canceled()),
+            progressDlg, SLOT(setLabelText(QString)));
+    connect(progressDlg, SIGNAL(canceled()),
             &aFM, SLOT(slotStopImport()));
 
     try {
@@ -1198,20 +1195,25 @@ AudioManagerDialog::addFile(const QUrl& kurl)
         CurrentProgressDialog::freeze();
         QString errorString = tr("Failed to add audio file. ") + strtoqstr(e.getMessage());
         QMessageBox::warning(this, tr("Rosegarden"), errorString);
+        progressDlg->close();
         return false;
     } catch (SoundFile::BadSoundFileException e) {
         CurrentProgressDialog::freeze();
         QString errorString = tr("Failed to add audio file. ") + strtoqstr(e.getMessage());
         QMessageBox::warning(this, tr("Rosegarden"), errorString);
+        progressDlg->close();
         return false;
     }
             
-    disconnect(&progressDlg, SIGNAL(canceled()),
+    disconnect(progressDlg, SIGNAL(canceled()),
                &aFM, SLOT(slotStopImport()));
-    connect(&progressDlg, SIGNAL(canceled()),
+    progressDlg->close();
+
+    progressDlg = new ProgressDialog(tr("Generating audio preview..."),
+                               (QWidget*)this);
+
+    connect(progressDlg, SIGNAL(canceled()),
             &aFM, SLOT(slotStopPreview()));
-    progressDlg.setIndeterminate(false);
-    progressDlg.setLabelText(tr("Generating audio preview..."));
 
     try {
         aFM.generatePreview(id);
@@ -1223,10 +1225,12 @@ AudioManagerDialog::addFile(const QUrl& kurl)
         QMessageBox::information(this, tr("Rosegarden"), message);
     }
 
-    disconnect(&progressDlg, SIGNAL(canceled()),
+    disconnect(progressDlg, SIGNAL(canceled()),
                &aFM, SLOT(slotStopPreview()));
 
     slotPopulateFileList();
+    
+    progressDlg->close();
 
     // tell the sequencer
     emit addAudioFile(id);

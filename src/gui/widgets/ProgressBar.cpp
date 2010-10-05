@@ -49,7 +49,7 @@ ProgressBar::ProgressBar(int totalSteps,
                          QWidget *parent) :
          QProgressBar(parent)
 {
-/*    setRange(0, totalSteps); */
+    setRange(0, totalSteps);
 
     QSettings settings;
     settings.beginGroup(GeneralOptionsConfigGroup);
