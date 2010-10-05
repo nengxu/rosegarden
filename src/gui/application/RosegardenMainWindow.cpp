@@ -1224,8 +1224,8 @@ RosegardenMainWindow::initView()
     //slotChangeZoom(int(m_zoomSlider->getCurrentSize()));
 
     enterActionState("new_file"); //@@@ JAS orig. 0
-
-//    ProgressDialog::processEvents();
+    
+     qApp->processEvents(QEventLoop::AllEvents, 100);
 
     if (findAction("show_chord_name_ruler")->isChecked()) {
         SetWaitCursor swc;
@@ -1820,6 +1820,7 @@ RosegardenMainWindow::slotUpdateTitle(bool m)
 void
 RosegardenMainWindow::slotOpenDroppedURL(QString url)
 {
+     qApp->processEvents(QEventLoop::AllEvents, 100);
 //    ProgressDialog::processEvents(); // or else we get a crash because the
     // track editor is erased too soon - it is the originator of the signal
     // this slot is connected to.
@@ -2520,17 +2521,14 @@ RosegardenMainWindow::slotRescaleSelection()
 
     if (!asrcs.empty()) {
 
-//        for (size_t i = 0; i < asrcs.size(); ++i) {
-//            asrcs[i]->disconnectProgressDialog(progressDlg);    //&&& obsolete (?)
-//        }
+        for (size_t i = 0; i < asrcs.size(); ++i) {
+            asrcs[i]->disconnectProgressDialog(progressDlg);    //&&& obsolete (?)
+        }
 
-        progressDlg->close();
-        
-        progressDlg = new ProgressDialog(tr("Generating audio preview..."),
-                                         (QWidget*)this);
+        progressDlg->setLabelText(tr("Generating audio preview..."));
 
-//        connect(&m_doc->getAudioFileManager(), SIGNAL(setValue(int)),
-//                 progressDlg, SLOT(setValue(int)));
+        connect(&m_doc->getAudioFileManager(), SIGNAL(setValue(int)),
+                 progressDlg, SLOT(setValue(int)));
         connect(progressDlg, SIGNAL(cancelClicked()),
                 &m_doc->getAudioFileManager(), SLOT(slotStopPreview()));
 
@@ -3833,6 +3831,8 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
     midiFile.convertToRosegarden(newDoc->getComposition(),
                                  MidiFile::CONVERT_REPLACE);
 
+    disconnect(&midiFile, 0, progressDlg, 0);
+
     fixTextEncodings(&newDoc->getComposition());
 
     // Set modification flag
@@ -3847,11 +3847,9 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
     // Clean up for notation purposes (after reinitialise, because that
     // sets the composition's end marker time which is needed here)
 
-    progressDlg->close();
-    
-    progressDlg = new ProgressDialog(tr("Calculating notation..."),
-                               (QWidget*)this);
-//    ProgressDialog::processEvents();
+    progressDlg->setLabelText(tr("Calculating notation..."));
+    progressDlg->setValue(0);
+    qApp->processEvents(QEventLoop::AllEvents, 100);
 
     Composition *comp = &newDoc->getComposition();
 
@@ -3895,14 +3893,17 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
 
     progressDlg->setValue(20);
 
+    int totalProgress = 20;
     int progressPer = 80;
-    if (comp->getNbSegments() > 0)
+    int nbSegments = comp->getNbSegments();
+
+    if (nbSegments > 0)
         progressPer = (int)(80.0 / double(comp->getNbSegments()));
 
     MacroCommand *command = new MacroCommand(tr("Calculate Notation"));
 
     for (Composition::iterator i = comp->begin(); i != comp->end(); ++i) {
-
+         
         Segment &segment = **i;
         timeT startTime(segment.getStartTime());
         timeT endTime(segment.getEndMarkerTime());
@@ -3913,8 +3914,11 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
             (segment, startTime, endTime, "Notation Options",
              EventQuantizeCommand::QUANTIZE_NOTATION_ONLY);
 
-        subCommand->setProgressTotal(progressPer + 1);
-        QObject::connect(subCommand, SIGNAL(setVale(int)),
+        //Compute progress so far.
+        totalProgress += progressPer;
+
+        subCommand->setProgressTotal(totalProgress, progressPer + 1);
+        QObject::connect(subCommand, SIGNAL(setValue(int)),
                          progressDlg, SLOT(setValue(int)));
 
         command->addCommand(subCommand);
@@ -4017,8 +4021,7 @@ RosegardenMainWindow::createDocumentFromRG21File(QString file)
     ProgressDialog *progressDlg = new ProgressDialog(
         tr("Importing X11 Rosegarden file..."), (QWidget*)this);
 
-    CurrentProgressDialog::set
-        (progressDlg);
+    CurrentProgressDialog::set(progressDlg);
 
     // Inherent autoload
     //
@@ -4137,8 +4140,7 @@ RosegardenMainWindow::createDocumentFromHydrogenFile(QString file)
     ProgressDialog *progressDlg = new ProgressDialog(
         tr("Importing Hydrogen file..."), (QWidget*) this);
 
-    CurrentProgressDialog::set
-        (progressDlg);
+    CurrentProgressDialog::set(progressDlg);
 
     // Inherent autoload
     //
