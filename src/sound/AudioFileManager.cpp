@@ -1016,10 +1016,9 @@ AudioFileManager::drawPreview(AudioFileId id,
                                  false);
 
     QPainter painter(pixmap);
-    pixmap->fill(qApp->palette().color(QPalette::Active,
-                                       QColorGroup::Base));
+    pixmap->fill(Qt::white);
     painter.setPen(qApp->palette().color(QPalette::Active,
-                                         QColorGroup::Dark));
+                                         QColorGroup::Mid));
 
     if (values.size() == 0) {
 #ifdef DEBUG_AUDIOFILEMANAGER

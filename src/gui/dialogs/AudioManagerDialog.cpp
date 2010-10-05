@@ -124,6 +124,7 @@ AudioManagerDialog::AudioManagerDialog(QWidget *parent,
     m_fileList = new AudioListView(centralWidget); // internal class needs parent (?)
     m_fileList->setSelectionMode(QAbstractItemView::SingleSelection);
     m_fileList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_fileList->setIconSize(QSize(m_maxPreviewWidth, m_previewHeight));
     
     boxLayout->addWidget(m_fileList);
 
@@ -188,11 +189,6 @@ AudioManagerDialog::AudioManagerDialog(QWidget *parent,
     connect(m_fileList, SIGNAL(itemSelectionChanged()),
             this, SLOT(slotSelectionChanged()));
     
-    
-    //### TODO: Fix drag n drop
-//     connect(m_fileList, SIGNAL(dropped(QDropEvent*, QTreeWidgetItem*)),
-//             SLOT(slotDropped(QDropEvent*, QTreeWidgetItem*)));
-
     connect(m_fileList, SIGNAL(dropped(QDropEvent*, QTreeWidget*, QStringList)),
             SLOT(slotDropped(QDropEvent*, QTreeWidget*, QStringList)));
     
@@ -217,13 +213,6 @@ AudioManagerDialog::AudioManagerDialog(QWidget *parent,
     connect(m_playTimer, SIGNAL(timeout()),
             this, SLOT(slotCancelPlayingAudio()));
 
-// No such signal, and I couldn't find anything of the sort in QMainWindow or
-// anything it inherits from.  In practice, the closeEvent() code fires when you
-// close out the dialog, and I don't think slotClose() is needed.  Leaving it in
-// here for now in case it is needed after all, and we work out some way to
-// hook it back up.
-//    connect(this, SIGNAL(close()), this,
-//                      SLOT(slotClose()));
 
     createGUI("audiomanager.rc"); //@@@ JAS orig. 0
 
@@ -326,17 +315,21 @@ AudioManagerDialog::slotPopulateFileList()
             it != m_doc->getAudioFileManager().end();
             ++it) {
         try {
+    std::cerr << "\n*** AudioManagerDialog:: 1" << std::endl;
             m_doc->getAudioFileManager().
             drawPreview((*it)->getId(),
                         RealTime::zeroTime,
                         (*it)->getLength(),
                         audioPixmap);
+    std::cerr << "\n*** AudioManagerDialog:: 2" << std::endl;
         } catch (Exception e) {
+    std::cerr << "\n*** AudioManagerDialog:: 3" << std::endl;
             audioPixmap->fill(); // white
             QPainter p(audioPixmap);
             p.setPen(QColor(Qt::black));
             p.drawText(10, m_previewHeight / 2, QString("<no preview>"));
         }
+    std::cerr << "\n*** AudioManagerDialog:: 4" << std::endl;
 
         //!!! Why isn't the label the label the user assigned to the file?
         // Why do we allow the user to assign a label at all, then?
@@ -362,7 +355,6 @@ AudioManagerDialog::slotPopulateFileList()
 
         // Envelope pixmap
         //
-        //item->setPixmap(2, *audioPixmap);
         item->setIcon(2, QIcon(*audioPixmap));    // row, col    
         
 
