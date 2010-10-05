@@ -3818,9 +3818,6 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
     connect(&midiFile, SIGNAL(setValue(int)),
             progressDlg, SLOT(setValue(int)));
 
-//    connect(&midiFile, SIGNAL(incrementProgress(int)),
-//            progressDlg, SLOT(incrementProgress(int)));
-
     if (!midiFile.open()) {
         CurrentProgressDialog::freeze();
         // NOTE: Someone flagged midiFile.getError() with a warning about tr().
@@ -3917,7 +3914,7 @@ RosegardenMainWindow::createDocumentFromMIDIFile(QString file)
              EventQuantizeCommand::QUANTIZE_NOTATION_ONLY);
 
         subCommand->setProgressTotal(progressPer + 1);
-        QObject::connect(subCommand, SIGNAL(incrementProgress(int)),
+        QObject::connect(subCommand, SIGNAL(setVale(int)),
                          progressDlg, SLOT(setValue(int)));
 
         command->addCommand(subCommand);
@@ -4033,9 +4030,6 @@ RosegardenMainWindow::createDocumentFromRG21File(QString file)
     //
     connect(&rg21Loader, SIGNAL(setValue(int)),
             progressDlg, SLOT(setValue(int)));
-
-//    connect(&rg21Loader, SIGNAL(incrementProgress(int)),
-//            progressDlg, SLOT(advance(int)));
 
     // "your starter for 40%" - helps the "freeze" work
     progressDlg->setValue(40);
@@ -4156,9 +4150,6 @@ RosegardenMainWindow::createDocumentFromHydrogenFile(QString file)
     //
     connect(&hydrogenLoader, SIGNAL(setValue(int)),
              progressDlg, SLOT(setValue(int)));
-
-//    connect(&hydrogenLoader, SIGNAL(incrementProgress(int)),
-//             progressDlg, SLOT(advance(int)));
 
     // "your starter for 40%" - helps the "freeze" work
     progressDlg->setValue(40);
@@ -4793,9 +4784,6 @@ RosegardenMainWindow::exportMIDIFile(QString file)
     connect(&midiFile, SIGNAL(setValue(int)),
             progressDlg, SLOT(setValue(int)));
 
-//    connect(&midiFile, SIGNAL(incrementProgress(int)),
-//            progressDlg, SLOT(advance(int)));
-
     midiFile.convertToMidi(m_doc->getComposition());
 
     if (!midiFile.write()) {
@@ -4831,9 +4819,6 @@ RosegardenMainWindow::exportCsoundFile(QString file)
 
     connect(&e, SIGNAL(setValue(int)),
             progressDlg, SLOT(setValue(int)));
-
-//    connect(&e, SIGNAL(incrementProgress(int)),
-//            progressDlg, SLOT(advance(int)));
 
     if (!e.write()) {
         CurrentProgressDialog::freeze();
@@ -4971,12 +4956,14 @@ RosegardenMainWindow::exportLilyPondFile(QString file, bool forPreview)
     connect(&e, SIGNAL(setValue(int)),
             progressDlg, SLOT(setValue(int)));
 
-//    connect(&e, SIGNAL(incrementProgress(int)),
-//            progressDlg, SLOT(advance(int)));
+    connect(progressDlg, SIGNAL(canceled()),
+            &e, SLOT(slotCancel()));
 
     if (!e.write()) {
         CurrentProgressDialog::freeze();
-        QMessageBox::warning(this, tr("Rosegarden"), tr("Export failed.  The file could not be opened for writing."));
+        if (!e.isOperationCancelled()) {
+            QMessageBox::warning(this, tr("Rosegarden"), tr("Export failed.  The file could not be opened for writing."));
+        }
         progressDlg->close();
         return false;
     }
@@ -5011,9 +4998,6 @@ RosegardenMainWindow::exportMusicXmlFile(QString file)
 
     connect(&e, SIGNAL(setValue(int)),
             progressDlg, SLOT(setValue(int)));
-
-//    connect(&e, SIGNAL(incrementProgress(int)),
-//            progressDlg, SLOT(advance(int)));
 
     if (!e.write()) {
         CurrentProgressDialog::freeze();
@@ -7654,12 +7638,9 @@ RosegardenMainWindow::slotPanic()
         ProgressDialog *progressDlg = new ProgressDialog(
                 tr("Queueing MIDI panic events for tranmission..."), (QWidget*)this);
         CurrentProgressDialog::set(progressDlg);
-//        ProgressDialog::processEvents();
 
         connect(m_seqManager, SIGNAL(setValue(int)),
                 progressDlg, SLOT(setValue(int)));
-//        connect(m_seqManager, SIGNAL(incrementProgress(int)),
-//                progressDlg, SLOT(advance(int)));
 
         m_seqManager->panic();
         

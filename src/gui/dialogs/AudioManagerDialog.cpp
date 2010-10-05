@@ -548,15 +548,18 @@ AudioManagerDialog::slotExportAudio()
                        sourceFile->getBytesPerFrame(),
                        sourceFile->getBitsPerSample());
 
+    progressDlg->show();
     progressDlg->setValue(40);
     if (sourceFile->open() == false) {
         delete destFile;
         progressDlg->close();
         return ;
     }
-
+    qApp->processEvents(QEventLoop::AllEvents, 100);
+    
     destFile->write();
 
+    qApp->processEvents(QEventLoop::AllEvents, 100);
     progressDlg->setValue(80);
     
     sourceFile->scanTo(clipStartTime);
@@ -1174,6 +1177,9 @@ AudioManagerDialog::addFile(const QUrl& kurl)
         return false;
     }
     
+    // If mulitple audio files are added concurrently, this implementation
+    // looks funny to the user, but it is functional for now.  NO time for
+    // a more robust solution.
     ProgressDialog *progressDlg = new ProgressDialog(tr("Adding audio file..."),
                                (QWidget*)this);
 
@@ -1204,13 +1210,14 @@ AudioManagerDialog::addFile(const QUrl& kurl)
         progressDlg->close();
         return false;
     }
-            
+    
     disconnect(progressDlg, SIGNAL(canceled()),
                &aFM, SLOT(slotStopImport()));
-    progressDlg->close();
 
-    progressDlg = new ProgressDialog(tr("Generating audio preview..."),
-                               (QWidget*)this);
+    progressDlg->setIndeterminate(false);
+    progressDlg->setValue(0);
+    
+    progressDlg->setLabelText(tr("Generating audio preview..."));
 
     connect(progressDlg, SIGNAL(canceled()),
             &aFM, SLOT(slotStopPreview()));
@@ -1225,8 +1232,8 @@ AudioManagerDialog::addFile(const QUrl& kurl)
         QMessageBox::information(this, tr("Rosegarden"), message);
     }
 
-    disconnect(progressDlg, SIGNAL(canceled()),
-               &aFM, SLOT(slotStopPreview()));
+    //Disconnect all signals from &aFM from the Progress Bar
+    disconnect(progressDlg, 0, &aFM, 0);
 
     slotPopulateFileList();
     
@@ -1248,7 +1255,7 @@ AudioManagerDialog::slotDropped(QDropEvent *event, QTreeWidget*, QStringList sl)
     QUrl urlx;
     
     // iterate over dropped URIs
-    for( uint i=0; i<sl.count(); i++ ){
+    for( int i=0; i<sl.count(); i++ ){
         urlx = sl[i];
         
         addFile( urlx );

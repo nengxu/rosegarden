@@ -312,10 +312,19 @@ ProgressDialog::setAutoReset(bool state)
     m_autoReset = state;
 }
 
+*/
 void
 ProgressDialog::setValue(int value)
 {
-//    std::cout << "ProgressDialog::setValue(" << value << ")" << std::endl;
+
+    if (m_indeterminate) {
+        //Just ignore the call otherwise the dialog will flash
+        return;
+    }
+    QProgressDialog::setValue(value);
+    
+    // Just ignore 
+/*//    std::cout << "ProgressDialog::setValue(" << value << ")" << std::endl;
 
     // Try to get our text and whatnot repainted whenever this is called, to
     // solve the "progress bar in an empty black box" problem.
@@ -352,9 +361,9 @@ ProgressDialog::setValue(int value)
 
     }
 
-    m_progressBar->setValue(value);
+    m_progressBar->setValue(value); */
 }
-
+/*
 void
 ProgressDialog::setProgress(int value)
 {
@@ -386,6 +395,7 @@ ProgressDialog::setLabelText(QString text)
 void
 ProgressDialog::show() {
     RG_DEBUG << "ProgressDialog::show: YeS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! I was called" << endl;
+    forceShow();
 }
 }
 

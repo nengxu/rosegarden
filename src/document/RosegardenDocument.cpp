@@ -599,8 +599,8 @@ bool RosegardenDocument::openDocument(const QString& filename,
         progressDlg = new ProgressDialog(tr("Reading file..."),
                                          (QWidget*)parent());
 
-//        connect(progressDlg, SIGNAL(canceled()),
-//                &m_audioFileManager, SLOT(slotStopPreview()));
+        connect(progressDlg, SIGNAL(canceled()),
+                &m_audioFileManager, SLOT(slotStopPreview()));
 
         CurrentProgressDialog::set(progressDlg);
     }
@@ -629,12 +629,18 @@ bool RosegardenDocument::openDocument(const QString& filename,
 
         if (!squelch) CurrentProgressDialog::freeze();
         QMessageBox::warning(dynamic_cast<QWidget *>(parent()), tr("Rosegarden"), msg);
-        if (!squelch) CurrentProgressDialog::thaw();
-
+        if (!squelch) {
+            CurrentProgressDialog::thaw();
+            progressDlg->close();
+        }
         return false;
 
     } else if (cancelled) {
+        if (!squelch) {
+            progressDlg->close();
+        }
         newDocument();
+        
         return false;
     }
 
@@ -650,16 +656,9 @@ bool RosegardenDocument::openDocument(const QString& filename,
     }
 
     if (!squelch) {
-    
-        // Use a new dialog box, since I think the xmlparse is not disconnecting properly
-        progressDlg->close();
         
-        progressDlg = new ProgressDialog(tr("Generating audio previews..."),
-                                         (QWidget*)parent());
-
-        
-        connect(progressDlg, SIGNAL(canceled()),
-                &m_audioFileManager, SLOT(slotStopPreview()));
+        progressDlg->setLabelText(tr("Generating audio previews..."));
+        progressDlg->setValue(0);
 
         connect(&m_audioFileManager, SIGNAL(setValue(int)),
                 progressDlg, SLOT(setValue(int)));
@@ -1664,9 +1663,6 @@ RosegardenDocument::xmlParse(QString fileContents, QString &errMsg,
         connect(&handler, SIGNAL(setValue(QString)),
                 progress, SLOT(setValue(QString)));
 
-        connect(&handler, SIGNAL(incrementProgress(int)),
-                progress, SLOT(setValue(int)));
-        
         connect(&handler, SIGNAL(setValue(int)),
                 progress, SLOT(setValue(int)));
         
@@ -1689,6 +1685,11 @@ RosegardenDocument::xmlParse(QString fileContents, QString &errMsg,
             StartupLogo::hideIfStillThere();
             QMessageBox::information(dynamic_cast<QWidget *>(parent()), tr("Rosegarden"), tr("File load cancelled"));
             cancelled = true;
+            if (progress) {
+                // Disconnect all signals /slots
+                disconnect(&handler, 0, progress, 0);
+                disconnect(progress, 0, &handler, 0);
+            }
             return true;
         } else {
             errMsg = handler.errorString();
@@ -1821,6 +1822,10 @@ RosegardenDocument::xmlParse(QString fileContents, QString &errMsg,
     // Set to maximum just incase reading did not do this.
     if (progress) {
         progress->setValue(progress->maximum());
+
+        // Disconnect all signals /slots
+        disconnect(&handler, 0, progress, 0);
+        disconnect(progress, 0, &handler, 0);
     }
     return ok;
 }
@@ -2716,9 +2721,6 @@ RosegardenDocument::finalizeAudioFile(InstrumentId iid)
     // Create a progress dialog
     //
     ProgressDialog *progressDlg = new ProgressDialog ( tr("Generating audio preview..."), (QWidget*)parent() );
-    progressDlg->setAutoClose(false);
-    progressDlg->setAutoReset(false);
-    progressDlg->show();
 
     connect(progressDlg, SIGNAL(canceled()),
             &m_audioFileManager, SLOT(slotStopPreview()));

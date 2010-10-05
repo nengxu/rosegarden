@@ -72,7 +72,7 @@ public:
     void setProgressTotal(int total) { m_progressTotal = total; }
 
 signals:
-    void incrementProgress(int);
+    void setValue(int);
 
 protected:
     virtual void modifySegment();

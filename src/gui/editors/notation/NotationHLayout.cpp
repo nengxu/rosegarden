@@ -1556,7 +1556,7 @@ NotationHLayout::layout(BarDataMap::iterator i, timeT startTime, timeT endTime,
                 count = 0;
                 timeT sinceIncrement = el->getViewAbsoluteTime() - lastIncrement;
                 if (sinceIncrement > m_timePerProgressIncrement) {
-                    emit incrementProgress
+                    emit setValue
                     (sinceIncrement / m_timePerProgressIncrement);
                     lastIncrement +=
                         (sinceIncrement / m_timePerProgressIncrement)

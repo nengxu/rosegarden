@@ -689,6 +689,8 @@ AudioFileManager::importFile(const QString &fileName, int sampleRate)
         }
     }
 
+    emit setOperationName(tr("Converting audio file..."));
+
     QString outFileName = m_audioPath + targetName;
     int ec = convertAudioFile(fileName, outFileName);
 

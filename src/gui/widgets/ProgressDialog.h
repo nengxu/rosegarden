@@ -112,7 +112,7 @@ public:
      * progress bar is done by this dialog now, and it does not expose its
      * internally-managed progress bar to the outside.
      */
-//    void setValue(int value);
+    void setValue(int value);
 
     /** To allow parallel connections between ProgressReporter and
      * ProgressDialog, connect the setProgress() signal to this slot, so this
