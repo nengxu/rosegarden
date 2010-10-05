@@ -145,7 +145,7 @@ public:
      */
 //    void completeOperationChange();
 
-      void show();
+//      void show();
       
 
  protected:

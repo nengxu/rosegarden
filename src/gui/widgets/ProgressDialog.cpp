@@ -390,13 +390,11 @@ ProgressDialog::setLabelText(QString text)
 {
     setLabelText(text);
 }
-*/
 
 void
 ProgressDialog::show() {
-    RG_DEBUG << "ProgressDialog::show: YeS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! I was called" << endl;
-    forceShow();
-}
+} */
+
 }
 
 #include "ProgressDialog.moc"

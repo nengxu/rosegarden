@@ -612,6 +612,10 @@ bool RosegardenDocument::openDocument(const QString& filename,
     bool cancelled = false;
 
     bool okay = GzipFile::readFromFile(filename, fileContents);
+    
+    if (!squelch)
+        progressDlg->show();
+    
     if (!okay) errMsg = tr("Could not open Rosegarden file");
     else {
         okay = xmlParse(fileContents,
@@ -1657,17 +1661,12 @@ RosegardenDocument::xmlParse(QString fileContents, QString &errMsg,
 
     if (progress) {
         std::cout << "I am here!" << std::endl;
-        connect(&handler, SIGNAL(setProgress(int)),
-                progress, SLOT(setValue(int)));
-
-        connect(&handler, SIGNAL(setValue(QString)),
-                progress, SLOT(setValue(QString)));
 
         connect(&handler, SIGNAL(setValue(int)),
                 progress, SLOT(setValue(int)));
         
         connect(progress, SIGNAL(canceled()),
-                &handler, SLOT(slotCancel()));
+                &handler, SLOT(slotCancel()));                
     }
 
     QXmlInputSource source;
