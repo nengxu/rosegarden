@@ -372,6 +372,16 @@ void CompositionView::slotSetSelectCopy(bool value)
     selTool->setSegmentCopy(value);
 }
 
+void CompositionView::slotSetSelectCopyingAsLink(bool value)
+{
+    SegmentSelector* selTool = getSegmentSelectorTool();
+
+    if (!selTool)
+        return ;
+
+    selTool->setSegmentCopyingAsLink(value);
+}
+
 void CompositionView::slotShowSplitLine(int x, int y)
 {
     m_splitLinePos.setX(x);
@@ -1453,13 +1463,15 @@ void CompositionView::contentsMousePressEvent(QMouseEvent* e)
 {
     Qt::ButtonState bs = e->state();
     slotSetSelectCopy((bs & Qt::ControlModifier) != 0);
+    slotSetSelectCopyingAsLink(false);
     slotSetSelectAdd((bs & Qt::ShiftModifier) != 0);
     slotSetFineGrain((bs & Qt::ShiftModifier) != 0);
     slotSetPencilOverExisting((bs & (Qt::AltModifier + Qt::ControlModifier)) != 0);
 
     switch (e->button()) {
-    case Qt::LeftButton:
     case Qt::MidButton:
+        slotSetSelectCopyingAsLink((bs & Qt::ControlModifier) != 0);
+    case Qt::LeftButton:
         startAutoScroll();
 
         if (m_tool)

@@ -409,6 +409,13 @@ Composition::getSegmentVoiceIndex(const Segment *segment) const
     return m_segmentVoiceIndexCache[segment];
 }
 
+void
+Composition::addLinkedSegmentReference(QSharedPointer<LinkedSegmentReference> &linkedSegRef) 
+{
+    QWeakPointer<LinkedSegmentReference> weakRef = linkedSegRef;
+    m_linkedReferenceSegments.insert(weakRef);
+}
+
 TriggerSegmentRec *
 Composition::addTriggerSegment(Segment *s, int pitch, int velocity)
 {

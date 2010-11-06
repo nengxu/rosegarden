@@ -30,6 +30,7 @@
 #include "base/ControlParameter.h"
 #include "base/Device.h"
 #include "base/Instrument.h"
+#include "base/LinkedSegment.h"
 #include "base/Marker.h"
 #include "base/MidiDevice.h"
 #include "base/SoftSynthDevice.h"
@@ -312,7 +313,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         return getSubHandler()->startElement(namespaceURI, localName, lcName, atts);
     }
 
-    if (lcName == "event") {
+    if (lcName == "linkedsegrefevent" || lcName == "event") {
 
         //        RG_DEBUG << "RoseXmlHandler::startElement: found event, current time is " << m_currentTime << endl;
 
@@ -381,7 +382,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
             }
         }
 
-    } else if (lcName == "property") {
+    } else if (lcName == "linkedsegrefproperty" || lcName == "property") {
 
         if (!m_currentEvent) {
             RG_DEBUG << "RoseXmlHandler::startElement: Warning: Found property outside of event at time " << m_currentTime << ", ignoring" << endl;
@@ -389,7 +390,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
             m_currentEvent->setPropertyFromAttributes(atts, true);
         }
 
-    } else if (lcName == "nproperty") {
+    } else if (lcName == "linkedsegrefnproperty" || lcName == "nproperty") {
 
         if (!m_currentEvent) {
             RG_DEBUG << "RoseXmlHandler::startElement: Warning: Found nproperty outside of event at time " << m_currentTime << ", ignoring" << endl;
@@ -797,7 +798,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         getComposition().addTrack(track);
 
 
-    } else if (lcName == "segment") {
+    } else if (lcName == "linkedsegmentreference" || lcName == "segment") {
 
         if (m_section != NoSection) {
             m_errorString = "Found Segment in another section";
@@ -805,7 +806,9 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         }
 
         // set Segment
-        m_section = InSegment;
+        if(lcName == "segment") {
+            m_section = InSegment;
+        }
 
         int track = -1, startTime = 0;
         unsigned int colourindex = 0;
@@ -913,8 +916,17 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         QString triggerVelocityStr = atts.value("triggerbasevelocity");
         QString triggerRetuneStr = atts.value("triggerretune");
         QString triggerAdjustTimeStr = atts.value("triggeradjusttimes");
+        
+        QString linkedSegRefIdStr = atts.value("linkedsegmentreferenceid");
 
-        if (!triggerIdStr.isEmpty()) {
+        if (lcName == "linkedsegmentreference") {
+            int linkId = linkedSegRefIdStr.toInt();
+            QSharedPointer<LinkedSegmentReference> linkedSegRef(new LinkedSegmentReference(*m_currentSegment,linkId));
+            delete m_currentSegment;
+            m_currentSegment = linkedSegRef.data();
+            m_linkedSegRefs[linkId] = linkedSegRef;
+            getComposition().addLinkedSegmentReference(linkedSegRef);
+        } else if (!triggerIdStr.isEmpty()) {
             int pitch = -1;
             if (!triggerPitchStr.isEmpty())
                 pitch = triggerPitchStr.toInt();
@@ -933,6 +945,16 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
             }
             m_currentSegment->setStartTimeDataMember(startTime);
         } else {
+            if (!linkedSegRefIdStr.isEmpty()) {
+                int linkId = linkedSegRefIdStr.toInt();
+                LinkedSegRefMap::iterator linkedSegRef = m_linkedSegRefs.find(linkId);
+                //if this fails, it gets added as ordinary seg
+                if (linkedSegRef != m_linkedSegRefs.end()) { 
+                    LinkedSegment *linkedSeg = new LinkedSegment(*m_currentSegment, linkedSegRef->second);
+                    delete m_currentSegment;
+                    m_currentSegment = linkedSeg;
+                }
+            }
             getComposition().addSegment(m_currentSegment);
             getComposition().setSegmentStartTime(m_currentSegment, startTime);
         }

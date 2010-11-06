@@ -80,7 +80,7 @@ SegmentSplitCommand::execute()
         return;
     }
 
-    m_newSegmentA = new Segment(*m_segment);
+    m_newSegmentA = m_segment->clone(false);
     m_newSegmentB = new Segment();
 
     m_newSegmentB->setTrack(m_segment->getTrack());

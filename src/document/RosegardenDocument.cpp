@@ -32,6 +32,7 @@
 #include "base/Event.h"
 #include "base/Exception.h"
 #include "base/Instrument.h"
+#include "base/LinkedSegment.h"
 #include "base/MidiDevice.h"
 #include "base/MidiProgram.h"
 #include "base/MidiTypes.h"
@@ -1296,6 +1297,16 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
     }
 
     long totalEvents = 0;
+    for (Composition::linkedsegrefiterator segrefitr = 
+            m_composition.getLinkedReferenceSegments().begin();
+            segrefitr != m_composition.getLinkedReferenceSegments().end(); 
+            ++segrefitr) {
+        QSharedPointer<LinkedSegmentReference> segRefPtr = (*segrefitr).toStrongRef();
+        if(segRefPtr) {
+            totalEvents += (long)segRefPtr->size();
+        }
+    }
+
     for (Composition::iterator segitr = m_composition.begin();
          segitr != m_composition.end(); ++segitr) {
         totalEvents += (long)(*segitr)->size();
@@ -1320,12 +1331,34 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
     // Iterate on segments
     long eventCount = 0;
 
+    for (Composition::linkedsegrefiterator segrefitr = 
+            m_composition.getLinkedReferenceSegments().begin();
+            segrefitr != m_composition.getLinkedReferenceSegments().end(); 
+            ++segrefitr) {
+        QSharedPointer<LinkedSegmentReference> segRefPtr = (*segrefitr).toStrongRef();
+        if(segRefPtr) {
+            QString segRefAtts = QString("linkedsegmentreferenceid=\"%1\"").arg(segRefPtr->getLinkId());
+            saveSegment(outStream, segRefPtr.data(), progress, totalEvents, eventCount, segRefAtts);
+        }
+    }
+
+    // Put a break in the file
+    //
+    outStream << endl << endl;
+
     for (Composition::iterator segitr = m_composition.begin();
          segitr != m_composition.end(); ++segitr) {
 
         Segment *segment = *segitr;
 
-        saveSegment(outStream, segment, progress, totalEvents, eventCount);
+        if(segment->isLinked()) {
+            const LinkedSegment *linkedSeg = dynamic_cast<LinkedSegment *>(segment);
+            QString linkedSegAtts = QString("linkedsegmentreferenceid=\"%1\"")
+                                    .arg(linkedSeg->getLinkedReferenceSegmentId());
+            saveSegment(outStream, segment, progress, totalEvents, eventCount, linkedSegAtts);
+        } else {
+            saveSegment(outStream, segment, progress, totalEvents, eventCount);
+        }
 
     }
 
@@ -1452,7 +1485,8 @@ void RosegardenDocument::saveSegment(QTextStream& outStream, Segment *segment,
 {
     QString time;
 
-    outStream << QString("<segment track=\"%1\" start=\"%2\" ")
+    outStream << QString("<%1 track=\"%2\" start=\"%3\" ")
+    .arg(segment->getXmlElementName())
     .arg(segment->getTrack())
     .arg(segment->getStartTime());
 
@@ -1576,8 +1610,15 @@ void RosegardenDocument::saveSegment(QTextStream& outStream, Segment *segment,
                 if (chordDuration == 0 || (*i)->getDuration() < chordDuration)
                     chordDuration = (*i)->getDuration();
 
+            //ILG - this is a hack to give myself forwards compatibility when
+            //saving in the linked segment branch and loading on the trunk
+            std::string elemPrefix;
+            if(dynamic_cast<LinkedSegmentReference *>(segment))
+            {
+                elemPrefix = "linkedsegref";
+            }
             outStream << '\t'
-            << strtoqstr((*i)->toXmlString(expectedTime)) << endl;
+            << strtoqstr((*i)->toXmlString(expectedTime,elemPrefix)) << endl;
 
             if (nextEl != segment->end() &&
                     (*nextEl)->getAbsoluteTime() != absTime &&
@@ -1623,7 +1664,7 @@ void RosegardenDocument::saveSegment(QTextStream& outStream, Segment *segment,
     }
 
 
-    outStream << "</segment>\n"; //-------------------------
+    outStream << QString("</%1>\n").arg(segment->getXmlElementName()); //-------------------------
 
 }
 

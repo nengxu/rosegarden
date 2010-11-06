@@ -19,6 +19,7 @@
 #define _RG_ROSEXMLHANDLER_H_
 
 #include "base/Device.h"
+#include "base/LinkedSegmentReference.h"
 #include "base/MidiProgram.h"
 #include "gui/general/ProgressReporter.h"
 #include <map>
@@ -27,6 +28,7 @@
 #include <QString>
 #include "base/Event.h"
 #include <QXmlDefaultHandler>
+#include <QtCore/QSharedPointer>
 
 
 class QXmlParseException;
@@ -157,7 +159,12 @@ protected:
     QString m_errorString;
     std::set<QString> m_pluginsNotFound;
 
+    /*NEED THE TYPEDEF HERE*/
+    typedef std::map<int, QSharedPointer<LinkedSegmentReference> > LinkedSegRefMap;
+    LinkedSegRefMap m_linkedSegRefs;
+    
     RosegardenFileSection             m_section;
+    
     Device                           *m_device;
     DeviceId                          m_deviceRunningId;
     InstrumentId                      m_deviceInstrumentBase;

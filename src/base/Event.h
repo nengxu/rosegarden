@@ -261,7 +261,7 @@ public:
     /**
      * Get the XML string representing the object.
      */
-    std::string toXmlString();
+    std::string toXmlString(std::string elemPrefix);
 
     /**
      * Get the XML string representing the object.  If the absolute
@@ -269,7 +269,7 @@ public:
      * the difference between the two as a timeOffset attribute.
      * If expectedTime == 0, include an absoluteTime attribute instead.
      */
-    std::string toXmlString(timeT expectedTime);
+    std::string toXmlString(timeT expectedTime, std::string elemPrefix);
 
 #ifndef NDEBUG
     void dump(std::ostream&) const;

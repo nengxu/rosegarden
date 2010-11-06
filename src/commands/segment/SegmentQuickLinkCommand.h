@@ -1,0 +1,66 @@
+
+/* -*- c-basic-offset: 4 indent-tabs-mode: nil -*- vi:set ts=8 sts=4 sw=4: */
+
+/*
+    Rosegarden
+    A MIDI and audio sequencer and musical notation editor.
+    Copyright 2000-2010 the Rosegarden development team.
+
+    Other copyrights also apply to some parts of this work.  Please
+    see the AUTHORS file and individual file headers for details.
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of the
+    License, or (at your option) any later version.  See the file
+    COPYING included with this distribution for more information.
+*/
+
+#ifndef _RG_SEGMENTQUICKLINKCOMMAND_H
+#define _RG_SEGMENTQUICKLINKCOMMAND_H
+
+#include "document/Command.h"
+#include <QString>
+#include <QCoreApplication>
+
+namespace Rosegarden
+{
+
+class Segment;
+class LinkedSegment;
+class Composition;
+
+class SegmentQuickLinkCommand : public NamedCommand
+{
+    Q_DECLARE_TR_FUNCTIONS(Rosegarden::SegmentQuickLinkCommand)
+
+public:
+    SegmentQuickLinkCommand(Segment *segment);
+    virtual ~SegmentQuickLinkCommand();
+
+    virtual void execute();
+    virtual void unexecute();
+
+    // return pointer to new copy
+    Segment *getCopy() { return m_linkedSegment; }
+    // return pointer to replacement for the original
+    const Segment *getOriginal() { return m_originalSegment; }
+    // return either m_replacementForOriginalSegment or m_originalSegment
+    Segment *getLinkedTo() { return m_replacementForOriginalSegment ? 
+                                    m_replacementForOriginalSegment : 
+                                    m_originalSegment; }
+
+    static QString getGlobalName() { return tr("Quick-Link Segment"); }
+
+private:
+    Composition *m_composition;
+    Segment     *m_originalSegment;
+    Segment     *m_replacementForOriginalSegment;
+    Segment     *m_linkedSegment;
+    bool         m_detached;
+    bool         m_originalSegmentLinked;
+};
+
+}
+
+#endif // _RG_SEGMENTQUICKLINKCOMMAND_H

@@ -85,11 +85,32 @@ public:
      */
     Segment(SegmentType segmentType = Internal,
             timeT startTime = 0);
+
     /**
-     * Copy constructor
+     * Virtual copy constructor interface, in case this is actually a linked segment
+     * (or potentially any other type derived from Segment)
+     * @param deep true to return a deep copy, false to return just a segment
+     * containing a copy of the events of this
+     */
+    Segment* clone(bool deep = true) const
+    {
+        if(deep) { return cloneImpl(); }
+        else { return new Segment(*this); }
+    }
+
+protected:
+    /**
+     * Virtual copy constructor implementation
+     */
+    virtual Segment* cloneImpl() const { return new Segment(*this); }
+            
+    /**
+     * Copy constructor - protected to encourage use of the clone function
+     * when a copy is required
      */
     Segment(const Segment&);
 
+public:
     virtual ~Segment();
 
 
@@ -101,6 +122,16 @@ public:
      * Get the Segment type (Internal or Audio)
      */
     SegmentType getType() const { return m_type; }
+
+    /**
+     * Get whether segment is linked or not
+     */
+    virtual bool isLinked() const { return false; }
+
+    /**
+     * Get the element name this class will have when serialised
+     */
+    virtual QString getXmlElementName() const { return "segment"; }
 
     /**
      * Note that a Segment does not have to be in a Composition;

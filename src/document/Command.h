@@ -70,6 +70,8 @@ public:
 
     virtual QString getName() const;
     virtual void setName(QString name);
+    
+    virtual const std::vector<Command *>& getCommands() { return m_commands; }
 
 protected:
     QString m_name;
