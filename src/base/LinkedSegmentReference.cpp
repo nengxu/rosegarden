@@ -51,10 +51,6 @@ LinkedSegmentReference::LinkedSegmentReference(const Segment &other, int linkId)
 void LinkedSegmentReference::linkedSegmentChanged(const LinkedSegment *linkedSeg, 
                                                   timeT srcFrom, timeT srcTo)
 {
-    //nothing should be observing this
-    assert(m_observers.size() == 0);
-    assert(m_composition == 0);
-    
     //transform from and to into the relative time of the reference segment,
     //taking into account starting time and (eventually) time squash/stretch
     timeT srcSegStartTime = linkedSeg->getStartTime();
