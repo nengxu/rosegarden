@@ -891,7 +891,7 @@ NotationScene::checkUpdate()
         } else if (rs.needsRefresh()) {
             
             if (!need || rs.from() < start) start = rs.from();
-            if (!need || rs.to() < end) end = rs.to();
+            if (!need || rs.to() > end) end = rs.to();
 
             need = true;
 
