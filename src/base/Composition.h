@@ -393,6 +393,7 @@ public:
     const linkedsegrefcontainer &getLinkedReferenceSegments() const { return m_linkedReferenceSegments; }
     
     void addLinkedSegmentReference(QSharedPointer<LinkedSegmentReference> &linkedSegRef);
+    void resetLinkedSegmentRefreshStatuses();
     
     //////
     //

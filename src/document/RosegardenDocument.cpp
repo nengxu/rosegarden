@@ -1301,7 +1301,8 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
             m_composition.getLinkedReferenceSegments().begin();
             segrefitr != m_composition.getLinkedReferenceSegments().end(); 
             ++segrefitr) {
-        QSharedPointer<LinkedSegmentReference> segRefPtr = (*segrefitr).toStrongRef();
+        QSharedPointer<LinkedSegmentReference> segRefPtr = 
+                                               (*segrefitr).toStrongRef();
         if(segRefPtr) {
             totalEvents += (long)segRefPtr->size();
         }
@@ -1335,10 +1336,13 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
             m_composition.getLinkedReferenceSegments().begin();
             segrefitr != m_composition.getLinkedReferenceSegments().end(); 
             ++segrefitr) {
-        QSharedPointer<LinkedSegmentReference> segRefPtr = (*segrefitr).toStrongRef();
+        QSharedPointer<LinkedSegmentReference> segRefPtr = 
+                                                    (*segrefitr).toStrongRef();
         if(segRefPtr) {
-            QString segRefAtts = QString("linkedsegmentreferenceid=\"%1\"").arg(segRefPtr->getLinkId());
-            saveSegment(outStream, segRefPtr.data(), progress, totalEvents, eventCount, segRefAtts);
+            QString segRefAtts = QString("linkedsegmentreferenceid=\"%1\"").
+                                                   arg(segRefPtr->getLinkId());
+            saveSegment(outStream, segRefPtr.data(), progress, totalEvents, 
+                                                     eventCount, segRefAtts);
         }
     }
 
@@ -1352,10 +1356,24 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
         Segment *segment = *segitr;
 
         if(segment->isLinked()) {
-            const LinkedSegment *linkedSeg = dynamic_cast<LinkedSegment *>(segment);
-            QString linkedSegAtts = QString("linkedsegmentreferenceid=\"%1\"")
-                                    .arg(linkedSeg->getLinkedReferenceSegmentId());
-            saveSegment(outStream, segment, progress, totalEvents, eventCount, linkedSegAtts);
+            const LinkedSegment *linkedSeg = 
+                                        dynamic_cast<LinkedSegment *>(segment);
+            QString attsString = QString("linkedsegmentreferenceid=\"%1\" ");
+            attsString += QString("linktransposechangekey=\"%2\" ");
+            attsString += QString("linktransposesteps=\"%3\" ");
+            attsString += QString("linktransposesemitones=\"%4\" ");
+            attsString += QString("linktransposetransposesegmentback=\"%5\" ");
+            QString linkedSegAtts = QString(attsString)
+              .arg(linkedSeg->getLinkedReferenceSegmentId())
+              .arg(linkedSeg->getLinkTransposeParams().m_changeKey ? "true" : 
+                                                                     "false")
+              .arg(linkedSeg->getLinkTransposeParams().m_steps)
+              .arg(linkedSeg->getLinkTransposeParams().m_semitones)
+              .arg(linkedSeg->getLinkTransposeParams().m_transposeSegmentBack
+                                                         ? "true" : "false");
+
+            saveSegment(outStream, segment, progress, totalEvents, 
+                                            eventCount, linkedSegAtts);
         } else {
             saveSegment(outStream, segment, progress, totalEvents, eventCount);
         }
@@ -1845,6 +1863,8 @@ RosegardenDocument::xmlParse(QString fileContents, QString &errMsg,
             }
 
         }
+        
+        getComposition().resetLinkedSegmentRefreshStatuses();
     }
 
     if (handler.channelsWereRemapped()) {

@@ -129,6 +129,7 @@
     </Menu>
   <Separator/>
     <Action name="add_clef" text="Add Cle&amp;f Change..." />
+    <Action name="add_clef_this_link_only" text="Add Clef Change in this link only..." />
     <Action name="add_key_signature" text="Add &amp;Key Change..." />
   <Separator/>
     <Action name="add_sustain_down" text="Add Pedal &amp;Press" />
@@ -816,6 +817,12 @@
     <Action name="collapse_rests_aggressively"/>
     <Menu name="Adjust"/>
   </enable>
+</State>
+
+<State name="have_linked_segment">
+  <visible>
+    <Action name="add_clef_this_link_only"/>
+  </visible>
 </State>
 
 <State name="have_notes_in_selection">

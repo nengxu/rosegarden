@@ -51,6 +51,7 @@
 #include "base/Instrument.h"
 #include "base/Device.h"
 #include "base/SoftSynthDevice.h"
+#include "base/LinkedSegment.h"
 
 #include "commands/edit/CopyCommand.h"
 #include "commands/edit/CutCommand.h"
@@ -451,6 +452,7 @@ NotationView::setupActions()
     // Created in EditViewBase::setupActions() via creatAction()
 
     createAction("add_clef", SLOT(slotEditAddClef()));
+    createAction("add_clef_this_link_only", SLOT(slotEditAddClefLinkOnly()));
     createAction("add_key_signature", SLOT(slotEditAddKeySignature()));
     createAction("add_sustain_down", SLOT(slotEditAddSustainDown()));
     createAction("add_sustain_up", SLOT(slotEditAddSustainUp()));
@@ -984,6 +986,7 @@ NotationView::slotUpdateMenuStates()
     leaveActionState("have_rests_in_selection");
     leaveActionState("have_clefs_in_selection");
     leaveActionState("have_symbols_in_selection");
+    leaveActionState("have_linked_segment");
 
     if (!m_notationWidget) return;
 
@@ -1030,6 +1033,12 @@ NotationView::slotUpdateMenuStates()
         } else {
             m_selectionCounter->setText(tr("  No selection "));
         }
+    }
+
+    // 3. linked segment specific states
+    Segment *segment = getCurrentSegment();
+    if (segment && segment->isLinked()) {
+        enterActionState("have_linked_segment");
     }
 }
 
@@ -2871,6 +2880,43 @@ NotationView::slotEditAddClef()
                                          dialog.getClef(),
                                          shouldChangeOctave,
                                          shouldTranspose));
+
+        lastClef = dialog.getClef();
+    } 
+}
+
+void
+NotationView::slotEditAddClefLinkOnly()
+{
+    Segment *segment = getCurrentSegment();
+    LinkedSegment *linkedSegment = dynamic_cast<LinkedSegment *>(segment);
+    if (!linkedSegment) {
+        return;
+    }
+    timeT insertionTime = getInsertionTime();
+    static Clef lastClef = segment->getClefAtTime(insertionTime);
+
+    NotationScene *scene = m_notationWidget->getScene();
+    if (!scene) return;
+
+    NotePixmapFactory npf = *scene->getNotePixmapFactory();
+    npf.setSelected(false);
+
+    ClefDialog dialog(this, &npf, lastClef);
+
+    if (dialog.exec() == QDialog::Accepted) {
+
+        ClefDialog::ConversionType conversion = dialog.getConversionType();
+
+        bool shouldChangeOctave = (conversion != ClefDialog::NoConversion);
+        bool shouldTranspose = (conversion == ClefDialog::Transpose);
+
+        CommandHistory::getInstance()->addCommand(
+                new ClefLinkInsertionCommand(*linkedSegment,
+                                            insertionTime,
+                                            dialog.getClef(),
+                                            shouldChangeOctave,
+                                            shouldTranspose));
 
         lastClef = dialog.getClef();
     } 

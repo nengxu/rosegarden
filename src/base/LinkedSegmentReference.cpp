@@ -17,6 +17,8 @@
 
 #include "LinkedSegment.h"
 #include "document/CommandHistory.h"
+#include "BaseProperties.h"
+#include "base/SegmentNotationHelper.h"
 
 #include <cassert>
 #include <stdlib.h>
@@ -67,11 +69,10 @@ void LinkedSegmentReference::linkedSegmentChanged(const LinkedSegment *linkedSeg
         timeT absEventTime = e->getAbsoluteTime();
         timeT relEventTime = absEventTime - srcSegStartTime;
         
-        Event *refSegEvent = new Event(*e,relEventTime);
-        
-        //correct for temporal (and pitch shift??) here eventually...
-        
-        insert(refSegEvent);
+        int semitones = linkedSeg->getLinkTransposeParams().m_semitones;
+        int steps = linkedSeg->getLinkTransposeParams().m_steps;
+    
+        insertMappedEvent(this,e,relEventTime,-semitones,-steps);
     }
     
     //update all our observers with the new content
@@ -79,32 +80,81 @@ void LinkedSegmentReference::linkedSegmentChanged(const LinkedSegment *linkedSeg
                                    itr != m_linkedSegments.end(); ++itr) {
         LinkedSegment *linkedSegToUpdate = *itr;
         
-        if(linkedSegToUpdate != linkedSeg) {
-            timeT segStartTime = linkedSegToUpdate->getStartTime();
-            //these will need correcting for time stretch/squash
-            timeT segFrom = segStartTime + refFrom;
-            timeT segTo = segStartTime + refTo;
-            LinkedSegment::iterator itrFrom = linkedSegToUpdate->findTime(segFrom);
-            LinkedSegment::iterator itrTo = linkedSegToUpdate->findTime(segTo);
-            linkedSegToUpdate->erase(itrFrom,itrTo);
-            
-            for(Segment::const_iterator itr = findTime(refFrom);
-                                        itr != findTime(refTo); ++itr) {
-                const Event *e = *itr;
-            
-                //correct this time and event for temporal (and pitch shift??)
-                //here eventually...
-                timeT eventT = e->getAbsoluteTime() + segStartTime;
-                
-                Event *linkedSegEvent = new Event(*e,eventT);
-                
-                linkedSegToUpdate->insert(linkedSegEvent);
-            }
-            
-            linkedSegToUpdate->clearSelfRefreshStatus();
+        if(linkedSegToUpdate == linkedSeg) {
+            continue;
         }
+        
+        timeT segStartTime = linkedSegToUpdate->getStartTime();
+        //these will need correcting for time stretch/squash
+        timeT segFrom = segStartTime + refFrom;
+        timeT segTo = segStartTime + refTo;
+        LinkedSegment::iterator itrFrom = linkedSegToUpdate->findTime(segFrom);
+        LinkedSegment::iterator itrTo = linkedSegToUpdate->findTime(segTo);
+        linkedSegToUpdate->eraseNonIgnored(itrFrom,itrTo);
+        
+        for(Segment::const_iterator itr = findTime(refFrom);
+                                    itr != findTime(refTo); ++itr) {
+            const Event *e = *itr;
+        
+            timeT eventT = e->getAbsoluteTime() + segStartTime;
+
+            int semitones = linkedSegToUpdate->getLinkTransposeParams().m_semitones;
+            int steps = linkedSegToUpdate->getLinkTransposeParams().m_steps;
+        
+            insertMappedEvent(linkedSegToUpdate,e,eventT,semitones,steps);
+        }
+        
+        linkedSegToUpdate->clearSelfRefreshStatus();
     }
 }
 
+/* static */ void
+LinkedSegmentReference::insertMappedEvent(Segment *seg, const Event *e, timeT t, 
+                                                       int semitones, int steps)
+{
+    bool ignore;
+    if (e->get<Bool>(BaseProperties::LINKED_SEGMENT_IGNORE_UPDATE, ignore) 
+        && ignore) {
+        return;
+    }
+        
+    Event *refSegEvent = new Event(*e,t);
+    
+    bool needsInsertion = true;
+
+    //correct for temporal (and pitch shift??) here eventually...
+    if (semitones!=0) {
+        if (e->isa(Note::EventType)) {
+            long oldPitch = 0;
+            if (e->get<Int>(BaseProperties::PITCH, oldPitch)) {
+                long newPitch = oldPitch + semitones;
+                refSegEvent->set<Int>(BaseProperties::PITCH, newPitch);
+            }
+        } else if (e->isa(Rosegarden::Key::EventType)) {
+            Rosegarden::Key trKey = (Rosegarden::Key (*e)).transpose(semitones, 
+                                                                         steps);
+            delete refSegEvent; 
+            refSegEvent = 0;
+            SegmentNotationHelper helper(*seg);
+            helper.insertKey(t,trKey);
+            needsInsertion = false;
+        }
+    }
+    
+    if (needsInsertion) {
+        seg->insert(refSegEvent);
+    }
+}
+
+void
+LinkedSegmentReference::resetLinkedSegmentRefreshStatuses()
+{
+    for(LinkedSegmentSet::iterator itr = m_linkedSegments.begin();
+                                   itr != m_linkedSegments.end(); ++itr) {
+        LinkedSegment *linkedSeg = *itr;
+        linkedSeg->clearSelfRefreshStatus();
+    }
+}
+    
 }
 

@@ -112,6 +112,7 @@ protected slots:
     void slotEditCutAndClose();
     void slotEditGeneralPaste();
     void slotEditAddClef();
+    void slotEditAddClefLinkOnly();
     void slotEditAddKeySignature();
     void slotEditAddSustainDown();
     void slotEditAddSustainUp();

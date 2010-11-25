@@ -160,7 +160,7 @@ signals:
      * Emitted just before commandExecuted() so that linked segments can
      * update their siblings.
      */
-    void updateLinkedSegments();
+    void updateLinkedSegments(Command *);
 
     /**
      * Emitted whenever a command has just been executed or

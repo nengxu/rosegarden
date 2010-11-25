@@ -112,6 +112,8 @@ const PropertyName DISPLACED_Y                   = "displacedy";
 
 const PropertyName INVISIBLE                     = "invisible";
 
+const PropertyName LINKED_SEGMENT_IGNORE_UPDATE  = "linkedsegmentignoreupdate";
+
 }
 
 }

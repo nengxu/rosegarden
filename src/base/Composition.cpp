@@ -416,6 +416,19 @@ Composition::addLinkedSegmentReference(QSharedPointer<LinkedSegmentReference> &l
     m_linkedReferenceSegments.insert(weakRef);
 }
 
+void
+Composition::resetLinkedSegmentRefreshStatuses()
+{
+    for (linkedsegrefiterator segrefitr = getLinkedReferenceSegments().begin();
+                 segrefitr != getLinkedReferenceSegments().end(); ++segrefitr) {
+        QSharedPointer<LinkedSegmentReference> segRefPtr = 
+                                                     (*segrefitr).toStrongRef();
+        if(segRefPtr) {
+            segRefPtr->resetLinkedSegmentRefreshStatuses();
+        }
+    }
+}
+
 TriggerSegmentRec *
 Composition::addTriggerSegment(Segment *s, int pitch, int velocity)
 {

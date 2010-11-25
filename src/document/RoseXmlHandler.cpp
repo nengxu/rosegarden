@@ -919,9 +919,15 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         
         QString linkedSegRefIdStr = atts.value("linkedsegmentreferenceid");
 
+        QString linkedSegChgKeyStr = atts.value("linktransposechangekey");
+        QString linkedSegStepsStr = atts.value("linktransposesteps");
+        QString linkedSegSemitonesStr = atts.value("linktransposesemitones");
+        QString linkedSegTransBackStr = atts.value("linktransposetransposesegmentback");
+
         if (lcName == "linkedsegmentreference") {
             int linkId = linkedSegRefIdStr.toInt();
-            QSharedPointer<LinkedSegmentReference> linkedSegRef(new LinkedSegmentReference(*m_currentSegment,linkId));
+            QSharedPointer<LinkedSegmentReference> linkedSegRef(
+                         new LinkedSegmentReference(*m_currentSegment,linkId));
             delete m_currentSegment;
             m_currentSegment = linkedSegRef.data();
             m_linkedSegRefs[linkId] = linkedSegRef;
@@ -947,10 +953,18 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         } else {
             if (!linkedSegRefIdStr.isEmpty()) {
                 int linkId = linkedSegRefIdStr.toInt();
-                LinkedSegRefMap::iterator linkedSegRef = m_linkedSegRefs.find(linkId);
+                LinkedSegRefMap::iterator linkedSegRef = 
+                                                  m_linkedSegRefs.find(linkId);
                 //if this fails, it gets added as ordinary seg
                 if (linkedSegRef != m_linkedSegRefs.end()) { 
-                    LinkedSegment *linkedSeg = new LinkedSegment(*m_currentSegment, linkedSegRef->second);
+                    LinkedSegment *linkedSeg = new LinkedSegment(
+                                      *m_currentSegment, linkedSegRef->second);
+                    LinkedSegment::TransposeParams params(
+                                      linkedSegChgKeyStr.toLower()=="true",
+                                      linkedSegStepsStr.toInt(),
+                                      linkedSegSemitonesStr.toInt(),
+                                      linkedSegTransBackStr.toLower()=="true");
+                    linkedSeg->setLinkTransposeParams(params);
                     delete m_currentSegment;
                     m_currentSegment = linkedSeg;
                 }

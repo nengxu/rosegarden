@@ -36,15 +36,22 @@ public:
     LinkedSegmentReference(const Segment &other, int linkId);    
     virtual ~LinkedSegmentReference() {}
     
-    void addLinkedSegment(LinkedSegment *linkedSeg) { m_linkedSegments.push_back(linkedSeg); }
-    void removeLinkedSegment(LinkedSegment *linkedSeg) { m_linkedSegments.remove(linkedSeg); }
-    void linkedSegmentChanged(const LinkedSegment *linkedSeg, timeT from, timeT to);
+    void addLinkedSegment(LinkedSegment *linkedSeg) { 
+                                       m_linkedSegments.push_back(linkedSeg); }
+    void removeLinkedSegment(LinkedSegment *linkedSeg) { 
+                                          m_linkedSegments.remove(linkedSeg); }
+    void linkedSegmentChanged(const LinkedSegment *linkedSeg, timeT from, 
+                                                              timeT to);
+    void resetLinkedSegmentRefreshStatuses();
     
     static int m_count;
     LinkedSegmentReferenceId getLinkId() const { return m_id; }
  
     //overrides from segment
     QString getXmlElementName() const { return "linkedsegmentreference"; }
+
+    static void insertMappedEvent(Segment *seg, const Event *e,  timeT t, 
+                                                int semitones,  int steps);
 
 private:
     typedef std::list<LinkedSegment *> LinkedSegmentSet;
@@ -56,8 +63,8 @@ struct LinkedSegmentReferenceCmp
 {
     bool operator()(const QWeakPointer<LinkedSegmentReference> &r1,
                     const QWeakPointer<LinkedSegmentReference> &r2) const {
-        QSharedPointer<LinkedSegmentReference> linkedSegRef1 = r1.toStrongRef();
-        QSharedPointer<LinkedSegmentReference> linkedSegRef2 = r2.toStrongRef();
+        QSharedPointer<LinkedSegmentReference> linkedSegRef1=r1.toStrongRef();
+        QSharedPointer<LinkedSegmentReference> linkedSegRef2=r2.toStrongRef();
         if(!linkedSegRef1.isNull() && !linkedSegRef2.isNull())
         {
             return linkedSegRef1->getLinkId() < linkedSegRef2->getLinkId();
