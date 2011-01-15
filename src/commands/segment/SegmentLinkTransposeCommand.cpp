@@ -19,13 +19,13 @@
 #include "SegmentLinkTransposeCommand.h"
 
 #include "SegmentTransposeCommand.h"
-#include "base/LinkedSegment.h"
+#include "base/SegmentLinker.h"
 
 namespace Rosegarden
 {
     
 SegmentLinkTransposeCommand::SegmentLinkTransposeCommand(
-        std::vector<LinkedSegment *> linkedSegs, bool changeKey, int steps,
+        std::vector<Segment *> linkedSegs, bool changeKey, int steps,
         int semitones, bool transposeSegmentBack) :
     MacroCommand(getGlobalName()),
     m_linkedSegs(linkedSegs),
@@ -34,7 +34,7 @@ SegmentLinkTransposeCommand::SegmentLinkTransposeCommand(
     //make this command not update link siblings by default
     setUpdateLinks(false);
     //add the individual transpose commands here
-    std::vector<LinkedSegment *>::iterator itr;
+    std::vector<Segment *>::iterator itr;
     for (itr = m_linkedSegs.begin(); itr != m_linkedSegs.end(); ++itr) {
         addCommand(new SegmentTransposeCommand(**itr, changeKey, steps,
                                               semitones, transposeSegmentBack));
@@ -50,9 +50,9 @@ SegmentLinkTransposeCommand::~SegmentLinkTransposeCommand()
 void
 SegmentLinkTransposeCommand::execute()
 {
-    std::vector<LinkedSegment *>::iterator itr;
+    std::vector<Segment *>::iterator itr;
     for (itr = m_linkedSegs.begin(); itr != m_linkedSegs.end(); ++itr) {
-        LinkedSegment *linkedSeg = *itr;
+        Segment *linkedSeg = *itr;
         linkedSeg->setLinkTransposeParams(m_linkTransposeParams);
     }
     MacroCommand::execute();
@@ -61,10 +61,10 @@ SegmentLinkTransposeCommand::execute()
 void
 SegmentLinkTransposeCommand::unexecute()
 {
-    std::vector<LinkedSegment *>::iterator itr;
+    std::vector<Segment *>::iterator itr;
     for (itr = m_linkedSegs.begin(); itr != m_linkedSegs.end(); ++itr) {
-        LinkedSegment *linkedSeg = *itr;
-        LinkedSegment::TransposeParams oldParams = 
+        Segment *linkedSeg = *itr;
+        Segment::LinkTransposeParams oldParams = 
             m_oldLinkTransposeParams[std::distance(m_linkedSegs.begin(),itr)];
         linkedSeg->setLinkTransposeParams(oldParams);
     }
@@ -72,12 +72,12 @@ SegmentLinkTransposeCommand::unexecute()
 }
 
 SegmentLinkResetTransposeCommand::SegmentLinkResetTransposeCommand(
-                                    std::vector<LinkedSegment *> &linkedSegs) :
+                                    std::vector<Segment *> &linkedSegs) :
     MacroCommand(getGlobalName())
 {
     //make this command not update link siblings by default
     setUpdateLinks(false);
-    std::vector<LinkedSegment *>::iterator itr;
+    std::vector<Segment *>::iterator itr;
     for (itr = linkedSegs.begin(); itr != linkedSegs.end(); ++itr) {
         addCommand(new SingleSegmentLinkResetTransposeCommand(**itr));
     }
@@ -86,13 +86,13 @@ SegmentLinkResetTransposeCommand::SegmentLinkResetTransposeCommand(
 void
 SingleSegmentLinkResetTransposeCommand::modifySegment()
 {
-    m_linkedSeg->refresh();
+    m_linkedSeg->getLinker()->refreshSegment(m_linkedSeg);
 }
 
 void
 SingleSegmentLinkResetTransposeCommand::execute()
 {
-    m_linkedSeg->setLinkTransposeParams(LinkedSegment::TransposeParams());
+    m_linkedSeg->setLinkTransposeParams(Segment::LinkTransposeParams());
     BasicCommand::execute();
 }
 

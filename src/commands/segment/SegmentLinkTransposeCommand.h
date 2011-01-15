@@ -22,7 +22,6 @@
 #include "document/Command.h"
 #include "document/BasicCommand.h"
 #include "document/BasicSelectionCommand.h"
-#include "base/LinkedSegment.h"
 #include "base/Selection.h"
 
 #include <QCoreApplication>
@@ -39,7 +38,7 @@ class SegmentLinkTransposeCommand : public MacroCommand
 
 public:
     /// Set transpose on segments.
-    SegmentLinkTransposeCommand(std::vector<LinkedSegment *> linkedSegs,
+    SegmentLinkTransposeCommand(std::vector<Segment *> linkedSegs,
         bool changeKey, int steps, int semitones, bool transposeSegmentBack);
     virtual ~SegmentLinkTransposeCommand();
 
@@ -49,13 +48,13 @@ public:
     static QString getGlobalName() { return tr("Transpose Linked Segments"); }
 
 private:
-    std::vector<LinkedSegment *> m_linkedSegs;
+    std::vector<Segment *> m_linkedSegs;
 
     ///new parameters
-    LinkedSegment::TransposeParams m_linkTransposeParams;
+    Segment::LinkTransposeParams m_linkTransposeParams;
     
     ///old parameters
-    std::vector<LinkedSegment::TransposeParams> m_oldLinkTransposeParams;
+    std::vector<Segment::LinkTransposeParams> m_oldLinkTransposeParams;
 };
 
 class SegmentLinkResetTransposeCommand : public MacroCommand
@@ -63,7 +62,7 @@ class SegmentLinkResetTransposeCommand : public MacroCommand
     Q_DECLARE_TR_FUNCTIONS(Rosegarden::SegmentLinkResetTransposeCommand)
 
 public:
-    SegmentLinkResetTransposeCommand(std::vector<LinkedSegment *> &linkedSegs);
+    SegmentLinkResetTransposeCommand(std::vector<Segment *> &linkedSegs);
 
     static QString getGlobalName() {
         return tr("Reset Transpose on Linked Segments"); }
@@ -74,7 +73,7 @@ class SingleSegmentLinkResetTransposeCommand : public BasicSelectionCommand
     Q_DECLARE_TR_FUNCTIONS(Rosegarden::SingleSegmentLinkResetTransposeCommand)
 
 public:
-    SingleSegmentLinkResetTransposeCommand(LinkedSegment &linkedSeg) :
+    SingleSegmentLinkResetTransposeCommand(Segment &linkedSeg) :
         BasicSelectionCommand(getGlobalName(), linkedSeg, true),
         m_linkedSeg(&linkedSeg),
         m_linkTransposeParams(m_linkedSeg->getLinkTransposeParams()) { }
@@ -89,8 +88,8 @@ protected:
     virtual void modifySegment();
 
 private:
-    LinkedSegment *m_linkedSeg;
-    LinkedSegment::TransposeParams m_linkTransposeParams;
+    Segment *m_linkedSeg;
+    Segment::LinkTransposeParams m_linkTransposeParams;
 };
 
 }

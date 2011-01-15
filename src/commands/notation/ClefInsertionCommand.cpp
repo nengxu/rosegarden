@@ -22,7 +22,6 @@
 #include "base/Event.h"
 #include "base/NotationTypes.h"
 #include "base/Segment.h"
-#include "base/LinkedSegment.h"
 #include "base/SegmentNotationHelper.h"
 #include "base/BaseProperties.h"
 #include "document/BasicCommand.h"
@@ -145,7 +144,7 @@ ClefInsertionCommand::modifySegment()
     }
 }
 
-ClefLinkInsertionCommand::ClefLinkInsertionCommand(LinkedSegment &segment,
+ClefLinkInsertionCommand::ClefLinkInsertionCommand(Segment &segment,
                                                    timeT time,
                                                    Clef clef,
                                                    bool shouldChangeOctave,
@@ -180,6 +179,6 @@ ClefLinkInsertionCommand::modifySegment()
         //add a property so this event is ignored when updating linked segs
         m_lastInsertedEvent->set<Bool>(LINKED_SEGMENT_IGNORE_UPDATE, true);
     }
-};
+}
 
 }

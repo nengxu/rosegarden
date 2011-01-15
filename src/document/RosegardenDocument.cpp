@@ -32,7 +32,7 @@
 #include "base/Event.h"
 #include "base/Exception.h"
 #include "base/Instrument.h"
-#include "base/LinkedSegment.h"
+#include "base/SegmentLinker.h"
 #include "base/MidiDevice.h"
 #include "base/MidiProgram.h"
 #include "base/MidiTypes.h"
@@ -1297,21 +1297,6 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
     }
 
     long totalEvents = 0;
-    for (Composition::linkedsegrefiterator segrefitr = 
-            m_composition.getLinkedReferenceSegments().begin();
-            segrefitr != m_composition.getLinkedReferenceSegments().end(); 
-            ++segrefitr) {
-        QSharedPointer<LinkedSegmentReference> segRefPtr = 
-                                               (*segrefitr).toStrongRef();
-        if(segRefPtr) {
-            totalEvents += (long)segRefPtr->size();
-        }
-    }
-
-    for (Composition::iterator segitr = m_composition.begin();
-         segitr != m_composition.end(); ++segitr) {
-        totalEvents += (long)(*segitr)->size();
-    }
 
     if (progress) {
         progress->setValue(50);
@@ -1332,20 +1317,6 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
     // Iterate on segments
     long eventCount = 0;
 
-    for (Composition::linkedsegrefiterator segrefitr = 
-            m_composition.getLinkedReferenceSegments().begin();
-            segrefitr != m_composition.getLinkedReferenceSegments().end(); 
-            ++segrefitr) {
-        QSharedPointer<LinkedSegmentReference> segRefPtr = 
-                                                    (*segrefitr).toStrongRef();
-        if(segRefPtr) {
-            QString segRefAtts = QString("linkedsegmentreferenceid=\"%1\"").
-                                                   arg(segRefPtr->getLinkId());
-            saveSegment(outStream, segRefPtr.data(), progress, totalEvents, 
-                                                     eventCount, segRefAtts);
-        }
-    }
-
     // Put a break in the file
     //
     outStream << endl << endl;
@@ -1355,21 +1326,19 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
 
         Segment *segment = *segitr;
 
-        if(segment->isLinked()) {
-            const LinkedSegment *linkedSeg = 
-                                        dynamic_cast<LinkedSegment *>(segment);
-            QString attsString = QString("linkedsegmentreferenceid=\"%1\" ");
-            attsString += QString("linktransposechangekey=\"%2\" ");
-            attsString += QString("linktransposesteps=\"%3\" ");
-            attsString += QString("linktransposesemitones=\"%4\" ");
-            attsString += QString("linktransposetransposesegmentback=\"%5\" ");
+        if (segment->isLinked()) {
+            QString attsString = QString("linkerid=\"%1\" ");
+            attsString += QString("linkertransposechangekey=\"%2\" ");
+            attsString += QString("linkertransposesteps=\"%3\" ");
+            attsString += QString("linkertransposesemitones=\"%4\" ");
+            attsString += QString("linkertransposesegmentback=\"%5\" ");
             QString linkedSegAtts = QString(attsString)
-              .arg(linkedSeg->getLinkedReferenceSegmentId())
-              .arg(linkedSeg->getLinkTransposeParams().m_changeKey ? "true" : 
-                                                                     "false")
-              .arg(linkedSeg->getLinkTransposeParams().m_steps)
-              .arg(linkedSeg->getLinkTransposeParams().m_semitones)
-              .arg(linkedSeg->getLinkTransposeParams().m_transposeSegmentBack
+              .arg(segment->getLinker()->getSegmentLinkerId())
+              .arg(segment->getLinkTransposeParams().m_changeKey ? "true" : 
+                                                                   "false")
+              .arg(segment->getLinkTransposeParams().m_steps)
+              .arg(segment->getLinkTransposeParams().m_semitones)
+              .arg(segment->getLinkTransposeParams().m_transposeSegmentBack
                                                          ? "true" : "false");
 
             saveSegment(outStream, segment, progress, totalEvents, 
@@ -1628,15 +1597,8 @@ void RosegardenDocument::saveSegment(QTextStream& outStream, Segment *segment,
                 if (chordDuration == 0 || (*i)->getDuration() < chordDuration)
                     chordDuration = (*i)->getDuration();
 
-            //ILG - this is a hack to give myself forwards compatibility when
-            //saving in the linked segment branch and loading on the trunk
-            std::string elemPrefix;
-            if(dynamic_cast<LinkedSegmentReference *>(segment))
-            {
-                elemPrefix = "linkedsegref";
-            }
             outStream << '\t'
-            << strtoqstr((*i)->toXmlString(expectedTime,elemPrefix)) << endl;
+            << strtoqstr((*i)->toXmlString(expectedTime)) << endl;
 
             if (nextEl != segment->end() &&
                     (*nextEl)->getAbsoluteTime() != absTime &&

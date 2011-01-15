@@ -383,33 +383,6 @@ SegmentSelector::handleMouseMove(QMouseEvent *e)
 // 		m_canvas->updateContents();
 		m_canvas->update();
 
-        if (m_segmentCopyingAsLink && mcommand) {
-            //executing the command may have deleted the originally selected
-            //items, so need to recover the selection from the command.
-            //also need to make a new m_currentIndex for the newly created
-            //linked segments
-            const Segment *origCurrentSegment = CompositionItemHelper::getSegment(m_currentIndex);
-            m_canvas->getModel()->clearSelected();
-            SegmentSelection linkedToSegments;
-            const std::vector<Command *> &linkCommands = mcommand->getCommands();
-            std::vector<Command *>::const_iterator itr;
-            for (itr = linkCommands.begin(); itr != linkCommands.end(); ++itr) {
-                SegmentQuickLinkCommand *linkCommand = dynamic_cast<SegmentQuickLinkCommand *>(*itr);
-                if (linkCommand) {
-                    Segment *linkedTo = linkCommand->getLinkedTo();
-                    linkedToSegments.insert(linkedTo);
-                    if (!origCurrentSegment->isLinked()) {
-                        const Segment *linkOriginal = linkCommand->getOriginal();
-                        if(origCurrentSegment == linkOriginal)
-                        {
-                            m_currentIndex = CompositionItemHelper::makeCompositionItem(linkedTo);
-                        }
-                    }
-                }
-            }
-            m_canvas->slotSelectSegments(linkedToSegments);
-        }
-        
 		m_segmentQuickCopyDone = true;
     }
 

@@ -19,6 +19,7 @@
 #include "Composition.h"
 #include "BasicQuantizer.h"
 #include "base/Profiler.h"
+#include "base/SegmentLinker.h"
 
 #include <iostream>
 #include <algorithm>
@@ -65,7 +66,8 @@ Segment::Segment(SegmentType segmentType, timeT startTime) :
     m_viewFeatures(0),
     m_autoFade(false),
     m_fadeInTime(Rosegarden::RealTime::zeroTime),
-    m_fadeOutTime(Rosegarden::RealTime::zeroTime)
+    m_fadeOutTime(Rosegarden::RealTime::zeroTime),
+    m_segmentLinker(0)
 {
 }
 
@@ -101,12 +103,26 @@ Segment::Segment(const Segment &segment):
     m_viewFeatures(0),
     m_autoFade(segment.isAutoFading()),
     m_fadeInTime(segment.getFadeInTime()),
-    m_fadeOutTime(segment.getFadeOutTime())
+    m_fadeOutTime(segment.getFadeOutTime()),
+    m_segmentLinker(0) //yes, this is intentional. clone() handles this
 {
     for (const_iterator it = segment.begin();
 	 it != segment.end(); ++it) {
         insert(new Event(**it));
     }
+}
+
+Segment*
+Segment::cloneImpl() const
+{
+    Segment *s = new Segment(*this);
+    
+    if (isLinked()) {
+        //if the segment is linked already, link the clone to our SegmentLinker
+       getLinker()->addLinkedSegment(s);
+    }
+    
+    return s;
 }
 
 Segment::~Segment()
@@ -123,6 +139,9 @@ Segment::~Segment()
 	cerr << endl;
     }
 
+    //unlink it
+    SegmentLinker::unlinkSegment(this);
+    
     notifySourceDeletion();
 
     if (m_composition) m_composition->detachSegment(this);

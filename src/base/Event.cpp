@@ -202,17 +202,17 @@ Event::getAsString(const PropertyName &name) const
 // us anything anyway).
 
 string
-Event::toXmlString(std::string elemPrefix)
+Event::toXmlString()
 {
-    return toXmlString(0,elemPrefix);
+    return toXmlString(0);
 }
 
 string
-Event::toXmlString(timeT expectedTime, std::string elemPrefix)
+Event::toXmlString(timeT expectedTime)
 {
     std::stringstream out;
 
-    out << "<" << elemPrefix << "event";
+    out << "<event";
     
     if (getType().length() != 0) {
 	out << " type=\"" << getType() << "\"";
@@ -249,7 +249,7 @@ Event::toXmlString(timeT expectedTime, std::string elemPrefix)
     for (PropertyNames::const_iterator i = propertyNames.begin();
          i != propertyNames.end(); ++i) {
 
-    out << "<" << elemPrefix << "property name=\""
+    out << "<property name=\""
 	    << XmlExportable::encode(i->getName()) << "\" ";
 	string type = getPropertyTypeAsString(*i);
 	for (size_t j = 0; j < type.size(); ++j) {
@@ -273,7 +273,7 @@ Event::toXmlString(timeT expectedTime, std::string elemPrefix)
 	std::string s(i->getName());
 	if (s.find("::") != std::string::npos) continue;
 
-    out << "<" << elemPrefix << "nproperty name=\""
+    out << "<nproperty name=\""
 	    << XmlExportable::encode(s) << "\" ";
 	string type = getPropertyTypeAsString(*i);
 	for (size_t j = 0; j < type.size(); ++j) {
@@ -284,7 +284,7 @@ Event::toXmlString(timeT expectedTime, std::string elemPrefix)
 	    << "\"/>";
     }
   
-    out << "</" << elemPrefix << "event>";
+    out << "</event>";
 
     return out.str();
 }

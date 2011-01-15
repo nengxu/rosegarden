@@ -30,7 +30,6 @@
 #include "base/ControlParameter.h"
 #include "base/Device.h"
 #include "base/Instrument.h"
-#include "base/LinkedSegment.h"
 #include "base/Marker.h"
 #include "base/MidiDevice.h"
 #include "base/SoftSynthDevice.h"
@@ -39,6 +38,7 @@
 #include "base/NotationTypes.h"
 #include "base/RealTime.h"
 #include "base/Segment.h"
+#include "base/SegmentLinker.h"
 #include "base/Studio.h"
 #include "base/Track.h"
 #include "base/TriggerSegment.h"
@@ -313,7 +313,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         return getSubHandler()->startElement(namespaceURI, localName, lcName, atts);
     }
 
-    if (lcName == "linkedsegrefevent" || lcName == "event") {
+    if (lcName == "event") {
 
         //        RG_DEBUG << "RoseXmlHandler::startElement: found event, current time is " << m_currentTime << endl;
 
@@ -382,7 +382,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
             }
         }
 
-    } else if (lcName == "linkedsegrefproperty" || lcName == "property") {
+    } else if (lcName == "property") {
 
         if (!m_currentEvent) {
             RG_DEBUG << "RoseXmlHandler::startElement: Warning: Found property outside of event at time " << m_currentTime << ", ignoring" << endl;
@@ -390,7 +390,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
             m_currentEvent->setPropertyFromAttributes(atts, true);
         }
 
-    } else if (lcName == "linkedsegrefnproperty" || lcName == "nproperty") {
+    } else if (lcName == "nproperty") {
 
         if (!m_currentEvent) {
             RG_DEBUG << "RoseXmlHandler::startElement: Warning: Found nproperty outside of event at time " << m_currentTime << ", ignoring" << endl;
@@ -798,7 +798,7 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         getComposition().addTrack(track);
 
 
-    } else if (lcName == "linkedsegmentreference" || lcName == "segment") {
+    } else if (lcName == "segment") {
 
         if (m_section != NoSection) {
             m_errorString = "Found Segment in another section";
@@ -917,22 +917,15 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
         QString triggerRetuneStr = atts.value("triggerretune");
         QString triggerAdjustTimeStr = atts.value("triggeradjusttimes");
         
-        QString linkedSegRefIdStr = atts.value("linkedsegmentreferenceid");
+        QString linkerIdStr = atts.value("linkerid");
 
-        QString linkedSegChgKeyStr = atts.value("linktransposechangekey");
-        QString linkedSegStepsStr = atts.value("linktransposesteps");
-        QString linkedSegSemitonesStr = atts.value("linktransposesemitones");
-        QString linkedSegTransBackStr = atts.value("linktransposetransposesegmentback");
+        QString linkerChgKeyStr = atts.value("linkertransposechangekey");
+        QString linkerStepsStr = atts.value("linkertransposesteps");
+        QString linkerSemitonesStr = atts.value("linkertransposesemitones");
+        QString linkerTransBackStr =
+                             atts.value("linkertransposesegmentback");
 
-        if (lcName == "linkedsegmentreference") {
-            int linkId = linkedSegRefIdStr.toInt();
-            QSharedPointer<LinkedSegmentReference> linkedSegRef(
-                         new LinkedSegmentReference(*m_currentSegment,linkId));
-            delete m_currentSegment;
-            m_currentSegment = linkedSegRef.data();
-            m_linkedSegRefs[linkId] = linkedSegRef;
-            getComposition().addLinkedSegmentReference(linkedSegRef);
-        } else if (!triggerIdStr.isEmpty()) {
+        if (!triggerIdStr.isEmpty()) {
             int pitch = -1;
             if (!triggerPitchStr.isEmpty())
                 pitch = triggerPitchStr.toInt();
@@ -951,23 +944,25 @@ RoseXmlHandler::startElement(const QString& namespaceURI,
             }
             m_currentSegment->setStartTimeDataMember(startTime);
         } else {
-            if (!linkedSegRefIdStr.isEmpty()) {
-                int linkId = linkedSegRefIdStr.toInt();
-                LinkedSegRefMap::iterator linkedSegRef = 
-                                                  m_linkedSegRefs.find(linkId);
-                //if this fails, it gets added as ordinary seg
-                if (linkedSegRef != m_linkedSegRefs.end()) { 
-                    LinkedSegment *linkedSeg = new LinkedSegment(
-                                      *m_currentSegment, linkedSegRef->second);
-                    LinkedSegment::TransposeParams params(
-                                      linkedSegChgKeyStr.toLower()=="true",
-                                      linkedSegStepsStr.toInt(),
-                                      linkedSegSemitonesStr.toInt(),
-                                      linkedSegTransBackStr.toLower()=="true");
-                    linkedSeg->setLinkTransposeParams(params);
-                    delete m_currentSegment;
-                    m_currentSegment = linkedSeg;
+            if (!linkerIdStr.isEmpty()) {
+                SegmentLinker *linker = 0;                                  
+                int linkId = linkerIdStr.toInt();
+                SegmentLinkerMap::iterator linkerItr = 
+                                                  m_segmentLinkers.find(linkId);
+                if (linkerItr == m_segmentLinkers.end()) {
+                    //need to create a SegmentLinker with this id
+                    linker = new SegmentLinker(linkId);
+                    m_segmentLinkers[linkId] = linker;
+                } else {
+                    linker = linkerItr->second;
                 }
+                Segment::LinkTransposeParams params(
+                                        linkerChgKeyStr.toLower()=="true",
+                                        linkerStepsStr.toInt(),
+                                        linkerSemitonesStr.toInt(),
+                                        linkerTransBackStr.toLower()=="true");
+                linker->addLinkedSegment(m_currentSegment);
+                m_currentSegment->setLinkTransposeParams(params);
             }
             getComposition().addSegment(m_currentSegment);
             getComposition().setSegmentStartTime(m_currentSegment, startTime);

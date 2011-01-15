@@ -51,7 +51,6 @@
 #include "base/Instrument.h"
 #include "base/Device.h"
 #include "base/SoftSynthDevice.h"
-#include "base/LinkedSegment.h"
 
 #include "commands/edit/CopyCommand.h"
 #include "commands/edit/CutCommand.h"
@@ -2889,8 +2888,7 @@ void
 NotationView::slotEditAddClefLinkOnly()
 {
     Segment *segment = getCurrentSegment();
-    LinkedSegment *linkedSegment = dynamic_cast<LinkedSegment *>(segment);
-    if (!linkedSegment) {
+    if (!segment->isLinked()) {
         return;
     }
     timeT insertionTime = getInsertionTime();
@@ -2912,7 +2910,7 @@ NotationView::slotEditAddClefLinkOnly()
         bool shouldTranspose = (conversion == ClefDialog::Transpose);
 
         CommandHistory::getInstance()->addCommand(
-                new ClefLinkInsertionCommand(*linkedSegment,
+                new ClefLinkInsertionCommand(*segment,
                                             insertionTime,
                                             dialog.getClef(),
                                             shouldChangeOctave,

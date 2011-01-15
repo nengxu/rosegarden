@@ -16,6 +16,7 @@
 #include "Composition.h"
 #include "misc/Debug.h"
 #include "base/Segment.h"
+#include "base/SegmentLinker.h"
 #include "FastVector.h"
 #include "base/BaseProperties.h"
 #include "base/Profiler.h"
@@ -410,21 +411,19 @@ Composition::getSegmentVoiceIndex(const Segment *segment) const
 }
 
 void
-Composition::addLinkedSegmentReference(QSharedPointer<LinkedSegmentReference> &linkedSegRef) 
-{
-    QWeakPointer<LinkedSegmentReference> weakRef = linkedSegRef;
-    m_linkedReferenceSegments.insert(weakRef);
-}
-
-void
 Composition::resetLinkedSegmentRefreshStatuses()
 {
-    for (linkedsegrefiterator segrefitr = getLinkedReferenceSegments().begin();
-                 segrefitr != getLinkedReferenceSegments().end(); ++segrefitr) {
-        QSharedPointer<LinkedSegmentReference> segRefPtr = 
-                                                     (*segrefitr).toStrongRef();
-        if(segRefPtr) {
-            segRefPtr->resetLinkedSegmentRefreshStatuses();
+    std::set<const SegmentLinker *> linkers;
+    for (iterator itr = begin(); itr != end(); ++itr) {
+        Segment *segment = *itr;
+        if (segment->isLinked()) {
+            SegmentLinker *linker = segment->getLinker();
+            std::set<const SegmentLinker *>::const_iterator finder = 
+                                                           linkers.find(linker);
+            if (finder == linkers.end()) {
+                linker->clearRefreshStatuses();
+                linkers.insert(linker);
+            }
         }
     }
 }

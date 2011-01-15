@@ -25,7 +25,6 @@
 
 #include "RealTime.h"
 #include "base/Segment.h"
-#include "base/LinkedSegmentReference.h"
 #include "Track.h"
 #include "Configuration.h"
 #include "XmlExportable.h"
@@ -84,10 +83,6 @@ public:
     typedef std::set<TrackId> recordtrackcontainer;
     typedef recordtrackcontainer::iterator recordtrackiterator;
     typedef recordtrackcontainer::const_iterator recordtrackconstiterator;
-
-    typedef std::set<QWeakPointer<LinkedSegmentReference>, LinkedSegmentReferenceCmp> linkedsegrefcontainer;
-    typedef linkedsegrefcontainer::iterator linkedsegrefiterator;
-    typedef linkedsegrefcontainer::const_iterator linkedsegrefconstiterator;
 
     Composition();
     virtual ~Composition();
@@ -384,15 +379,9 @@ public:
      */
     void updateTriggerSegmentReferences();
 
-
-    //////
-    //
-    //  LINKED SEGMENTS
-
-    linkedsegrefcontainer &getLinkedReferenceSegments() { return m_linkedReferenceSegments; }
-    const linkedsegrefcontainer &getLinkedReferenceSegments() const { return m_linkedReferenceSegments; }
-    
-    void addLinkedSegmentReference(QSharedPointer<LinkedSegmentReference> &linkedSegRef);
+    /**
+     * Clear refresh statuses of SegmentLinker after file load.
+     */
     void resetLinkedSegmentRefreshStatuses();
     
     //////
@@ -1015,10 +1004,6 @@ protected:
     //
     triggersegmentcontainer           m_triggerSegments;
     TriggerSegmentId                  m_nextTriggerSegmentId;
-    
-    // Linked Segment References, the underlying segments linked to by linked segments
-    //
-    linkedsegrefcontainer             m_linkedReferenceSegments;
     
     ColourMap                         m_segmentColourMap;
     ColourMap                         m_generalColourMap;

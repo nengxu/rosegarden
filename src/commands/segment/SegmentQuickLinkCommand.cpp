@@ -20,7 +20,7 @@
 #include "misc/AppendLabel.h"
 #include "misc/Strings.h"
 #include "base/Composition.h"
-#include "base/LinkedSegment.h"
+#include "base/SegmentLinker.h"
 
 namespace Rosegarden
 {
@@ -29,8 +29,7 @@ SegmentQuickLinkCommand::SegmentQuickLinkCommand(Segment *segment) :
         NamedCommand(getGlobalName()),
         m_composition(segment->getComposition()),
         m_originalSegment(segment),
-        m_replacementForOriginalSegment(0),
-        m_linkedSegment(0),
+        m_newLinkedSegment(0),
         m_detached(false),
         m_originalSegmentLinked(false)
 {
@@ -40,39 +39,26 @@ SegmentQuickLinkCommand::SegmentQuickLinkCommand(Segment *segment) :
 SegmentQuickLinkCommand::~SegmentQuickLinkCommand()
 {
     if (m_detached) {
-        if (!m_originalSegmentLinked) {
-            delete m_replacementForOriginalSegment;
-        }
-        delete m_linkedSegment;
-    } else {
-        if (!m_originalSegmentLinked) {
-            delete m_originalSegment;
-        }
+        delete m_newLinkedSegment;
     }
 }
 
 void
 SegmentQuickLinkCommand::execute()
 {
-    if (!m_linkedSegment) {
-        if (!m_originalSegment->isLinked()) {
-            m_originalSegmentLinked = false;
-            m_replacementForOriginalSegment = new LinkedSegment(*m_originalSegment);
-            m_linkedSegment = m_replacementForOriginalSegment->clone();
-        } else {
-            m_originalSegmentLinked = true;
-            m_linkedSegment = m_originalSegment->clone();
-        }
+    if (!m_newLinkedSegment) {
+        m_originalSegmentLinked = m_originalSegment->isLinked();
+        m_newLinkedSegment = SegmentLinker::createLinkedSegment(m_originalSegment);
         
         std::string label = m_originalSegment->getLabel();
-        m_linkedSegment->setLabel(appendLabel(label, qstrtostr(tr("(linked)"))));
+        m_newLinkedSegment->setLabel(appendLabel(label, qstrtostr(tr("(linked)"))));
+    } else {
+        if (m_originalSegmentLinked) {
+            m_newLinkedSegment->getLinker()->addLinkedSegment(m_originalSegment);
+        }
     }
-    if (!m_originalSegmentLinked) {
-        m_composition->detachSegment(m_originalSegment);
-        m_composition->addSegment(m_replacementForOriginalSegment);
-    }
-    
-    m_composition->addSegment(m_linkedSegment);
+
+    m_composition->addSegment(m_newLinkedSegment);
     m_detached = false;
 }
 
@@ -80,10 +66,10 @@ void
 SegmentQuickLinkCommand::unexecute()
 {
     if (!m_originalSegmentLinked) {
-        m_composition->detachSegment(m_replacementForOriginalSegment);
-        m_composition->addSegment(m_originalSegment);
+        SegmentLinker::unlinkSegment(m_originalSegment);
     }
-    m_composition->detachSegment(m_linkedSegment);
+    
+    m_composition->detachSegment(m_newLinkedSegment);
     m_detached = true;
 }
 

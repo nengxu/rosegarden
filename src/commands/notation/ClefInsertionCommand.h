@@ -68,7 +68,7 @@ class ClefLinkInsertionCommand : public ClefInsertionCommand
     Q_DECLARE_TR_FUNCTIONS(Rosegarden::ClefLinkInsertionCommand)
 
 public:
-    ClefLinkInsertionCommand(LinkedSegment &segment,
+    ClefLinkInsertionCommand(Segment &segment,
                             timeT time,
                             Clef clef,
                             bool shouldChangeOctave = false,

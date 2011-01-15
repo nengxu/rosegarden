@@ -29,7 +29,6 @@
 #include "base/BasicQuantizer.h"
 #include "base/RealTime.h"
 #include "base/Segment.h"
-#include "base/LinkedSegment.h"
 #include "base/Selection.h"
 #include "commands/segment/SegmentChangeQuantizationCommand.h"
 #include "commands/segment/SegmentColourCommand.h"
@@ -859,11 +858,11 @@ SegmentParameterBox::slotChangeLinkTranspose()
         return ;
 
     bool foundTransposedLinks = false;
-    std::vector<LinkedSegment *> linkedSegs;
+    std::vector<Segment *> linkedSegs;
     std::vector<Segment *>::iterator it;
     for (it = m_segments.begin(); it != m_segments.end(); it++) {
-        LinkedSegment *linkedSeg = dynamic_cast<LinkedSegment *>(*it);
-        if (linkedSeg) {
+        Segment *linkedSeg = *it;
+        if (linkedSeg->isLinked()) {
             if (linkedSeg->getLinkTransposeParams().m_semitones==0) {
                 linkedSegs.push_back(linkedSeg);
             } else {
@@ -907,11 +906,11 @@ SegmentParameterBox::slotResetLinkTranspose()
     if (m_segments.size() == 0)
         return ;
 
-    std::vector<LinkedSegment *> linkedSegs;
+    std::vector<Segment *> linkedSegs;
     std::vector<Segment *>::iterator it;
     for (it = m_segments.begin(); it != m_segments.end(); it++) {
-        LinkedSegment *linkedSeg = dynamic_cast<LinkedSegment *>(*it);
-        if (linkedSeg) {
+        Segment *linkedSeg = *it;
+        if (linkedSeg->isLinked()) {
             linkedSegs.push_back(linkedSeg);
         }
     }

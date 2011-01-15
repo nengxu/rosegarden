@@ -27,7 +27,6 @@ namespace Rosegarden
 {
 
 class Segment;
-class LinkedSegment;
 class Composition;
 
 class SegmentQuickLinkCommand : public NamedCommand
@@ -41,24 +40,14 @@ public:
     virtual void execute();
     virtual void unexecute();
 
-    // return pointer to new copy
-    Segment *getCopy() { return m_linkedSegment; }
-    // return pointer to replacement for the original
-    const Segment *getOriginal() { return m_originalSegment; }
-    // return either m_replacementForOriginalSegment or m_originalSegment
-    Segment *getLinkedTo() { return m_replacementForOriginalSegment ? 
-                                    m_replacementForOriginalSegment : 
-                                    m_originalSegment; }
-
     static QString getGlobalName() { return tr("Quick-Link Segment"); }
 
 private:
     Composition *m_composition;
     Segment     *m_originalSegment;
-    Segment     *m_replacementForOriginalSegment;
-    Segment     *m_linkedSegment;
-    bool         m_detached;
-    bool         m_originalSegmentLinked;
+    Segment     *m_newLinkedSegment;
+    bool        m_detached;
+    bool        m_originalSegmentLinked;
 };
 
 }

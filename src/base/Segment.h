@@ -70,6 +70,7 @@ class SegmentObserver;
 class Quantizer;
 class BasicQuantizer;
 class Composition;
+class SegmentLinker;
 
 class Segment : public std::multiset<Event*, Event::EventCmp>
 {
@@ -102,7 +103,7 @@ protected:
     /**
      * Virtual copy constructor implementation
      */
-    virtual Segment* cloneImpl() const { return new Segment(*this); }
+    virtual Segment* cloneImpl() const;
             
     /**
      * Copy constructor - protected to encourage use of the clone function
@@ -122,11 +123,6 @@ public:
      * Get the Segment type (Internal or Audio)
      */
     SegmentType getType() const { return m_type; }
-
-    /**
-     * Get whether segment is linked or not
-     */
-    virtual bool isLinked() const { return false; }
 
     /**
      * Get the element name this class will have when serialised
@@ -671,6 +667,32 @@ public:
 
     void updateRefreshStatuses(timeT startTime, timeT endTime);
 
+    //////
+    //
+    // LINKED SEGMENTS
+
+    bool isLinked() const { return m_segmentLinker; }
+
+    SegmentLinker * getLinker() const { return m_segmentLinker; }
+    void setLinker(SegmentLinker *linker) { m_segmentLinker = linker; }
+    
+    struct LinkTransposeParams
+    {
+        LinkTransposeParams() : m_changeKey(false), m_steps(0),
+            m_semitones(0), m_transposeSegmentBack(false) { }
+        LinkTransposeParams(bool chKey, int steps, int stones, bool transBack) : 
+            m_changeKey(chKey), m_steps(steps), m_semitones(stones), 
+            m_transposeSegmentBack(transBack) { }
+        bool m_changeKey;
+        int m_steps;
+        int m_semitones;
+        bool m_transposeSegmentBack;
+    };
+    LinkTransposeParams getLinkTransposeParams() const {
+                                                return m_linkTransposeParams; }
+    void setLinkTransposeParams(LinkTransposeParams params) {
+                                              m_linkTransposeParams = params; }
+
 private:
     Composition *m_composition; // owns me, if it exists
 
@@ -755,6 +777,8 @@ private:
     RealTime  m_fadeInTime;
     RealTime  m_fadeOutTime;
 
+    SegmentLinker *m_segmentLinker;
+    LinkTransposeParams m_linkTransposeParams;
 };
 
 

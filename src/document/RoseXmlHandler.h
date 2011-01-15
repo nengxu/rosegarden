@@ -19,7 +19,6 @@
 #define _RG_ROSEXMLHANDLER_H_
 
 #include "base/Device.h"
-#include "base/LinkedSegmentReference.h"
 #include "base/MidiProgram.h"
 #include "gui/general/ProgressReporter.h"
 #include <map>
@@ -42,6 +41,7 @@ class XmlStorableEvent;
 class XmlSubHandler;
 class Studio;
 class Segment;
+class SegmentLinker;
 class RosegardenDocument;
 class Instrument;
 class Device;
@@ -138,6 +138,8 @@ protected:
     RosegardenDocument    *m_doc;
     Segment *m_currentSegment;
     XmlStorableEvent    *m_currentEvent;
+    typedef std::map<int, SegmentLinker *> SegmentLinkerMap;
+    SegmentLinkerMap m_segmentLinkers; 
 
     timeT m_currentTime;
     timeT m_chordDuration;
@@ -159,10 +161,6 @@ protected:
     QString m_errorString;
     std::set<QString> m_pluginsNotFound;
 
-    /*NEED THE TYPEDEF HERE*/
-    typedef std::map<int, QSharedPointer<LinkedSegmentReference> > LinkedSegRefMap;
-    LinkedSegRefMap m_linkedSegRefs;
-    
     RosegardenFileSection             m_section;
     
     Device                           *m_device;
