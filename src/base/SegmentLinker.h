@@ -52,6 +52,16 @@ public:
     static Segment* createLinkedSegment(Segment *s);
     static bool unlinkSegment(Segment *s);
 
+    Segment * setReference(Segment *s) {
+        Segment *oldRef = m_reference;
+        m_reference = s;
+        return oldRef;
+    }
+
+    Segment * getReference() const {
+        return m_reference;
+    }
+
 protected slots:
     void slotUpdateLinkedSegments(Command* command);
 
@@ -77,6 +87,8 @@ private:
 
     static SegmentLinkerId m_count;
     SegmentLinkerId m_id;
+
+    Segment * m_reference;
 };
     
 }

@@ -863,6 +863,10 @@ NotationStaff::renderSingleElement(ViewElementList::iterator &vli,
         if (!showInvisibles) return;
     }
 
+    // Look if element is part of a symlink segment to show it shaded
+    bool tmp = false;
+    elt->event()->get<Bool>(BaseProperties::TMP, tmp);
+
     try {
         m_notePixmapFactory->setNoteStyle
             (NoteStyleFactory::getStyleForEvent(elt->event()));
@@ -884,7 +888,7 @@ NotationStaff::renderSingleElement(ViewElementList::iterator &vli,
         QGraphicsItem *item = 0;
 
         m_notePixmapFactory->setSelected(selected);
-        m_notePixmapFactory->setShaded(invisible);
+        m_notePixmapFactory->setShaded(invisible || tmp);
         int z = selected ? 3 : 0;
 
         // these are actually only used for the printer stuff

@@ -67,7 +67,8 @@ Segment::Segment(SegmentType segmentType, timeT startTime) :
     m_autoFade(false),
     m_fadeInTime(Rosegarden::RealTime::zeroTime),
     m_fadeOutTime(Rosegarden::RealTime::zeroTime),
-    m_segmentLinker(0)
+    m_segmentLinker(0),
+    m_isTmp(0)
 {
 }
 
@@ -104,7 +105,8 @@ Segment::Segment(const Segment &segment):
     m_autoFade(segment.isAutoFading()),
     m_fadeInTime(segment.getFadeInTime()),
     m_fadeOutTime(segment.getFadeOutTime()),
-    m_segmentLinker(0) //yes, this is intentional. clone() handles this
+    m_segmentLinker(0), //yes, this is intentional. clone() handles this
+    m_isTmp(segment.isTmp())
 {
     for (const_iterator it = segment.begin();
 	 it != segment.end(); ++it) {
@@ -163,6 +165,34 @@ Segment::~Segment()
 
     delete m_endMarkerTime;
 }
+
+bool
+Segment::setAsReference() {
+    if (!isLinked()) return false;
+    getLinker()->setReference(this);
+    return true;
+}
+
+Segment *
+Segment::getRealSegment() {
+    if (isLinked()) return getLinker()->getReference();
+    return this;
+}
+
+const Segment *
+Segment::getRealSegment() const {
+    if (isLinked()) return getLinker()->getReference();
+    return this;
+}
+
+void
+Segment::setTmp() {
+    m_isTmp = true;
+    for (iterator it = begin(); it != end(); ++it) {
+        (*it)->set<Bool>(BaseProperties::TMP, true, false);
+    }
+}
+
 
 
 void
@@ -404,6 +434,10 @@ Segment::insert(Event *e)
 	m_endTime = t1;
 	notifyEndMarkerChange(m_endTime < oldTime);
     }
+
+    // A segment having the TMP property should be displayed with a gray colour.
+    // To do so each event in such a segment needs the TMP property.
+    if (isTmp()) e->set<Bool>(BaseProperties::TMP, true, false);
 
     iterator i = std::multiset<Event*, Event::EventCmp>::insert(e);
     notifyAdd(e);

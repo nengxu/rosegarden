@@ -269,7 +269,7 @@ NotationScene::setStaffs(RosegardenDocument *document,
     }
     m_staffs.clear();
 
-    TrackId lastTrackId = 0;
+    std::set<TrackId> trackIds;
 
     for (unsigned int i = 0; i < m_segments.size(); ++i) {
         NotationStaff *staff = new NotationStaff
@@ -282,16 +282,16 @@ NotationScene::setStaffs(RosegardenDocument *document,
 
         m_staffs.push_back(staff);
 
+        // To assume segments are trackId ordered is no more true (was it ?)
+        // since clones may be found at the end of segments vector.
+        // The trackIds set is used to count how many visible staffs we have.
         TrackId id = m_segments[i]->getTrack();
 
-        // increment the number of visually apparent staffs for each new TrackId
-        // encountered
-        if (lastTrackId != id) {
-            lastTrackId = id;
-            m_visibleStaffs++;
-        }
+        trackIds.insert(id);
     }
-
+    
+    m_visibleStaffs = trackIds.size();
+    
     if (!m_updatesSuspended) {
         positionStaffs();
         layoutAll();

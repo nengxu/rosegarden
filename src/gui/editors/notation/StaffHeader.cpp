@@ -992,7 +992,6 @@ void
 StaffHeader::segmentDeleted(const Segment *seg)
 {
     Segment *s = const_cast<Segment *>(seg);
-    s->removeObserver(this);
     m_segments.erase(s);
     emit(staffModified());
 }

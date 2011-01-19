@@ -1226,7 +1226,11 @@ NotationHLayout::finishLayout(timeT startTime, timeT endTime, bool full)
             }
         }
 
-        m_timePerProgressIncrement = timeCovered / (100 / m_barData.size());
+        // Don't crash if more than 100 segments
+        int k = 100 / m_barData.size();
+        if (k < 1) k = 1;
+        
+        m_timePerProgressIncrement = timeCovered / k;
 
         layout(i, startTime, endTime, full);
         ++staffNo;

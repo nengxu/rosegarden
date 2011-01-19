@@ -134,7 +134,11 @@ public:
      * if it isn't, this will return zero
      */
     Composition *getComposition() const {
-        return m_composition;
+        if (isTmp()) {
+            return getRealSegment()->getComposition();
+        } else {
+            return m_composition;
+        }
     }
 
     /**
@@ -693,6 +697,32 @@ public:
     void setLinkTransposeParams(LinkTransposeParams params) {
                                               m_linkTransposeParams = params; }
 
+    bool isTmp() const { return m_isTmp; }
+
+    void setTmp();
+
+    /**
+     * Set the current segment as the reference of the linked segment group and
+     * return true.
+     * Return false if the segment is not linked and can't have a reference.
+     */
+    bool setAsReference();
+
+    /**
+     * Return pointer to current segment if not linked else return pointer
+     * to segment used as reference.
+     * May return 0 if segment is linked but no reference is defined.
+     */
+    Segment * getRealSegment();
+
+    /**
+     * Return pointer to current segment if not linked else return pointer
+     * to segment used as reference.
+     * May return 0 if segment is linked but no reference is defined.
+     */
+    const Segment * getRealSegment() const;
+
+
 private:
     Composition *m_composition; // owns me, if it exists
 
@@ -779,6 +809,7 @@ private:
 
     SegmentLinker *m_segmentLinker;
     LinkTransposeParams m_linkTransposeParams;
+    bool m_isTmp;   // Mark a segment (usually a link) as temporary
 };
 
 

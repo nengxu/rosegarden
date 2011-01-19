@@ -47,6 +47,8 @@
 #include "base/MidiTypes.h"
 #include "base/ColourMap.h"
 #include "base/Colour.h"
+#include "base/Segment.h"
+#include "base/SegmentLinker.h"
 
 #include "document/RosegardenDocument.h"
 
@@ -380,6 +382,10 @@ NotationWidget::~NotationWidget()
     delete m_scene;
     delete m_headersScene;
     delete m_referenceScale;
+    for (std::vector<Segment *>::iterator it = m_clones.begin();
+         it != m_clones.end(); ++it) {
+        delete (*it);
+    }
 }
 
 void
@@ -387,6 +393,58 @@ NotationWidget::setSegments(RosegardenDocument *document,
                             std::vector<Segment *> segments)
 {
     std::cout << "NotationWidget::setSegments() - total segments: " << segments.size() << std::endl;
+
+    /// Look for repeating segments
+
+    // Delete old clones if any
+    for (std::vector<Segment *>::iterator it = m_clones.begin();
+         it != m_clones.end(); ++it) {
+        delete (*it);
+    }
+    m_clones.clear();
+
+    // Create new clones (if needed)
+    for (std::vector<Segment *>::iterator it = segments.begin();
+         it != segments.end(); ++it) {
+        if ((*it)->isRepeating()) {
+            timeT targetStart = (*it)->getStartTime();
+            timeT targetEnd = (*it)->getEndMarkerTime();
+            timeT repeatEnd = (*it)->getRepeatEndTime();
+            timeT targetDuration = targetEnd - targetStart;
+            TrackId track = (*it)->getTrack();
+            std::cerr << "Creating clones   track=" << track
+                      << " targetStart=" << targetStart
+                      << " targetEnd=" << targetEnd
+                      << " repeatEnd=" << repeatEnd << "\n";
+            for (timeT ts = targetStart + targetDuration;
+                 ts < repeatEnd; ts += targetDuration) {
+                timeT te = ts + targetDuration;
+                std::cerr << "   clone [" << ts << ", " << te << "]";
+
+                /// Segment *s = (*it)->clone();
+                Segment *s = SegmentLinker::createLinkedSegment(*it);
+
+                s->setStartTime(ts);
+                s->setTrack(track);
+                s->setTmp();  // To avoid crash related to composition being
+                              // undefined and to get notation with grey color
+                if (repeatEnd < te) {
+                    s->setEndMarkerTime(repeatEnd);
+                    std::cerr << " shortened to " << repeatEnd;
+                }
+                m_clones.push_back(s);
+                std::cerr << std::endl;
+            }
+            (*it)->setAsReference();
+        }
+    }
+
+    // Add possible clones to the list of segments
+    for (std::vector<Segment *>::iterator it = m_clones.begin();
+         it != m_clones.end(); ++it) {
+        segments.push_back(*it);
+    }
+
 
     if (m_document) {
         disconnect(m_document, SIGNAL(pointerPositionChanged(timeT)),

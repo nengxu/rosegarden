@@ -290,6 +290,8 @@ private:
 
     bool m_Thorn;
 
+    std::vector<Segment *> m_clones;
+
     /**
      * Widgets vertical positions inside the main QGridLayout
      */

@@ -36,6 +36,7 @@ SegmentLinker::SegmentLinker()
 
     ++m_count;
     m_id = m_count;
+    m_reference = 0;
 }
 
 SegmentLinker::SegmentLinker(SegmentLinkerId id)
@@ -45,6 +46,7 @@ SegmentLinker::SegmentLinker(SegmentLinkerId id)
 
     m_id = id;
     m_count = std::max(m_count,m_id+1);
+    m_reference = 0;
 }
 
 SegmentLinker::~SegmentLinker()
