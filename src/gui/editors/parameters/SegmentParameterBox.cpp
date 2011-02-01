@@ -259,6 +259,15 @@ SegmentParameterBox::initBox()
     //linked segment collapse frame
     CollapsingFrame *cframe = new CollapsingFrame(tr("Linked segment parameters"),
             this, "segmentparameterslinked");
+
+    //unhide this cframe if you want to play with the linked segment transpose
+    //parameters
+    
+    //I've hidden it for the time being until we've decided how we're going
+    //to interact with these transpose params
+    
+    cframe->hide();
+    
     m_linkedSegmentGroup = new QFrame(cframe);
     cframe->setWidget(m_linkedSegmentGroup);
     m_linkedSegmentGroup->setContentsMargins(3, 3, 3, 3);
