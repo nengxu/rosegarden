@@ -451,7 +451,8 @@ NotationView::setupActions()
     // Created in EditViewBase::setupActions() via creatAction()
 
     createAction("add_clef", SLOT(slotEditAddClef()));
-    createAction("add_clef_this_link_only", SLOT(slotEditAddClefLinkOnly()));
+    //uncomment this when we implement linked segment transposition
+    //createAction("add_clef_this_link_only", SLOT(slotEditAddClefLinkOnly()));
     createAction("add_key_signature", SLOT(slotEditAddKeySignature()));
     createAction("add_sustain_down", SLOT(slotEditAddSustainDown()));
     createAction("add_sustain_up", SLOT(slotEditAddSustainUp()));

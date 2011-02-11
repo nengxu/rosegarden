@@ -424,6 +424,7 @@ RosegardenMainWindow::RosegardenMainWindow(bool useSequencer,
     enterActionState("new_file"); //@@@ JAS orig. 0
     leaveActionState("have_segments"); //@@@ JAS orig. KXMLGUIClient::StateReverse
     leaveActionState("have_selection"); //@@@ JAS orig. KXMLGUIClient::StateReverse
+    leaveActionState("have_clipboard_can_paste_as_links");
     slotTestClipboard();
 
     // Check for lack of MIDI devices and disable Studio options accordingly
@@ -683,6 +684,8 @@ RosegardenMainWindow::setupActions()
     createAction("edit_cut", SLOT(slotEditCut()));
     createAction("edit_copy", SLOT(slotEditCopy()));
     createAction("edit_paste", SLOT(slotEditPaste()));
+    //uncomment this when time comes to implement paste as links
+    //createAction("edit_paste_as_links", SLOT(slotEditPasteAsLinks()));
 
     createAction("options_configure", SLOT(slotConfigure()));
 
@@ -2278,6 +2281,32 @@ RosegardenMainWindow::slotEditPaste()
 
     // User preference? Update song pointer position on paste
     m_doc->slotSetPointerPosition(m_doc->getComposition().getPosition());
+}
+
+void
+RosegardenMainWindow::slotEditPasteAsLinks()
+{
+    //this contains a copy of slotEditPaste() - as and when the time comes to
+    //implement this properly, the code below needs uncommenting and adapting
+
+    /*
+    if (m_clipboard->isEmpty()) {
+        TmpStatusMsg msg(tr("Clipboard is empty"), this);
+        return ;
+    }
+    TmpStatusMsg msg(tr("Pasting clipboard contents as linked segments..."), this);
+
+    // for now, but we could paste at the time of the first copied
+    // segment and then do ghosting drag or something
+    timeT insertionTime = m_doc->getComposition().getPosition();
+    CommandHistory::getInstance()->addCommand
+    (new PasteSegmentsAsLinksCommand(&m_doc->getComposition(),
+                                     m_clipboard, insertionTime,
+                                     m_doc->getComposition().getSelectedTrack(),
+                                     false));
+    // User preference? Update song pointer position on paste
+    m_doc->slotSetPointerPosition(m_doc->getComposition().getPosition());
+    */
 }
 
 void
@@ -5890,6 +5919,7 @@ RosegardenMainWindow::slotTestClipboard()
     if (m_clipboard->isEmpty()) {
         leaveActionState("have_clipboard"); //@@@ JAS orig. KXMLGUIClient::StateReverse
         leaveActionState("have_clipboard_single_segment"); //@@@ JAS orig. KXMLGUIClient::StateReverse
+        //leaveActionState("have_clipboard_can_paste_as_links");
     } else {
         enterActionState("have_clipboard");
         if (m_clipboard->isSingleSegment()) {  //@@@ JAS orig. KXMLGUIClient::StateNoReverse : KXMLGUIClient::StateReverse
@@ -5897,6 +5927,11 @@ RosegardenMainWindow::slotTestClipboard()
         } else {
             leaveActionState("have_clipboard_single_segment");
         }
+        //if (m_clipboard->getCanPasteAsLinks()) {
+        //    enterActionState("have_clipboard_can_paste_as_links");
+        //} else {
+        //    leaveActionState("have_clipboard_can_paste_as_links");
+        //}
     }
 }
 

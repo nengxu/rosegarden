@@ -704,6 +704,11 @@ public slots:
     void slotEditPaste();
     
     /**
+     * paste the clipboard into the document, as linked segments
+     */
+    void slotEditPasteAsLinks();
+    
+    /**
      * Cut a time range (sections of segments, tempo, and time
      * signature events within that range).
      */

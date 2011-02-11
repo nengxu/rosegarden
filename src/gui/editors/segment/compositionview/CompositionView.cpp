@@ -1463,15 +1463,14 @@ void CompositionView::contentsMousePressEvent(QMouseEvent* e)
 {
     Qt::ButtonState bs = e->state();
     slotSetSelectCopy((bs & Qt::ControlModifier) != 0);
-    slotSetSelectCopyingAsLink(false);
+    slotSetSelectCopyingAsLink((bs & (Qt::AltModifier + Qt::ControlModifier)) != 0);
     slotSetSelectAdd((bs & Qt::ShiftModifier) != 0);
     slotSetFineGrain((bs & Qt::ShiftModifier) != 0);
     slotSetPencilOverExisting((bs & (Qt::AltModifier + Qt::ControlModifier)) != 0);
 
     switch (e->button()) {
-    case Qt::MidButton:
-        slotSetSelectCopyingAsLink((bs & Qt::ControlModifier) != 0);
     case Qt::LeftButton:
+    case Qt::MidButton:
         startAutoScroll();
 
         if (m_tool)
