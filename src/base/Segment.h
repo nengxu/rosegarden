@@ -28,7 +28,7 @@
 #include "RealTime.h"
 #include "MidiProgram.h"
 
-namespace Rosegarden 
+namespace Rosegarden
 {
 
 class SegmentRefreshStatus : public RefreshStatus
@@ -52,7 +52,7 @@ protected:
  * the same track.  Each event has an absolute starting time,
  * which is used as the index within the segment.  Multiple events may
  * have the same absolute time.
- * 
+ *
  * (For example, chords are represented simply as a sequence of notes
  * that share a starting time.  The Segment can contain counterpoint --
  * notes that overlap, rather than starting and ending together -- but
@@ -104,7 +104,7 @@ protected:
      * Virtual copy constructor implementation
      */
     virtual Segment* cloneImpl() const;
-            
+
     /**
      * Copy constructor - protected to encourage use of the clone function
      * when a copy is required
@@ -242,10 +242,10 @@ public:
      * Composition#setSegmentStartTime
      */
     void setStartTimeDataMember(timeT t) { m_startTime = t; }
-    
+
     /**
      * Set the end marker (nominal end time) of this Segment.
-     * 
+     *
      * If the given time is later than the current end of the
      * Segment's storage, extend the Segment by filling it with
      * rests; if earlier, simply move the end marker.  The end
@@ -255,7 +255,7 @@ public:
 
     /**
      * Set the end time of the Segment.
-     * 
+     *
      * If the given time is later than the current end of the
      * Segment's storage, extend the Segment by filling it with
      * rests; if earlier, shorten it by throwing away events as
@@ -281,7 +281,7 @@ public:
      * Return true if the given iterator points earlier in the
      * Segment than the nominal end marker.  You can use this
      * as an extent test in code such as
-     * 
+     *
      *  while (segment.isBeforeEndMarker(my_iterator)) {
      *      // ...
      *      ++my_iterator;
@@ -293,7 +293,7 @@ public:
      *      // ...
      *      ++my_iterator;
      *  }
-     * 
+     *
      * as the loop will not terminate if my_iterator's initial
      * value is already beyond the end marker.  (Also takes the
      * Composition's end marker into account.)
@@ -418,14 +418,14 @@ public:
      * Returns the range [start, end[ of events which are at absoluteTime
      */
     void getTimeSlice(timeT absoluteTime, const_iterator &start, const_iterator &end) const;
-    
+
     /**
      * Return the starting time of the bar that contains time t.  This
      * differs from Composition's bar methods in that it will truncate
      * to the start and end times of this Segment, and is guaranteed
      * to return the start time of a bar that is at least partially
      * within this Segment.
-     * 
+     *
      * (See Composition for most of the generally useful bar methods.)
      */
     timeT getBarStartForTime(timeT t) const;
@@ -436,7 +436,7 @@ public:
      * to the start and end times of this Segment, and is guaranteed
      * to return the end time of a bar that is at least partially
      * within this Segment.
-     * 
+     *
      * (See Composition for most of the generally useful bar methods.)
      */
     timeT getBarEndForTime(timeT t) const;
@@ -524,6 +524,11 @@ public:
      */
     void getFirstClefAndKey(Clef &clef, Key &key);
 
+   /**
+    * If segment doesn't begin with a clef and a key signature, insert
+    * default clef and/or key signature as needed.
+    */
+    void enforceBeginWithClefAndKey();
 
     //////
     //
@@ -600,7 +605,7 @@ public:
     // The runtime id for this segment
     //
     int getRuntimeId() const { return m_runtimeSegmentId; }
-    
+
     // Grid size for matrix view (and others probably)
     //
     void setSnapGridSize(int size) { m_snapGridSize = size; }
@@ -616,7 +621,7 @@ public:
      */
     struct SegmentCmp
     {
-        bool operator()(const Segment* a, const Segment* b) const 
+        bool operator()(const Segment* a, const Segment* b) const
         {
             if (a->getTrack() == b->getTrack())
                 return a->getStartTime() < b->getStartTime();
@@ -625,11 +630,7 @@ public:
         }
     };
 
-
-    /// For use by SegmentObserver objects like Composition & Staff
-    void    addObserver(SegmentObserver *obs) { m_observers.push_back(obs); }
-
-    /// For use by SegmentObserver objects like Composition & Staff
+    void  addObserver(SegmentObserver *obs) { m_observers.push_back(obs); }
     void removeObserver(SegmentObserver *obs) { m_observers.remove(obs); }
 
     // List of visible EventRulers attached to this segment
@@ -679,13 +680,13 @@ public:
 
     SegmentLinker * getLinker() const { return m_segmentLinker; }
     void setLinker(SegmentLinker *linker) { m_segmentLinker = linker; }
-    
+
     struct LinkTransposeParams
     {
         LinkTransposeParams() : m_changeKey(false), m_steps(0),
             m_semitones(0), m_transposeSegmentBack(false) { }
-        LinkTransposeParams(bool chKey, int steps, int stones, bool transBack) : 
-            m_changeKey(chKey), m_steps(steps), m_semitones(stones), 
+        LinkTransposeParams(bool chKey, int steps, int stones, bool transBack) :
+            m_changeKey(chKey), m_steps(steps), m_semitones(stones),
             m_transposeSegmentBack(transBack) { }
         bool m_changeKey;
         int m_steps;
@@ -697,9 +698,19 @@ public:
     void setLinkTransposeParams(LinkTransposeParams params) {
                                               m_linkTransposeParams = params; }
 
-    bool isTmp() const { return m_isTmp; }
-
+/// YGYGYG Replace "tmp" with something more understandable as "repeating"...
+    /**
+     * Set the segment as a temporary one.
+     * A temporary segment is always linked to some "real segment" and is not
+     * known from the composition. Such a segment is only intended to
+     * live inside one view.
+     */
     void setTmp();
+
+    /**
+     * Report if the segment is "tmp"
+     */
+    bool isTmp() const { return m_isTmp; }
 
     /**
      * Set the current segment as the reference of the linked segment group and

@@ -258,6 +258,7 @@ public:
     static const PropertyName ClefPropertyName;
     static const PropertyName OctaveOffsetPropertyName;
     static const Clef DefaultClef;
+    static const Clef UndefinedClef;
     typedef Exception BadClefName;
 
     static const std::string Treble;
@@ -378,6 +379,7 @@ public:
     static const int EventSubOrdering;
     static const PropertyName KeyPropertyName;
     static const Key DefaultKey;
+    static const Key UndefinedKey;
     typedef Exception BadKeyName;
     typedef Exception BadKeySpec;
 

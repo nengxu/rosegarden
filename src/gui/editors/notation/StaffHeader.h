@@ -174,6 +174,8 @@ public:
     static QString transposeValueToName(int transpose);
 
 
+    /// YG: Only for debug
+    void dumpSegs();
 
 
 /** SegmentObserver methods **/

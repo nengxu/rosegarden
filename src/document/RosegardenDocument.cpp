@@ -1297,6 +1297,10 @@ bool RosegardenDocument::saveDocumentActual(const QString& filename,
     }
 
     long totalEvents = 0;
+    for (Composition::iterator segitr = m_composition.begin();
+         segitr != m_composition.end(); ++segitr) {
+        totalEvents += (long)(*segitr)->size();
+    }
 
     if (progress) {
         progress->setValue(50);

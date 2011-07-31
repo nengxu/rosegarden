@@ -320,6 +320,8 @@ NotationView::NotationView(RosegardenDocument *doc,
 
     connect(m_notationWidget, SIGNAL(segmentDeleted(Segment *)),
             this, SLOT(slotSegmentDeleted(Segment *)));
+    connect(m_notationWidget, SIGNAL(segmentRepeatModified()),
+            this, SLOT(slotRegenerateScene()));
     connect(m_notationWidget, SIGNAL(sceneDeleted()),
             this, SLOT(slotSceneDeleted()));
 
@@ -3256,6 +3258,32 @@ NotationView::slotSegmentDeleted(Segment *s)
             
             return;
         }
+    }
+}
+
+void
+NotationView::slotRegenerateScene()
+{
+    NOTATION_DEBUG << "NotationView::slotRegenerateScene:" << endl;
+
+    // Is a segment about to be deleted ?
+    Segment * s = m_notationWidget->getScene()->getSegmentDeleted();
+
+    // If yes, erase it from the segment list before any other action
+    if (s) {
+        slotSegmentDeleted(s);
+    } else {
+
+/// YG: What if a repeating segment is going to be deleted and has
+///     the selection rect ????
+
+            // Fix bug #2960243:
+            // When a segment is deleted : remove the selection rect 
+///            NotationTool * tool =  m_notationWidget->getCurrentTool();
+///            if (tool) tool->stow();
+
+            // and regenerate the whole notation widget .
+            m_notationWidget->setSegments(m_document, m_segments);
     }
 }
 

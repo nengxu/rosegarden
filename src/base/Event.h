@@ -28,7 +28,7 @@
 #endif
 
 
-namespace Rosegarden 
+namespace Rosegarden
 {
 
 typedef long timeT;
@@ -217,7 +217,7 @@ public:
 
     timeT getNotationAbsoluteTime() const { return m_data->getNotationTime(); }
     timeT getNotationDuration() const { return m_data->getNotationDuration(); }
-    
+
     typedef std::vector<PropertyName> PropertyNames;
     PropertyNames getPropertyNames() const;
     PropertyNames getPersistentPropertyNames() const;
@@ -284,7 +284,7 @@ protected:
     Event() :
         m_data(new EventData("", 0, 0, 0)),
         m_nonPersistentProperties(0) { }
-    
+
     void setType(const std::string &t) { unshare(); m_data->m_type = t; }
     void setAbsoluteTime(timeT t)      { unshare(); m_data->m_absoluteTime = t; }
     void setDuration(timeT d)          { unshare(); m_data->m_duration = d; }
@@ -331,7 +331,7 @@ private:
         static PropertyName NotationTime;
         static PropertyName NotationDuration;
         void setTime(const PropertyName &name, timeT value, timeT deft);
-    };  
+    };
 
     EventData *m_data;
     PropertyMap *m_nonPersistentProperties; // Unique to an instance
@@ -349,7 +349,7 @@ private:
             return false;
         }
     }
-    
+
     void lose() {
         if (--m_data->m_refCount == 0) delete m_data;
         delete m_nonPersistentProperties;
@@ -396,7 +396,7 @@ Event::get(const PropertyName &name, typename PropertyDefn<P>::basic_type &val) 
     PropertyMap::const_iterator i;
     const PropertyMap *map = find(name, i);
 
-    if (map) { 
+    if (map) {
 
         PropertyStoreBase *sb = i->second;
         if (sb->getType() == P) {
@@ -411,7 +411,7 @@ Event::get(const PropertyName &name, typename PropertyDefn<P>::basic_type &val) 
 #endif
             return false;
         }
-            
+
     } else {
         return false;
     }
@@ -430,7 +430,7 @@ Event::get(const PropertyName &name) const
     PropertyMap::const_iterator i;
     const PropertyMap *map = find(name, i);
 
-    if (map) { 
+    if (map) {
 
         PropertyStoreBase *sb = i->second;
         if (sb->getType() == P)
@@ -440,7 +440,7 @@ Event::get(const PropertyName &name) const
                           PropertyDefn<P>::typeName(), sb->getTypeName(),
                           __FILE__, __LINE__);
         }
-            
+
     } else {
 
 #ifndef NDEBUG
@@ -517,7 +517,7 @@ Event::set(const PropertyName &name, typename PropertyDefn<P>::basic_type value,
                           PropertyDefn<P>::typeName(), sb->getTypeName(),
                           __FILE__, __LINE__);
         }
-            
+
     } else {
         PropertyStoreBase *p = new PropertyStore<P>(value);
         insert(PropertyPair(name, p), persistent);
@@ -542,7 +542,7 @@ Event::setMaybe(const PropertyName &name, typename PropertyDefn<P>::basic_type v
     unshare();
     PropertyMap::iterator i;
     PropertyMap *map = find(name, i);
-    
+
     if (map) {
         if (map == m_data->m_properties) return; // persistent, so ignore it
 

@@ -18,12 +18,14 @@
 #include "NotationScene.h"
 
 #include "base/Segment.h"
+#include "base/SegmentLinker.h"
 #include "base/BaseProperties.h"
 
 #include "NotationStaff.h"
 #include "NotationHLayout.h"
 #include "NotationVLayout.h"
 #include "NotePixmapFactory.h"
+#include "ClefKeyContext.h"
 #include "NotationProperties.h"
 #include "NotationWidget.h"
 #include "NotationMouseEvent.h"
@@ -56,6 +58,7 @@ NotationScene::NotationScene() :
     m_properties(0),
     m_notePixmapFactory(0),
     m_notePixmapFactorySmall(0),
+    m_clefKeyContext(new ClefKeyContext),
     m_selection(0),
     m_hlayout(0),
     m_vlayout(0),
@@ -72,7 +75,9 @@ NotationScene::NotationScene() :
     m_timeSignatureChanged(false),
     m_updatesSuspended(false),
     m_minTrack(0),
-    m_maxTrack(0)
+    m_maxTrack(0),
+    m_segmentDeleted(0),
+    m_finished(false)
 {
     QString prefix(QString("NotationScene%1::").arg(instanceCount++));
     m_properties = new NotationProperties(qstrtostr(prefix));
@@ -80,14 +85,11 @@ NotationScene::NotationScene() :
 //    qRegisterMetaType<NotationMouseEvent>("Rosegarden::NotationMouseEvent");
 
     setNotePixmapFactories();
-
-    connect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
-            this, SLOT(slotCommandExecuted()));
 }
 
 NotationScene::~NotationScene()
 {
-    if (m_document) {
+      if (m_document) {
         if (!isCompositionDeleted()) { // implemented in CompositionObserver
             m_document->getComposition().removeObserver(this);
         }
@@ -100,7 +102,17 @@ NotationScene::~NotationScene()
     delete m_subtitle;
     delete m_composer;
     delete m_copyright;
+
+    for (unsigned int i = 0; i < m_segments.size(); ++i)
+        m_segments[i]->removeObserver(m_clefKeyContext);
+    delete m_clefKeyContext;
+
     for (unsigned int i = 0; i < m_staffs.size(); ++i) delete m_staffs[i];
+    
+    for (std::vector<Segment *>::iterator it = m_clones.begin();
+         it != m_clones.end(); ++it) {
+        delete (*it);
+    }
 }
 
 void
@@ -108,7 +120,7 @@ NotationScene::setNotePixmapFactories(QString fontName, int size)
 {
     delete m_notePixmapFactory;
     delete m_notePixmapFactorySmall;
-    
+
     m_notePixmapFactory = new NotePixmapFactory(fontName, size);
 
     fontName = m_notePixmapFactory->getFontName();
@@ -140,7 +152,7 @@ NotationScene::getFontName() const
     return m_notePixmapFactory->getFontName();
 }
 
-void 
+void
 NotationScene::setFontName(QString name)
 {
     if (name == getFontName()) return;
@@ -237,12 +249,39 @@ void
 NotationScene::setStaffs(RosegardenDocument *document,
                           vector<Segment *> segments)
 {
+  
     if (m_document && document != m_document) {
         m_document->getComposition().removeObserver(this);
     }
 
+    // ClefKeyContext doesn't keep any segments list. So notation scene
+    // has to maintain segment observer connections for it.
+    for (unsigned int i = 0; i < m_segments.size(); ++i) {
+        m_segments[i]->removeObserver(m_clefKeyContext);
+    }
+    
+     // Delete clones of repeating segment if any
+    for (std::vector<Segment *>::iterator it = m_clones.begin();
+        it != m_clones.end(); ++it) {
+        delete (*it);
+    }
+    m_clones.clear();
+    
     m_document = document;
-    m_segments = segments;
+    m_externalSegments = segments;
+   
+
+    /// Look for repeating segments
+
+    QSettings settings;
+    settings.beginGroup(NotationViewConfigGroup);
+    bool showRepeated =  settings.value("showrepeated", true).toBool();
+    settings.endGroup();
+
+    if (showRepeated) {
+        createClonesFromRepeatedSegments();
+    }
+
 
     m_document->getComposition().addObserver(this);
 
@@ -286,17 +325,78 @@ NotationScene::setStaffs(RosegardenDocument *document,
         // since clones may be found at the end of segments vector.
         // The trackIds set is used to count how many visible staffs we have.
         TrackId id = m_segments[i]->getTrack();
-
         trackIds.insert(id);
     }
-    
+
     m_visibleStaffs = trackIds.size();
-    
+
+    m_clefKeyContext->setSegments(this);
+
+    // ClefKeyContext doesn't keep any segments list. So notation scene
+    // has to maintain segment observer connections for it.
+    for (unsigned int i = 0; i < m_segments.size(); ++i) {
+        m_segments[i]->addObserver(m_clefKeyContext);
+    }
+
     if (!m_updatesSuspended) {
         positionStaffs();
         layoutAll();
     }
+
+
+    connect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
+            this, SLOT(slotCommandExecuted()));
 }
+
+
+void
+NotationScene::createClonesFromRepeatedSegments()
+{
+    // Create clones (if needed)
+    for (std::vector<Segment *>::iterator it = m_externalSegments.begin();
+        it != m_externalSegments.end(); ++it) {
+        if ((*it)->isRepeating()) {
+            timeT targetStart = (*it)->getStartTime();
+            timeT targetEnd = (*it)->getEndMarkerTime();
+            timeT repeatEnd = (*it)->getRepeatEndTime();
+            timeT targetDuration = targetEnd - targetStart;
+            TrackId track = (*it)->getTrack();
+            std::cerr << "Creating clones   track=" << track
+                      << " targetStart=" << targetStart
+                      << " targetEnd=" << targetEnd
+                      << " repeatEnd=" << repeatEnd << "\n";
+            for (timeT ts = targetStart + targetDuration;
+                ts < repeatEnd; ts += targetDuration) {
+                timeT te = ts + targetDuration;
+                std::cerr << "   clone [" << ts << ", " << te << "]";
+
+                /// Segment *s = (*it)->clone();
+                Segment *s = SegmentLinker::createLinkedSegment(*it);
+
+                s->setStartTime(ts);
+                s->setTrack(track);
+                s->setTmp();  // To avoid crash related to composition
+                              // being undefined and to get notation
+                              // with grey color
+                if (repeatEnd < te) {
+                    s->setEndMarkerTime(repeatEnd);
+                    std::cerr << " shortened to " << repeatEnd;
+                }
+                m_clones.push_back(s);
+                std::cerr << std::endl;
+            }
+            (*it)->setAsReference();
+        }
+    }
+
+    // Add possible clones to the list of segments
+    m_segments = m_externalSegments;
+    for (std::vector<Segment *>::iterator it = m_clones.begin();
+        it != m_clones.end(); ++it) {
+        m_segments.push_back(*it);
+    }
+}
+
 
 void
 NotationScene::suspendLayoutUpdates()
@@ -517,13 +617,13 @@ NotationScene::setupMouseEvent(QGraphicsSceneMouseEvent *e,
 
     nme.element = 0;
     nme.staff = getStaffForSceneCoords(sx, sy);
-    
+
     bool haveClickHeight = false;
 
     //!!! are any of our tools able to make proper use of e->time?
     // would it be more useful if it was the absolute time of e->element
     // rather than the click time on the staff?
-    
+
     if (nme.staff) {
 
         Event *clefEvent = 0, *keyEvent = 0;
@@ -565,7 +665,7 @@ NotationScene::setupMouseEvent(QGraphicsSceneMouseEvent *e,
 
         NotationElement *element = NotationElement::getNotationElement(*i);
         if (!element) continue;
-        
+
         // #957364 (Notation: Hard to select upper note in chords of
         // seconds) -- adjust x-coord for shifted note head
 
@@ -614,7 +714,7 @@ NotationScene::setupMouseEvent(QGraphicsSceneMouseEvent *e,
     }
 
     nme.exact = false;
-    
+
     if (clickedNote) {
         nme.element = clickedNote;
         nme.exact = true;
@@ -625,7 +725,7 @@ NotationScene::setupMouseEvent(QGraphicsSceneMouseEvent *e,
         nme.element = clickedVagueNote;
         nme.exact = true;
     }
-    
+
 /*
     NOTATION_DEBUG << "NotationScene::setupMouseEvent: sx = " << sx
                    << ", sy = " << sy
@@ -679,7 +779,7 @@ int
 NotationScene::getPageWidth()
 {
     if (m_pageMode != StaffLayout::MultiPageMode) {
-        
+
         if (isInPrintMode()) {
             return sceneRect().width();
         }
@@ -878,7 +978,7 @@ NotationScene::checkUpdate()
     for (unsigned int i = 0; i < m_staffs.size(); ++i) {
 
         SegmentRefreshStatus &rs = m_staffs[i]->getRefreshStatus();
-        
+
         if (m_timeSignatureChanged ||
             (rs.needsRefresh() && compositionModified)) {
 
@@ -887,9 +987,9 @@ NotationScene::checkUpdate()
 
             // don't break, because we want to reset refresh statuses
             // on other segments as well
-            
+
         } else if (rs.needsRefresh()) {
-            
+
             if (!need || rs.from() < start) start = rs.from();
             if (!need || rs.to() > end) end = rs.to();
 
@@ -898,7 +998,7 @@ NotationScene::checkUpdate()
             single = m_staffs[i];
             ++count;
         }
-            
+
         rs.setNeedsRefresh(false);
     }
 
@@ -909,10 +1009,35 @@ NotationScene::checkUpdate()
     if (need) {
         if (all) layoutAll();
         else {
-            // Test count to fix bug #2973777 
-            if (count == 1) layout(single, start, end); 
+            // Test count to fix bug #2973777
+            if (count == 1) layout(single, start, end);
             else  layout(0, start, end);
-        }       
+        }
+    }
+}
+
+void
+NotationScene::dumpVectors()
+{
+    for (unsigned int i=0; i<m_externalSegments.size(); ++i) {
+        std::cerr << "extern " << i << " : " << m_externalSegments[i];
+        if (m_externalSegments[i]->isTmp()) std::cerr << " TMP";
+        std::cerr << "\n";
+    }
+    for (unsigned int i=0; i<m_clones.size(); ++i) {
+        std::cerr << "clones " << i << " : " << m_clones[i];
+        if (m_clones[i]->isTmp()) std::cerr << " TMP";
+        std::cerr << "\n";
+    }
+    for (unsigned int i=0; i<m_segments.size(); ++i) {
+        std::cerr << "segmen " << i << " : " << m_segments[i];
+        if (m_segments[i]->isTmp()) std::cerr << " TMP";
+        std::cerr << "\n";
+    }
+    for (unsigned int i=0; i<m_staffs.size(); ++i) {
+        std::cerr << "staffs " << i << " : " << &m_staffs[i]->getSegment();
+        if (m_staffs[i]->getSegment().isTmp()) std::cerr << " TMP";
+        std::cerr << "\n";
     }
 }
 
@@ -921,39 +1046,125 @@ NotationScene::segmentRemoved(const Composition *c, Segment *s)
 {
     NOTATION_DEBUG << "NotationScene::segmentRemoved(" << c << "," << s << ")" << endl;
 
-    if (!m_document || !c || (c != &m_document->getComposition())) return;
-
-    bool found = false;
+    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
 
     for (std::vector<NotationStaff *>::iterator i = m_staffs.begin();
          i != m_staffs.end(); ++i) {
         if (s == &(*i)->getSegment()) {
-            found = true;
-            
-            // Fix bug #2960243:
-            // If the segment going to be delete is current, set the
-            // first segment as the current one. This avoid a crash when the 
-            // segment to be deleted is the last one in the notation.
-            if (getCurrentSegment() == s) {
-                setCurrentStaff(*m_staffs.begin());
-            }
-            
+
+            // The segmentDeleted() signal is about to be emitted. Therefore
+            // the whole scene is going to be deleted then restored (from
+            // NotationView) and to continue processing at best is useless and
+            // at the worst may cause a crash when the segment is deleted.
+            disconnect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
+                       this, SLOT(slotCommandExecuted()));
+            suspendLayoutUpdates();   // Useful ???
+            m_finished = true;    // Stop further processing from this scene
+
+            m_segmentDeleted = s;
             emit segmentDeleted(s);
-            delete *i;
-            m_staffs.erase(i);
+
+            if (m_externalSegments.size() == 1) {
+                NOTATION_DEBUG << "(Scene is now empty)" << endl;
+                emit sceneDeleted();
+            }
+
             break;
         }
     }
+}
 
-    if (found) {
-        if (m_staffs.empty()) {
-            NOTATION_DEBUG << "(Scene is now empty)" << endl;
-            emit sceneDeleted();
-        } else {
-            m_hlayout->reset();
-            m_vlayout->reset();
-            positionStaffs();
-            checkUpdate();
+void
+NotationScene::segmentRepeatChanged(const Composition *c, Segment *s, bool)
+{
+    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+
+    for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
+         i != m_externalSegments.end(); ++i) {
+        if (s == *i) {
+            // The segmentRepeatModified() signal is about to be emitted.
+            // Therefore the whole scene is going to be deleted then restored
+            // (from NotationView) and there is no point to continue processing
+            // signals from the current NotationScene.
+            disconnect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
+                       this, SLOT(slotCommandExecuted()));
+            suspendLayoutUpdates();
+            m_finished = true;    // Stop further processing from this scene
+
+            emit segmentRepeatModified();
+            break;
+        }
+    }
+}
+
+void
+NotationScene::segmentRepeatEndChanged(const Composition *c, Segment *s, timeT)
+{
+    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+
+    for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
+         i != m_externalSegments.end(); ++i) {
+        if (s == *i) {
+
+            // The segmentRepeatModified() signal is about to be emitted.
+            // Therefore the whole scene is going to be deleted then restored
+            // (from NotationView) and to continue processing at best is
+            // useless and at worst may cause a crash related to deleted clones.
+            disconnect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
+                       this, SLOT(slotCommandExecuted()));
+            suspendLayoutUpdates();
+            m_finished = true;    // Stop further processing from this scene
+
+            emit segmentRepeatModified();
+            break;
+        }
+    }
+}
+
+void
+NotationScene::segmentStartChanged(const Composition *c, Segment *s, timeT)
+{
+    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+
+    for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
+         i != m_externalSegments.end(); ++i) {
+        if ((s == *i) && (s->isRepeating())) {
+
+            // The segmentRepeatModified() signal is about to be emitted.
+            // Therefore the whole scene is going to be deleted then restored
+            // (from NotationView) and to continue processing at best is
+            // useless and at worst may cause a crash related to deleted clones.
+            disconnect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
+                       this, SLOT(slotCommandExecuted()));
+            suspendLayoutUpdates();
+            m_finished = true;    // Stop further processing from this scene
+
+            emit segmentRepeatModified();
+            break;
+        }
+    }
+}
+
+void
+NotationScene::segmentEndMarkerChanged(const Composition *c, Segment *s, bool)
+{
+    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+
+    for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
+         i != m_externalSegments.end(); ++i) {
+        if ((s == *i) && (s->isRepeating())) {
+
+            // The segmentRepeatModified() signal is about to be emitted.
+            // Therefore the whole scene is going to be deleted then restored
+            // (from NotationView) and to continue processing at best is
+            // useless and at worst may cause a crash related to deleted clones.
+            disconnect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
+                       this, SLOT(slotCommandExecuted()));
+            suspendLayoutUpdates();
+            m_finished = true;    // Stop further processing from this scene
+
+            emit segmentRepeatModified();
+            break;
         }
     }
 }
@@ -1281,7 +1492,7 @@ NotationScene::layout(NotationStaff *singleStaff,
         bool first = true;
 
         for (unsigned int i = 0; i < m_segments.size(); ++i) {
-            
+
             if (singleStaff && m_segments[i] != &singleStaff->getSegment()) {
                 continue;
             }
@@ -1291,7 +1502,7 @@ NotationScene::layout(NotationStaff *singleStaff,
 
             if (first || thisStart < startTime) startTime = thisStart;
             if (first || thisEnd > endTime) endTime = thisEnd;
-            
+
             first = false;
         }
     }
@@ -1302,7 +1513,7 @@ NotationScene::layout(NotationStaff *singleStaff,
     {
         Profiler profiler("NotationScene::layout: Scan layouts", true);
     for (unsigned int i = 0; i < m_staffs.size(); ++i) {
-        
+
         NotationStaff *staff = m_staffs[i];
 
         if (singleStaff && staff != singleStaff) continue;
@@ -1412,7 +1623,7 @@ NotationScene::setSelection(EventSelection *s,
     if (oldSelection) {
         oldStaff = setSelectionElementStatus(oldSelection, false);
     }
-    
+
     if (m_selection) {
         newStaff = setSelectionElementStatus(m_selection, true);
     }
@@ -1439,12 +1650,12 @@ NotationScene::setSelection(EventSelection *s,
             newStaff->renderElements(newFrom, newTo);
         }
     } else if (oldSelection && oldStaff) {
-        oldStaff->renderElements(oldSelection->getStartTime(), 
+        oldStaff->renderElements(oldSelection->getStartTime(),
                                  oldSelection->getEndTime());
     } else if (m_selection && newStaff) {
-        newStaff->renderElements(m_selection->getStartTime(), 
+        newStaff->renderElements(m_selection->getStartTime(),
                                  m_selection->getEndTime());
-    }        
+    }
 
     if (preview) previewSelection(m_selection, oldSelection);
 
@@ -1498,10 +1709,10 @@ NotationScene::setSelectionElementStatus(EventSelection *s, bool set)
          i != s->getSegmentEvents().end(); ++i) {
 
         Event *e = *i;
-        
+
         ViewElementList::iterator staffi = staff->findEvent(e);
         if (staffi == staff->getViewElementList()->end()) continue;
-        
+
         NotationElement *el = static_cast<NotationElement *>(*staffi);
 
         el->setSelected(set);
@@ -1599,13 +1810,13 @@ NotationScene::playNote(Segment &segment, int pitch, int velocity)
                    RealTime::zeroTime);
 
     StudioControl::sendMappedEvent(mE);
-}    
-    
+}
+
 bool
 NotationScene::constrainToSegmentArea(QPointF &scenePos)
 {
     bool ok = true;
-    
+
     NotationStaff *currentStaff = getCurrentStaff();
     if (!currentStaff) return ok;
 
@@ -1619,7 +1830,7 @@ NotationScene::constrainToSegmentArea(QPointF &scenePos)
         scenePos.setY(area.bottom());
         ok = false;
     }
-    
+
     double x = scenePos.x();
     if (x < area.left()) {
         scenePos.setX(area.left());
@@ -1631,6 +1842,97 @@ NotationScene::constrainToSegmentArea(QPointF &scenePos)
 
     return ok;
 }
+
+bool
+NotationScene::isEventRedundant(Event *ev, Segment &seg)
+{
+    if (ev->isa(Clef::EventType)) {
+        Clef clef = Clef(*ev);
+        timeT time = ev->getAbsoluteTime();
+        TrackId track = seg.getTrack();
+        Clef previousClef = m_clefKeyContext->getClefFromContext(track, time);
+
+// std::cout << "time=" << time << " clef=" << clef.getClefType()
+//           << " previous=" << previousClef.getClefType() << "\n";
+
+// m_clefKeyContext->dumpClefContext();
+
+        return clef == previousClef;
+    }
+
+    if (ev->isa(Key::EventType)) {
+        Key key = Key(*ev);
+        timeT time = ev->getAbsoluteTime();
+        TrackId track = seg.getTrack();
+        Key previousKey = m_clefKeyContext->getKeyFromContext(track, time);
+
+        return key == previousKey;
+    }
+
+    return false;
+}
+
+bool
+NotationScene::isEventRedundant(Clef &clef, timeT time, Segment &seg)
+{
+    TrackId track = seg.getTrack();
+    Clef previousClef = m_clefKeyContext->getClefFromContext(track, time);
+
+// std::cout << "time=" << time << " clef=" << clef.getClefType()
+//           << " previous=" << previousClef.getClefType() << "\n";
+
+// m_clefKeyContext->dumpClefContext();
+
+    return clef == previousClef;
+}
+
+bool
+NotationScene::isEventRedundant(Key &key, timeT time, Segment &seg)
+{
+    TrackId track = seg.getTrack();
+    Key previousKey = m_clefKeyContext->getKeyFromContext(track, time);
+
+    return key == previousKey;
+}
+
+bool
+NotationScene::isAnotherStaffNearTime(NotationStaff *currentStaff, timeT t)
+{
+    int bar = 0;
+    Composition *composition = currentStaff->getSegment().getComposition();
+    if (composition) bar = composition->getBarNumber(t);
+
+    for (std::vector<NotationStaff *>::iterator i = m_staffs.begin();
+         i != m_staffs.end(); ++i) {
+        if (*i == currentStaff) continue;
+
+        Segment &s = (*i)->getSegment();
+        timeT start = s.getStartTime();
+        timeT end = s.getEndMarkerTime();
+        if ((start <= t) && (end >= t)) return true;
+
+        if (composition) {
+            int staffFirstBar = composition->getBarNumber(start);
+            int staffLastBar = composition->getBarNumber(end);
+            if ((staffFirstBar <= bar) && (staffLastBar >= bar)) return true;
+        }
+    }
+
+    return false;
+}
+
+
+void
+NotationScene::updateRefreshStatuses(TrackId track, timeT time)
+{
+    std::vector<Segment *>::iterator it;
+    for ( it = m_segments.begin(); it != m_segments.end(); ++it) {
+        if ((*it)->getTrack() != track) continue;
+        timeT segEndTime = (*it)->getEndMarkerTime();
+        if (time < segEndTime) (*it)->updateRefreshStatuses(time, segEndTime);
+    }
+}
+
 
 }
 

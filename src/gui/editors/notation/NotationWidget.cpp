@@ -48,7 +48,6 @@
 #include "base/ColourMap.h"
 #include "base/Colour.h"
 #include "base/Segment.h"
-#include "base/SegmentLinker.h"
 
 #include "document/RosegardenDocument.h"
 
@@ -134,7 +133,7 @@ NotationWidget::NotationWidget() :
 
     // Remove black margins around the notation
     m_layout->setContentsMargins(0, 0, 0, 0);
-    
+
     m_view = new Panned;
     m_view->setBackgroundBrush(Qt::white);
     m_view->setRenderHints(QPainter::Antialiasing |
@@ -153,7 +152,7 @@ NotationWidget::NotationWidget() :
                 Qt::white);
     m_view->setBackgroundBrush(bg);
     m_layout->addWidget(m_view, PANNED_ROW, MAIN_COL, 1, 1);
-    
+
     // Force the main notation scene row to expand when space available.
     m_layout->setRowStretch(PANNED_ROW, 1);
 
@@ -238,7 +237,7 @@ NotationWidget::NotationWidget() :
 
     m_Hzoom->setMinimumValue(-25);
     m_Hzoom->setMaximumValue(60);
-    m_Hzoom->setDefaultValue(0); 
+    m_Hzoom->setDefaultValue(0);
     m_Hzoom->setBright(false);
     controlsLayout->addWidget(m_Hzoom, 1, 0);
     connect(m_Hzoom, SIGNAL(valueChanged(int)), this,
@@ -262,7 +261,7 @@ NotationWidget::NotationWidget() :
     m_reset->setToolTip(tr("Reset Zoom"));
     controlsLayout->addWidget(m_reset, 1, 1, Qt::AlignCenter);
 
-    connect(m_reset, SIGNAL(clicked()), this, 
+    connect(m_reset, SIGNAL(clicked()), this,
             SLOT(slotResetZoomClicked()));
 
     m_pannerLayout->addWidget(controls);
@@ -344,7 +343,7 @@ NotationWidget::NotationWidget() :
 
     m_toolBox = new NotationToolBox(this);
 
-    slotSetTool(NoteRestInserter::ToolName); 
+    slotSetTool(NoteRestInserter::ToolName);
 
     // crude, but finally effective!
     //
@@ -382,68 +381,24 @@ NotationWidget::~NotationWidget()
     delete m_scene;
     delete m_headersScene;
     delete m_referenceScale;
-    for (std::vector<Segment *>::iterator it = m_clones.begin();
-         it != m_clones.end(); ++it) {
-        delete (*it);
-    }
 }
 
 void
 NotationWidget::setSegments(RosegardenDocument *document,
                             std::vector<Segment *> segments)
 {
-    std::cout << "NotationWidget::setSegments() - total segments: " << segments.size() << std::endl;
+    std::cout << "*** NotationWidget::setSegments() - total segments: " << segments.size() << std::endl;
 
-    /// Look for repeating segments
-
-    // Delete old clones if any
-    for (std::vector<Segment *>::iterator it = m_clones.begin();
-         it != m_clones.end(); ++it) {
-        delete (*it);
-    }
-    m_clones.clear();
-
-    // Create new clones (if needed)
+    // The "hide redundant clefs and keys" mechanism can't work if
+    // segments don't begin with default clef and key events.
+    // As such a lack is only visible in notation, the following code
+    // adds these events, if they are missing, just before passing the
+    // segments to notation scene.
     for (std::vector<Segment *>::iterator it = segments.begin();
          it != segments.end(); ++it) {
-        if ((*it)->isRepeating()) {
-            timeT targetStart = (*it)->getStartTime();
-            timeT targetEnd = (*it)->getEndMarkerTime();
-            timeT repeatEnd = (*it)->getRepeatEndTime();
-            timeT targetDuration = targetEnd - targetStart;
-            TrackId track = (*it)->getTrack();
-            std::cerr << "Creating clones   track=" << track
-                      << " targetStart=" << targetStart
-                      << " targetEnd=" << targetEnd
-                      << " repeatEnd=" << repeatEnd << "\n";
-            for (timeT ts = targetStart + targetDuration;
-                 ts < repeatEnd; ts += targetDuration) {
-                timeT te = ts + targetDuration;
-                std::cerr << "   clone [" << ts << ", " << te << "]";
-
-                /// Segment *s = (*it)->clone();
-                Segment *s = SegmentLinker::createLinkedSegment(*it);
-
-                s->setStartTime(ts);
-                s->setTrack(track);
-                s->setTmp();  // To avoid crash related to composition being
-                              // undefined and to get notation with grey color
-                if (repeatEnd < te) {
-                    s->setEndMarkerTime(repeatEnd);
-                    std::cerr << " shortened to " << repeatEnd;
-                }
-                m_clones.push_back(s);
-                std::cerr << std::endl;
-            }
-            (*it)->setAsReference();
-        }
+        (*it)->enforceBeginWithClefAndKey();
     }
 
-    // Add possible clones to the list of segments
-    for (std::vector<Segment *>::iterator it = m_clones.begin();
-         it != m_clones.end(); ++it) {
-        segments.push_back(*it);
-    }
 
 
     if (m_document) {
@@ -483,6 +438,10 @@ NotationWidget::setSegments(RosegardenDocument *document,
     connect(m_scene, SIGNAL(segmentDeleted(Segment *)),
             this, SIGNAL(segmentDeleted(Segment *)), Qt::QueuedConnection);
 
+    // Same comment as above about the Qt::QueuedConnection flag.
+    connect(m_scene, SIGNAL(segmentRepeatModified()),
+            this, SIGNAL(segmentRepeatModified()), Qt::QueuedConnection);
+
     connect(m_scene, SIGNAL(currentStaffChanged()),
             this, SLOT(slotUpdatePointerPosition()));
 
@@ -500,7 +459,7 @@ NotationWidget::setSegments(RosegardenDocument *document,
     m_hpanner->fitInView(m_scene->sceneRect(), Qt::KeepAspectRatio);
 
     // clean these up if they're left over from a previous run of setSegments
-    if (m_topStandardRuler) delete m_topStandardRuler;    
+    if (m_topStandardRuler) delete m_topStandardRuler;
     if (m_bottomStandardRuler) delete m_bottomStandardRuler;
     if (m_tempoRuler) delete m_tempoRuler;
     if (m_chordNameRuler) delete m_chordNameRuler;
@@ -521,7 +480,7 @@ NotationWidget::setSegments(RosegardenDocument *document,
 
     connect(m_scene, SIGNAL(layoutUpdated(timeT,timeT)),
             m_controlsWidget, SLOT(slotUpdateRulers(timeT,timeT)));
-    
+
     connect(m_scene, SIGNAL(selectionChanged(EventSelection *)),
             m_controlsWidget, SLOT(slotSelectionChanged(EventSelection *)));
 
@@ -570,7 +529,7 @@ NotationWidget::setSegments(RosegardenDocument *document,
             this, SLOT(slotPointerPositionChanged(timeT)));
     connect(m_bottomStandardRuler, SIGNAL(dragPointerToPosition(timeT)),
             this, SLOT(slotPointerPositionChanged(timeT)));
-    
+
     connect(m_document, SIGNAL(pointerPositionChanged(timeT)),
             this, SLOT(slotPointerPositionChanged(timeT)));
 
@@ -588,7 +547,7 @@ NotationWidget::setSegments(RosegardenDocument *document,
     else m_changerWidget->show();
 
     slotGenerateHeaders();
-    
+
     // Regenerate headers when font size changed
     connect(m_scene, SIGNAL(staffsPositionned()),
             this, SLOT(slotGenerateHeaders()));
@@ -602,6 +561,12 @@ NotationWidget::setSegments(RosegardenDocument *document,
             this, SLOT(slotUpdateSegmentChangerBackground()));
 
     hideOrShowRulers();
+    
+    // If setSegments() is called on an already existing NotationWidget,
+    // NotationScene and Rulers need the same zoom factor and horizontal
+    // position.
+    if (m_referenceScale) m_referenceScale->setXZoomFactor(m_hZoomFactor);
+    slotHScroll();
 }
 
 void
@@ -622,7 +587,7 @@ void
 NotationWidget::slotGenerateHeaders()
 {
     m_headersNeedRegeneration = false;
-    
+
     if (m_headersGroup) disconnect(m_headersGroup, SIGNAL(headersResized(int)),
                                    this, SLOT(slotHeadersResized(int)));
     m_headersGroup = new HeadersGroup(m_document);
@@ -634,7 +599,7 @@ NotationWidget::slotGenerateHeaders()
 
     delete m_headersScene;  // delete the old m_headersGroup if any
     m_headersScene = new QGraphicsScene();
-    QGraphicsProxyWidget 
+    QGraphicsProxyWidget
         *headersProxy = m_headersScene->addWidget(m_headersGroup);
     m_headersView->setScene(m_headersScene);
     m_headersView->centerOn(headersProxy);
@@ -738,7 +703,7 @@ void
 NotationWidget::slotSetFontName(QString name)
 {
     if (m_scene) m_scene->setFontName(name);
-    
+
     // Note: See slotSetFontSize, if standard rulers and position do not refresh
 }
 
@@ -813,7 +778,7 @@ NotationWidget::slotSetInsertedNote(Note::Type type, int dots)
 {
     NoteRestInserter *ni = dynamic_cast<NoteRestInserter *>(m_currentTool);
     if (ni) {
-        
+
         ni->slotSetNote(type);
         ni->slotSetDots(dots);
         return;
@@ -958,7 +923,7 @@ NotationWidget::slotDispatchMouseMove(const NotationMouseEvent *e)
 {
     if (!m_currentTool) return;
     NotationTool::FollowMode mode = m_currentTool->handleMouseMove(e);
-    
+
     if (mode != NotationTool::NoFollow) {
         m_lastMouseMoveScenePos = QPointF(e->sceneX, e->sceneY);
         slotEnsureLastMouseMoveVisible();
@@ -996,7 +961,7 @@ NotationWidget::slotEnsureLastMouseMoveVisible()
     // Reduce margin from 5O (default) to 10 pixels to fix bug #2954074
     m_view->ensureVisible(QRectF(pos, pos), 10, 10);
     m_inMove = false;
-}    
+}
 
 void
 NotationWidget::slotDispatchMouseRelease(const NotationMouseEvent *e)
@@ -1033,7 +998,7 @@ NotationWidget::getInsertionTime() const
 }
 
 void
-NotationWidget::slotZoomInFromPanner() 
+NotationWidget::slotZoomInFromPanner()
 {
     m_hZoomFactor /= 1.1;
     m_vZoomFactor /= 1.1;
@@ -1048,7 +1013,7 @@ NotationWidget::slotZoomInFromPanner()
 }
 
 void
-NotationWidget::slotZoomOutFromPanner() 
+NotationWidget::slotZoomOutFromPanner()
 {
     m_hZoomFactor *= 1.1;
     m_vZoomFactor *= 1.1;
@@ -1210,8 +1175,7 @@ NotationWidget::slotHScroll()
     QPointF topLeft = m_view->mapToScene(0, 0);
     double xs = topLeft.x();
 
-    // Apply zoom correction (Offset of 20 found empirically : probably
-    // some improvments are needed ...)
+    // Apply zoom correction
     int x = (xs - m_leftGutter) * m_hZoomFactor;
 
     // Scroll rulers accordingly
@@ -1231,7 +1195,7 @@ void
 NotationWidget::slotHScrollBarRangeChanged(int min, int max)
 {
     if (max > min) {
-        m_view->horizontalScrollBar()->show(); 
+        m_view->horizontalScrollBar()->show();
     } else {
         m_view->horizontalScrollBar()->hide();
     }
@@ -1282,9 +1246,9 @@ NotationWidget::setHeadersVisibleIfNeeded()
 {
     int viewHeight = m_view->height();
     int headersHeight = m_headersGroup->getUsedHeight();
-    
+
     // Headers only have to be visible when all the staves don't vertically
-    // fit inside the view 
+    // fit inside the view
     bool visible = headersHeight > viewHeight;
     setHeadersVisible(visible);
 }
@@ -1355,7 +1319,7 @@ NotationWidget::slotShowHeaderToolTip(QString toolTipText)
 void
 NotationWidget::slotHeadersResized(int)
 {
-    // Set headers view width to accomodate headers width.   
+    // Set headers view width to accomodate headers width.
     m_headersView->setFixedWidth(
         m_headersGroup->sizeHint().width() * m_hZoomFactor);
 }
@@ -1455,7 +1419,7 @@ NotationWidget::slotPrimaryThumbwheelMoved(int v)
     // not sure what else to do; you can get things grotesquely out of whack
     // changing H or V independently and then trying to use the big zoom, so now
     // we reset when changing to the big zoom, and this behaves independently
-   
+
     // switching from axi-independent to primary/panner
     if (!m_lastZoomWasHV) {
         slotResetZoomClicked();
@@ -1663,7 +1627,7 @@ NotationWidget::slotAddControlRuler(QAction *action)
                                      .arg(QObject::tr(strtoqstr(it->getName())))
                                      .arg(it->getControllerValue())
                                      .arg(hexValue);
-        
+
         if (name != itemStr) continue;
 
         std::cout << "name: " << name.toStdString() << " should match  itemStr: " << itemStr.toStdString() << std::endl;
@@ -1672,7 +1636,7 @@ NotationWidget::slotAddControlRuler(QAction *action)
 
 //      if (i == menuIndex) m_controlsWidget->slotAddControlRuler(*p);
 //      else i++;
-    }   
+    }
 }
 
 Device *

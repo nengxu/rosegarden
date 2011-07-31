@@ -307,7 +307,6 @@ StaffHeader::StaffHeader(HeadersGroup *group,
     for (SortedSegments::iterator i=m_segments.begin();
                                       i!=m_segments.end(); ++i) {
         segVec.push_back(*i);
-    
         (*i)->addObserver(this);
     }
 
@@ -992,9 +991,15 @@ void
 StaffHeader::segmentDeleted(const Segment *seg)
 {
     Segment *s = const_cast<Segment *>(seg);
-    m_segments.erase(s);
+    
+    // m_segments.erase(s);
+    // Sometimes removes more than one element from m_segments, which usually
+    // leads to some future crash. Following line is better. 
+    m_segments.erase(m_segments.find(s));
+      
     emit(staffModified());
 }
+
 
 }
 

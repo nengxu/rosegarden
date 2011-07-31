@@ -4,10 +4,10 @@
     Rosegarden
     A MIDI and audio sequencer and musical notation editor.
     Copyright 2000-2010 the Rosegarden development team.
- 
+
     Other copyrights also apply to some parts of this work.  Please
     see the AUTHORS file and individual file headers for details.
- 
+
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of the
@@ -37,8 +37,10 @@
 #include "gui/widgets/ProgressDialog.h"
 #include "NotationChord.h"
 #include "NotationElement.h"
+#include "ClefKeyContext.h"
 #include "NotationGroup.h"
 #include "NotationProperties.h"
+#include "NotationScene.h"
 #include "NotationStaff.h"
 #include "NotePixmapFactory.h"
 #include <QSettings>
@@ -62,11 +64,13 @@ NotationHLayout::NotationHLayout(Composition *c, NotePixmapFactory *npf,
     m_spacing(100),
     m_proportion(60),
     m_keySigCancelMode(1),
+    m_hideRedundance(true),
     m_npf(npf),
     m_notationQuantizer(c->getNotationQuantizer()),
     m_properties(properties),
     m_timePerProgressIncrement(0),
-    m_staffCount(0)
+    m_staffCount(0),
+    m_scene(static_cast<NotationScene *>(parent))
 {
     //    NOTATION_DEBUG << "NotationHLayout::NotationHLayout()" << endl;
 
@@ -74,6 +78,7 @@ NotationHLayout::NotationHLayout(Composition *c, NotePixmapFactory *npf,
     settings.beginGroup(NotationOptionsConfigGroup);
 
     m_keySigCancelMode = settings.value("keysigcancelmode", 1).toInt() ;
+    m_hideRedundance = settings.value("hideredundantclefkey", "true").toBool();
     settings.endGroup();
 }
 
@@ -354,6 +359,8 @@ NotationHLayout::scanViewSegment(ViewSegment &staff, timeT startTime,
                 if (!showInvisibles)
                     continue;
             }
+            if (m_hideRedundance &&
+                m_scene->isEventRedundant(el->event(), segment)) continue;
 
             if (el->event()->has(BEAMED_GROUP_ID)) {
                 NOTATION_DEBUG << "element is beamed" << endl;
@@ -458,7 +465,6 @@ NotationHLayout::scanViewSegment(ViewSegment &staff, timeT startTime,
 //        std::cout << "barTimes.first: " << barTimes.first << " .second: " << barTimes.second << " actualBarEnd: " << actualBarEnd << std::endl;
         if (actualBarEnd == barTimes.first) actualBarEnd = barTimes.second;
         barCorrect = (actualBarEnd == barTimes.second);
-
         setBarSizeData(staff, barNo, fixedWidth,
                        actualBarEnd - barTimes.first);
 
@@ -561,16 +567,16 @@ NotationHLayout::scanChord(NotationElementList *notes,
 //              << " unquantized, "
 //              << (*itr)->getViewAbsoluteTime()
 //              << " quantized" << std::endl;
-    
+
 //    NOTATION_DEBUG << "Contents:" << endl;
-        
+
     /*
         for (NotationElementList::iterator i = chord.getInitialElement();
     	 i != notes->end(); ++i) {
     	(*i)->event()->dump(std::cerr);
     	if (i == chord.getFinalElement()) break;
         }
-    */ 
+    */
     // We don't need to get the chord's notes in pitch order here,
     // but we do need to ensure we see any random non-note events
     // that may crop up in the middle of it.
@@ -1073,10 +1079,10 @@ NotationHLayout::reconcileBarsPage()
             // narrower than e.g. 90% or something based on the spacing
             /*!!!
             	    if (!tooFar && (nextStretchFactor < 1.0)) {
-             
+
             		for (BarDataMap::iterator i = m_barData.begin();
             		     i != m_barData.end(); ++i) {
-             
+
             		    BarDataList &list = i->second;
             		    BarDataList::iterator bdli = list.find(barNo);
             		    if (bdli != list.end()) {
@@ -1229,7 +1235,7 @@ NotationHLayout::finishLayout(timeT startTime, timeT endTime, bool full)
         // Don't crash if more than 100 segments
         int k = 100 / m_barData.size();
         if (k < 1) k = 1;
-        
+
         m_timePerProgressIncrement = timeCovered / k;
 
         layout(i, startTime, endTime, full);
@@ -1261,8 +1267,9 @@ NotationHLayout::layout(BarDataMap::iterator i, timeT startTime, timeT endTime,
         (full && (notes->begin() != notes->end())) ?
         (*notes->begin())->getViewAbsoluteTime() : startTime;
 
-    ::Rosegarden::Key key = notationStaff.getSegment().getKeyAtTime(lastIncrement);
-    Clef clef = notationStaff.getSegment().getClefAtTime(lastIncrement);
+    Segment &segment = notationStaff.getSegment();
+    ::Rosegarden::Key key = segment.getKeyAtTime(lastIncrement);
+    Clef clef = segment.getClefAtTime(lastIncrement);
     TimeSignature timeSignature;
 
     int startBar = getComposition()->getBarNumber(startTime);
@@ -1317,7 +1324,7 @@ NotationHLayout::layout(BarDataMap::iterator i, timeT startTime, timeT endTime,
 
             bdi->second.layoutData.x += offset;
 
-            if (bdi->second.basicData.newTimeSig)  
+            if (bdi->second.basicData.newTimeSig)
                 bdi->second.layoutData.timeSigX += (int)offset;
 
             for (NotationElementList::iterator it = from;
@@ -1406,6 +1413,8 @@ NotationHLayout::layout(BarDataMap::iterator i, timeT startTime, timeT endTime,
                 if (!showInvisibles)
                     continue;
             }
+            if (m_hideRedundance &&
+                m_scene->isEventRedundant(el->event(), segment)) continue;
 
 //            float sigx = 0;
 
@@ -1690,7 +1699,7 @@ NotationHLayout::positionChord(ViewSegment &staff,
 
     for (NotationElementList::iterator citr = chord.getInitialElement();
          citr != staff.getViewElementList()->end(); ++citr) {
-        
+
         if (citr == to)
             barEndsInChord = true;
 
@@ -1837,8 +1846,11 @@ NotationHLayout::getLayoutWidth(ViewElement &ve,
 
             } else if (m_keySigCancelMode == 1) { // only when reducing acc count
 
-                if (!(key.isSharp() == cancelKey.isSharp() &&
-                        key.getAccidentalCount() < cancelKey.getAccidentalCount())) {
+                if (key.getAccidentalCount() &&
+                    !(key.isSharp() == cancelKey.isSharp() &&
+                      key.getAccidentalCount() < cancelKey.getAccidentalCount()
+                     )
+                   ) {
                     cancelKey = ::Rosegarden::Key();
                 }
             }

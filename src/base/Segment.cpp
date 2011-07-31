@@ -118,12 +118,12 @@ Segment*
 Segment::cloneImpl() const
 {
     Segment *s = new Segment(*this);
-    
+
     if (isLinked()) {
         //if the segment is linked already, link the clone to our SegmentLinker
        getLinker()->addLinkedSegment(s);
     }
-    
+
     return s;
 }
 
@@ -143,7 +143,7 @@ Segment::~Segment()
 
     //unlink it
     SegmentLinker::unlinkSegment(this);
-    
+
     notifySourceDeletion();
 
     if (m_composition) m_composition->detachSegment(this);
@@ -352,18 +352,18 @@ Segment::setEndTime(timeT t)
     if (t < m_startTime) t = m_startTime;
 
     if (m_type == Audio) {
-	setEndMarkerTime(t);
+        setEndMarkerTime(t);
     } else {
-	if (t < endTime) {
-	    erase(findTime(t), end());
-	    endTime = getEndTime();
-	    if (m_endMarkerTime && endTime < *m_endMarkerTime) {
-		*m_endMarkerTime = endTime;
-		notifyEndMarkerChange(true);
-	    }
-	} else if (t > endTime) {
-	    fillWithRests(endTime, t);
-	}
+        if (t < endTime) {
+            erase(findTime(t), end());
+            endTime = getEndTime();
+            if (m_endMarkerTime && endTime < *m_endMarkerTime) {
+                *m_endMarkerTime = endTime;
+                notifyEndMarkerChange(true);
+            }
+        } else if (t > endTime) {
+            fillWithRests(endTime, t);
+        }
     }
 }
 
@@ -371,9 +371,9 @@ Segment::iterator
 Segment::getEndMarker()
 {
     if (m_endMarkerTime) {
-	return findTime(*m_endMarkerTime);
+        return findTime(*m_endMarkerTime);
     } else {
-	return end();
+        return end();
     }
 }
 
@@ -386,7 +386,7 @@ Segment::isBeforeEndMarker(const_iterator i) const
     timeT endTime = getEndMarkerTime();
 
     return ((absTime <  endTime) ||
-	    (absTime == endTime && (*i)->getDuration() == 0));
+            (absTime == endTime && (*i)->getDuration() == 0));
 }
 
 void
@@ -605,6 +605,7 @@ Segment::fillWithRests(timeT endTime)
     fillWithRests(getEndTime(), endTime);
 }
 
+
 void
 Segment::fillWithRests(timeT startTime, timeT endTime)
 {
@@ -642,6 +643,7 @@ Segment::fillWithRests(timeT startTime, timeT endTime)
 	acc += *i;
     }
 }
+
 
 void
 Segment::normalizeRests(timeT startTime, timeT endTime)
@@ -692,7 +694,7 @@ Segment::normalizeRests(timeT startTime, timeT endTime)
     // durations to.)
 
     timeT segmentEndTime = m_endTime;
-    
+
     iterator ia = findNearestTime(startTime);
     if (ia == end()) ia = begin();
     if (ia == end()) { // the segment is empty
@@ -1220,6 +1222,41 @@ Segment::getFirstClefAndKey(Clef &clef, Key &key)
     }
 }
 
+
+void
+Segment::enforceBeginWithClefAndKey()
+{
+    bool keyFound = false;
+    bool clefFound = false;
+
+    iterator i = begin();
+    while (i!=end()) {
+        // Keep current clef and key as soon as a note or rest event is found
+        if ((*i)->isa(Note::EventRestType) || (*i)->isa(Note::EventType)) break;
+
+        // Remember if a clef event is found
+        if ((*i)->isa(Clef::EventType)) {
+            clefFound = true;
+            // and stop looking for next events if a key has already been found
+            if (keyFound) break;
+        }
+
+        // Remember if a key event is found
+        if ((*i)->isa(Key::EventType)) {
+            keyFound = true;
+            // and stop looking for next events if a clef has already been found
+            if (clefFound) break;
+        }
+
+        ++i;
+    }
+
+    // Insert default clef and key signature if needed
+    if (!keyFound) insert(Key().getAsEvent(m_startTime));
+    if (!clefFound) insert(Clef().getAsEvent(m_startTime));
+}
+
+
 timeT
 Segment::getRepeatEndTime() const
 {
@@ -1372,6 +1409,7 @@ Segment::deleteEventRuler(const std::string &type, int controllerValue)
     return false;
 }
 
+
 Segment::EventRuler*
 Segment::getEventRuler(const std::string &type, int controllerValue)
 {
@@ -1382,7 +1420,6 @@ Segment::getEventRuler(const std::string &type, int controllerValue)
 
     return 0;
 }
-
 
 
 SegmentHelper::~SegmentHelper() { }
@@ -1407,8 +1444,6 @@ SegmentRefreshStatus::push(timeT from, timeT to)
 
     setNeedsRefresh(true);
 }
-
-
 
 
 }

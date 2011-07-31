@@ -121,6 +121,7 @@ public:
 
 signals:
     void segmentDeleted(Segment *);
+    void segmentRepeatModified();
     void sceneDeleted();
     void toolChanged(QString);
     void hoveredOverNoteChanged(QString);
@@ -289,8 +290,6 @@ private:
     bool m_vSliderHacked;
 
     bool m_Thorn;
-
-    std::vector<Segment *> m_clones;
 
     /**
      * Widgets vertical positions inside the main QGridLayout

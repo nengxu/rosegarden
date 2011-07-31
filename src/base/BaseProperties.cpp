@@ -112,7 +112,7 @@ const PropertyName DISPLACED_Y                   = "displacedy";
 
 const PropertyName INVISIBLE                     = "invisible";
 
-const PropertyName TMP                           = "temporary";
+const PropertyName TMP         = "temporary"; /// TODO : TMP -> REPEATING
 const PropertyName LINKED_SEGMENT_IGNORE_UPDATE  = "linkedsegmentignoreupdate";
 
 }

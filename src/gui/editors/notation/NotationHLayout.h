@@ -45,6 +45,7 @@ class Key;
 class Composition;
 class Clef;
 class AccidentalTable;
+class NotationScene;
 
 
 /**
@@ -249,7 +250,7 @@ protected:
     struct BarData
     {
         ChunkList chunks;
-        
+
         struct BasicData
         {   // slots that can be filled at construction time
 
@@ -350,9 +351,9 @@ protected:
                 timeT startTime,
                 timeT endTime,
                 bool full);
-    
+
     /// Find earliest element with quantized time of t or greater
-    NotationElementList::iterator getStartOfQuantizedSlice 
+    NotationElementList::iterator getStartOfQuantizedSlice
     (NotationElementList *, timeT t) const;
 
     void scanChord
@@ -369,7 +370,7 @@ protected:
     // and may modify the to-iterator if it turns out to point at a
     // note within the chord
     void positionChord
-    (ViewSegment &staff, 
+    (ViewSegment &staff,
      NotationElementList::iterator &, const Clef &clef,
      const ::Rosegarden::Key &key, TieMap &, NotationElementList::iterator &to);
 
@@ -410,6 +411,7 @@ protected:
     int m_spacing;
     int m_proportion;
     int m_keySigCancelMode;
+    bool m_hideRedundance;         // Don't show unneeded clefs and keys
 
     //!!! This should not be here -- different staffs may have
     //different sizes in principle, so we should always be referring
@@ -425,6 +427,8 @@ protected:
     int m_timePerProgressIncrement;
     std::map<ViewSegment *, bool> m_haveOttavaSomewhere;
     int m_staffCount; // purely for value() reporting
+
+    NotationScene *m_scene;
 };
 
 

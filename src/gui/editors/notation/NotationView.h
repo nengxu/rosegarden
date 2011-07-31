@@ -92,6 +92,9 @@ protected slots:
     /// Remove a segment from our list when it is deleted from the composition
     void slotSegmentDeleted(Segment *);
 
+    /// Some change occurs and the whole scene have to be redrawn
+    void slotRegenerateScene();
+
     /// All segments have been deleted (close editor)
     void slotSceneDeleted();
 
