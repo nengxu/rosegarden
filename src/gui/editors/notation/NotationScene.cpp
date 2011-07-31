@@ -249,7 +249,7 @@ void
 NotationScene::setStaffs(RosegardenDocument *document,
                           vector<Segment *> segments)
 {
-  
+
     if (m_document && document != m_document) {
         m_document->getComposition().removeObserver(this);
     }
@@ -259,17 +259,17 @@ NotationScene::setStaffs(RosegardenDocument *document,
     for (unsigned int i = 0; i < m_segments.size(); ++i) {
         m_segments[i]->removeObserver(m_clefKeyContext);
     }
-    
+
      // Delete clones of repeating segment if any
     for (std::vector<Segment *>::iterator it = m_clones.begin();
         it != m_clones.end(); ++it) {
         delete (*it);
     }
     m_clones.clear();
-    
+
     m_document = document;
     m_externalSegments = segments;
-   
+
 
     /// Look for repeating segments
 
@@ -280,6 +280,10 @@ NotationScene::setStaffs(RosegardenDocument *document,
 
     if (showRepeated) {
         createClonesFromRepeatedSegments();
+        // External segments and clones are now mixed inside m_segments
+    } else {
+        m_segments = m_externalSegments;
+        // No clone in that case 
     }
 
 
