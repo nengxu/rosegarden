@@ -120,9 +120,7 @@ public:
     double getVerticalZoomFactor() const;
 
 signals:
-    void segmentDeleted(Segment *);
-    void segmentRepeatModified();
-    void sceneDeleted();
+    void sceneNeedsRebuilding();
     void toolChanged(QString);
     void hoveredOverNoteChanged(QString);
     void headersVisibilityChanged(bool);

@@ -76,14 +76,15 @@ NotationScene::NotationScene() :
     m_updatesSuspended(false),
     m_minTrack(0),
     m_maxTrack(0),
-    m_segmentDeleted(0),
-    m_finished(false)
+    m_finished(false),
+    m_sceneIsEmpty(false)
 {
     QString prefix(QString("NotationScene%1::").arg(instanceCount++));
     m_properties = new NotationProperties(qstrtostr(prefix));
 
 //    qRegisterMetaType<NotationMouseEvent>("Rosegarden::NotationMouseEvent");
 
+    m_segmentsDeleted.clear();
     setNotePixmapFactories();
 }
 
@@ -1049,12 +1050,13 @@ void
 NotationScene::segmentRemoved(const Composition *c, Segment *s)
 {
     NOTATION_DEBUG << "NotationScene::segmentRemoved(" << c << "," << s << ")" << endl;
-
-    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+    if (!m_document || !c || (c != &m_document->getComposition())) return;
 
     for (std::vector<NotationStaff *>::iterator i = m_staffs.begin();
          i != m_staffs.end(); ++i) {
         if (s == &(*i)->getSegment()) {
+
+            m_segmentsDeleted.push_back(s); // Remember segment to be deleted
 
             // The segmentDeleted() signal is about to be emitted. Therefore
             // the whole scene is going to be deleted then restored (from
@@ -1063,15 +1065,16 @@ NotationScene::segmentRemoved(const Composition *c, Segment *s)
             disconnect(CommandHistory::getInstance(), SIGNAL(commandExecuted()),
                        this, SLOT(slotCommandExecuted()));
             suspendLayoutUpdates();   // Useful ???
-            m_finished = true;    // Stop further processing from this scene
 
-            m_segmentDeleted = s;
-            emit segmentDeleted(s);
-
-            if (m_externalSegments.size() == 1) {
-                NOTATION_DEBUG << "(Scene is now empty)" << endl;
-                emit sceneDeleted();
+            if (m_segmentsDeleted.size() == m_externalSegments.size()) {
+                // There will be no more segment in scene.
+                m_sceneIsEmpty = true;
             }
+
+            // Signal must be emitted only once. Nevertheless, all removed
+            // segments have to be remembered.
+            if (!m_finished) emit sceneNeedsRebuilding();
+            m_finished = true; // Stop further processing from this scene
 
             break;
         }
@@ -1081,7 +1084,11 @@ NotationScene::segmentRemoved(const Composition *c, Segment *s)
 void
 NotationScene::segmentRepeatChanged(const Composition *c, Segment *s, bool)
 {
-    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+    if (!m_document || !c || (c != &m_document->getComposition())) return;
+
+    // Signal must be emitted only once (or the same scene will be recreated
+    // several time which may be very time consuming).
+    if (m_finished) return;
 
     for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
          i != m_externalSegments.end(); ++i) {
@@ -1095,7 +1102,7 @@ NotationScene::segmentRepeatChanged(const Composition *c, Segment *s, bool)
             suspendLayoutUpdates();
             m_finished = true;    // Stop further processing from this scene
 
-            emit segmentRepeatModified();
+            emit sceneNeedsRebuilding();
             break;
         }
     }
@@ -1104,7 +1111,11 @@ NotationScene::segmentRepeatChanged(const Composition *c, Segment *s, bool)
 void
 NotationScene::segmentRepeatEndChanged(const Composition *c, Segment *s, timeT)
 {
-    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+    if (!m_document || !c || (c != &m_document->getComposition())) return;
+
+    // Signal must be emitted only once (or the same scene will be recreated
+    // several time which may be very time consuming).
+    if (m_finished) return;
 
     for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
          i != m_externalSegments.end(); ++i) {
@@ -1119,7 +1130,7 @@ NotationScene::segmentRepeatEndChanged(const Composition *c, Segment *s, timeT)
             suspendLayoutUpdates();
             m_finished = true;    // Stop further processing from this scene
 
-            emit segmentRepeatModified();
+            emit sceneNeedsRebuilding();
             break;
         }
     }
@@ -1128,7 +1139,11 @@ NotationScene::segmentRepeatEndChanged(const Composition *c, Segment *s, timeT)
 void
 NotationScene::segmentStartChanged(const Composition *c, Segment *s, timeT)
 {
-    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+    if (!m_document || !c || (c != &m_document->getComposition())) return;
+
+    // Signal must be emitted only once (or the same scene will be recreated
+    // several time which may be very time consuming).
+    if (m_finished) return;
 
     for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
          i != m_externalSegments.end(); ++i) {
@@ -1143,7 +1158,7 @@ NotationScene::segmentStartChanged(const Composition *c, Segment *s, timeT)
             suspendLayoutUpdates();
             m_finished = true;    // Stop further processing from this scene
 
-            emit segmentRepeatModified();
+            emit sceneNeedsRebuilding();
             break;
         }
     }
@@ -1152,7 +1167,11 @@ NotationScene::segmentStartChanged(const Composition *c, Segment *s, timeT)
 void
 NotationScene::segmentEndMarkerChanged(const Composition *c, Segment *s, bool)
 {
-    if (!m_document || !c || (c != &m_document->getComposition()) || m_finished) return;
+    if (!m_document || !c || (c != &m_document->getComposition())) return;
+
+    // Signal must be emitted only once (or the same scene will be recreated
+    // several time which may be very time consuming).
+    if (m_finished) return;
 
     for (std::vector<Segment *>::iterator i = m_externalSegments.begin();
          i != m_externalSegments.end(); ++i) {
@@ -1167,7 +1186,7 @@ NotationScene::segmentEndMarkerChanged(const Composition *c, Segment *s, bool)
             suspendLayoutUpdates();
             m_finished = true;    // Stop further processing from this scene
 
-            emit segmentRepeatModified();
+            emit sceneNeedsRebuilding();
             break;
         }
     }

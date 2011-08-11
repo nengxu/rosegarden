@@ -318,12 +318,8 @@ NotationView::NotationView(RosegardenDocument *doc,
     this->restoreState(settings.value("Notation_View_State").toByteArray());
     settings.endGroup();
 
-    connect(m_notationWidget, SIGNAL(segmentDeleted(Segment *)),
-            this, SLOT(slotSegmentDeleted(Segment *)));
-    connect(m_notationWidget, SIGNAL(segmentRepeatModified()),
+    connect(m_notationWidget, SIGNAL(sceneNeedsRebuilding()),
             this, SLOT(slotRegenerateScene()));
-    connect(m_notationWidget, SIGNAL(sceneDeleted()),
-            this, SLOT(slotSceneDeleted()));
 
     // do the auto repeat thingie on the <<< << >> >>> buttons
     setRewFFwdToAutoRepeat();
@@ -3238,62 +3234,54 @@ NotationView::slotToggleTracking()
 }
 
 void
-NotationView::slotSegmentDeleted(Segment *s)
-{
-    NOTATION_DEBUG << "NotationView::slotSegmentDeleted: " << s << endl;
-
-    // remove from vector
-    for (std::vector<Segment *>::iterator i = m_segments.begin();
-         i != m_segments.end(); ++i) {
-        if (*i == s) {
-            m_segments.erase(i);
-            NOTATION_DEBUG << "NotationView::slotSegmentDeleted: Erased segment from vector, have " << m_segments.size() << " segment(s) remaining" << endl;
-
-            // Fix bug #2960243:
-            // When a segment is deleted : remove the selection rect 
-            NotationTool * tool =  m_notationWidget->getCurrentTool();
-            if (tool) tool->stow();
-            // and regenerate the whole notation widget .
-            m_notationWidget->setSegments(m_document, m_segments);
-            
-            return;
-        }
-    }
-}
-
-void
 NotationView::slotRegenerateScene()
 {
-    NOTATION_DEBUG << "NotationView::slotRegenerateScene:" << endl;
+    NOTATION_DEBUG << "NotationView::slotRegenerateScene: "
+                   << m_notationWidget->getScene()->getSegmentsDeleted()->size()
+                   << " segments deleted" << endl;
 
-    // Is a segment about to be deleted ?
-    Segment * s = m_notationWidget->getScene()->getSegmentDeleted();
+    // Look for segments to be removed from vector
+    std::vector<Segment *> * segmentDeleted =
+        m_notationWidget->getScene()->getSegmentsDeleted();
 
-    // If yes, erase it from the segment list before any other action
-    if (s) {
-        slotSegmentDeleted(s);
-    } else {
-
-/// YG: What if a repeating segment is going to be deleted and has
-///     the selection rect ????
-
-            // Fix bug #2960243:
-            // When a segment is deleted : remove the selection rect 
-///            NotationTool * tool =  m_notationWidget->getCurrentTool();
-///            if (tool) tool->stow();
-
-            // and regenerate the whole notation widget .
-            m_notationWidget->setSegments(m_document, m_segments);
+    if (segmentDeleted->size() == 0) {
+        // No deleted segment: regenerate then notation widget directly
+        m_notationWidget->setSegments(m_document, m_segments);
+        return;
     }
-}
 
-void
-NotationView::slotSceneDeleted()
-{
-    NOTATION_DEBUG << "NotationView::slotSceneDeleted" << endl;
+    if (m_notationWidget->getScene()->isSceneEmpty()) {
+        // All segments have been removed : don't regenerate anything
+        // but close the editor.
+        NOTATION_DEBUG << "NotationView::slotSceneDeleted" << endl;
 
-    m_segments.clear();
-    close();
+        close();
+        return;
+    }
+
+    // Remove the deleted segments
+    for (std::vector<Segment *>::iterator isd = segmentDeleted->begin();
+         isd != segmentDeleted->end(); ++isd) {
+        for (std::vector<Segment *>::iterator i = m_segments.begin();
+             i != m_segments.end(); ++i) {
+            if (*isd == *i) {
+                m_segments.erase(i);
+                NOTATION_DEBUG << "NotationView::slotRegenerateScene:"
+                                  " Erased segment from vector, have "
+                              << m_segments.size() << " segment(s) remaining"
+                              << endl;
+                break;
+            }
+        }
+    }
+
+    // Fix bug #2960243:
+    // When a segment is deleted : remove the selection rect 
+    NotationTool * tool =  m_notationWidget->getCurrentTool();
+    if (tool) tool->stow();
+
+    // and regenerate the whole notation widget .
+    m_notationWidget->setSegments(m_document, m_segments);
 }
 
 void
@@ -3302,6 +3290,13 @@ NotationView::slotUpdateWindowTitle(bool m)
     QString indicator = (m ? "*" : "");
 
     if (m_segments.empty()) return;
+
+    // Scene may be empty and the editor is about to be closed,
+    // but this info doesn't propagate to view still.
+    // (Because signals used to trig slotUpdateWindowTitle() _are not queued_
+    //  but signal used to trig slotRegenerateScene() _is queued_).
+    // In such a case, don't do anything (to avoid a crash).
+    if (m_notationWidget->getScene()->isSceneEmpty()) return;
 
     if (m_segments.size() == 1) {
 

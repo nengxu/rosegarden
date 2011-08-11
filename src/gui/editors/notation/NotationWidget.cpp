@@ -435,21 +435,14 @@ NotationWidget::setSegments(RosegardenDocument *document,
 
     // Bug #2960243: the Qt::QueuedConnection flag is mandatory to avoid
     // a crash after deleting the notation scene from inside its own code.
-    connect(m_scene, SIGNAL(segmentDeleted(Segment *)),
-            this, SIGNAL(segmentDeleted(Segment *)), Qt::QueuedConnection);
-
-    // Same comment as above about the Qt::QueuedConnection flag.
-    connect(m_scene, SIGNAL(segmentRepeatModified()),
-            this, SIGNAL(segmentRepeatModified()), Qt::QueuedConnection);
+    connect(m_scene, SIGNAL(sceneNeedsRebuilding()),
+            this, SIGNAL(sceneNeedsRebuilding()), Qt::QueuedConnection);
 
     connect(m_scene, SIGNAL(currentStaffChanged()),
             this, SLOT(slotUpdatePointerPosition()));
 
     connect(m_scene, SIGNAL(selectionChanged()),
             m_view, SLOT(updateScene()));
-
-    connect(m_scene, SIGNAL(sceneDeleted()),
-            this, SIGNAL(sceneDeleted()));
 
     m_view->setScene(m_scene);
 

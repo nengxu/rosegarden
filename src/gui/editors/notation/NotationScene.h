@@ -188,9 +188,13 @@ public:
     bool isEventRedundant(Event *ev, Segment &seg);
     bool isEventRedundant(Clef &clef, timeT time, Segment &seg);
     bool isEventRedundant(Key &key, timeT time, Segment &seg);
-    
-    /// Return the segment about to be deleted if any or 0
-    Segment * getSegmentDeleted() { return m_segmentDeleted; }
+
+    /// Return the segments about to be deleted if any
+    std::vector<Segment *> * getSegmentsDeleted() { return &m_segmentsDeleted; }
+
+    /// Return true if all segments in scene are about to be deleted
+    /// (Editor needs to be closed)
+    bool isSceneEmpty() { return m_sceneIsEmpty; }
 
     /**
      * Return true if another staff inside the scene than the given one
@@ -213,9 +217,7 @@ signals:
     void mouseReleased(const NotationMouseEvent *e);
     void mouseDoubleClicked(const NotationMouseEvent *e);
 
-    void segmentDeleted(Segment *);
-    void segmentRepeatModified();
-    void sceneDeleted(); // all segments have been removed
+    void sceneNeedsRebuilding();
 
     void eventRemoved(Event *);
 
@@ -335,10 +337,11 @@ private:
     TrackIntMap m_trackHeights;
     TrackIntMap m_trackCoords;
 
-    // Remember what segment is about to be deleted
-    Segment * m_segmentDeleted;
+    // Remember segments about to be deleted
+    std::vector<Segment *> m_segmentsDeleted;
 
-    bool m_finished;   // Waiting dtor : no more do anything
+    bool m_finished;       // Waiting dtor : don't do too much now
+    bool m_sceneIsEmpty;   // No more segment in scene
 };
 
 }

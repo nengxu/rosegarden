@@ -89,14 +89,10 @@ protected:
     virtual void readOptions();
 
 protected slots:
-    /// Remove a segment from our list when it is deleted from the composition
-    void slotSegmentDeleted(Segment *);
-
-    /// Some change occurs and the whole scene have to be redrawn
+    /// Some change occurs and the whole scene have to be redrawn.
+    /// First remove segments from our list when they are deleted from the
+    /// composition.
     void slotRegenerateScene();
-
-    /// All segments have been deleted (close editor)
-    void slotSceneDeleted();
 
     /// Update the window title during setup, and when document modified status
     /// changes
