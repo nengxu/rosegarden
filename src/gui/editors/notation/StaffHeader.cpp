@@ -785,6 +785,8 @@ StaffHeader::updateHeader(int width)
         // Fix staff header variant of bug #2997311 (Part 1)
         bool selectedMode = npf->isSelected();
         npf->setSelected(false);
+        bool shadedMode = npf->isShaded();
+        npf->setShaded(false);
 
         delete m_clefItem;
         m_clefItem = npf->makeClef(m_clef, m_foregroundType);
@@ -795,6 +797,7 @@ StaffHeader::updateHeader(int width)
 
         // Fix staff header variant of bug #2997311 (Part 2)
         npf->setSelected(selectedMode);
+        npf->setShaded(shadedMode);
 
         m_lineSpacing = npf->getLineSpacing();
         m_maxDelta = npf->getAccidentalWidth(Accidentals::Sharp);
