@@ -1132,7 +1132,7 @@ NotationWidget::slotAdjustHeadersVerticalPos(QRectF r)
 
     // For some reason, in current step, the headers are very often placed a
     // bit too much on the right. Following call should fix their horizontal
-    // position. Argument "last" is set to tue because experience shows that
+    // position. Argument "last" is set to true because experience shows that
     // a single call is sufficient.
     slotAdjustHeadersHorizontalPos(true);
 }

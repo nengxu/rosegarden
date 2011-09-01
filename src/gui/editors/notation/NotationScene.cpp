@@ -77,7 +77,9 @@ NotationScene::NotationScene() :
     m_minTrack(0),
     m_maxTrack(0),
     m_finished(false),
-    m_sceneIsEmpty(false)
+    m_sceneIsEmpty(false),
+    m_showRepeated(false),
+    m_editRepeated(false)
 {
     QString prefix(QString("NotationScene%1::").arg(instanceCount++));
     m_properties = new NotationProperties(qstrtostr(prefix));
@@ -236,6 +238,12 @@ NotationScene::getCurrentStaff()
 void
 NotationScene::setCurrentStaff(NotationStaff *staff)
 {
+    // To unallow the direct edition of a repeated segment do it never be
+    // the current one
+    if (m_showRepeated && !m_editRepeated) {
+        if (staff->getSegment().isTmp()) return;
+    }
+
     for (uint i = 0; i < m_staffs.size(); ++i) {
         if (m_staffs[i] == staff) {
             m_currentStaff = i;
@@ -274,12 +282,14 @@ NotationScene::setStaffs(RosegardenDocument *document,
 
     /// Look for repeating segments
 
+    // Get display/edition settings
     QSettings settings;
     settings.beginGroup(NotationViewConfigGroup);
-    bool showRepeated =  settings.value("showrepeated", true).toBool();
+    m_showRepeated =  settings.value("showrepeated", true).toBool();
+    m_editRepeated =  settings.value("editrepeated", false).toBool();
     settings.endGroup();
 
-    if (showRepeated) {
+    if (m_showRepeated) {
         createClonesFromRepeatedSegments();
         // External segments and clones are now mixed inside m_segments
     } else {
@@ -455,6 +465,11 @@ NotationScene::getStaffForSceneCoords(double x, int y) const
     // (ii) Find staff under cursor, if clicked outside the current staff.
 
     for (unsigned int i = 0; i < m_staffs.size(); ++i) {
+
+        // Never return a staff which can't be edited directly
+        if (m_showRepeated && !m_editRepeated) {
+            if (m_staffs[i]->getSegment().isTmp()) continue;
+        }
 
         StaffLayout *s = m_staffs[i];
 
@@ -1027,6 +1042,9 @@ NotationScene::dumpVectors()
     for (unsigned int i=0; i<m_externalSegments.size(); ++i) {
         std::cerr << "extern " << i << " : " << m_externalSegments[i];
         if (m_externalSegments[i]->isTmp()) std::cerr << " TMP";
+        if (m_externalSegments[i]->isLinked()) std::cerr << " LINKED";
+        std::cerr << "start=" << m_externalSegments[i]->getStartTime()
+                  << " endMrkr=" << m_externalSegments[i]->getEndMarkerTime();
         std::cerr << "\n";
     }
     for (unsigned int i=0; i<m_clones.size(); ++i) {

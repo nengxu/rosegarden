@@ -211,6 +211,9 @@ public:
     */
     void updateRefreshStatuses(TrackId track, timeT time);
 
+    /// YG: Only for debug
+    void dumpVectors();
+
 signals:
     void mousePressed(const NotationMouseEvent *e);
     void mouseMoved(const NotationMouseEvent *e);
@@ -263,11 +266,9 @@ protected:
     void segmentRepeatEndChanged(const Composition *, Segment *, timeT);
     void segmentStartChanged(const Composition *, Segment *, timeT);
     void segmentEndMarkerChanged(const Composition *, Segment *, bool);
-    
-    /// YG: Only for debug
-    void dumpVectors();
 
-    
+
+
 private:
     void setNotePixmapFactories(QString fontName = "", int size = -1);
 
@@ -342,6 +343,8 @@ private:
 
     bool m_finished;       // Waiting dtor : don't do too much now
     bool m_sceneIsEmpty;   // No more segment in scene
+    bool m_showRepeated;   // Repeated segments are visible
+    bool m_editRepeated;   // Direct edition of repeated segments is allowed
 };
 
 }

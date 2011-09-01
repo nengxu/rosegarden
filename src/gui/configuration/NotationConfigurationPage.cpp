@@ -557,6 +557,19 @@ NotationConfigurationPage::NotationConfigurationPage(QWidget *parent) :
 
     layout->addWidget
         (new QLabel
+         (tr("Allow direct edition of repeated segments"), frame),
+         row, 0, 1, 2);
+    m_editRepeated = new QCheckBox(frame);
+    connect(m_editRepeated, SIGNAL(stateChanged(int)),
+            this, SLOT(slotModified()));
+    bool defaultEditRepeated = qStrToBool(settings.value("editrepeated",
+                                                         "false")) ;
+    m_editRepeated->setChecked(defaultEditRepeated);
+    layout->addWidget(m_editRepeated, row, 2);
+    ++row;
+
+    layout->addWidget
+        (new QLabel
          (tr("Hide redundant clefs and keys"), frame),
          row, 0, 1, 2);
     m_hideRedundantClefKey = new QCheckBox(frame);
@@ -733,6 +746,7 @@ NotationConfigurationPage::apply()
     settings.setValue("quantizemakeviable", m_splitAndTie->isChecked());
 
     settings.setValue("showrepeated", m_showRepeated->isChecked());
+    settings.setValue("editrepeated", m_editRepeated->isChecked());
     settings.setValue("hideredundantclefkey",
                        m_hideRedundantClefKey->isChecked());
 

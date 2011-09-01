@@ -728,6 +728,9 @@ NotationView::setupActions()
     createAction("grace_mode", SLOT(slotUpdateInsertModeStatus()));
     createAction("toggle_step_by_step", SLOT(slotToggleStepByStep()));
 
+    /// YG: Only for debug
+    createAction("dump_staves", SLOT(slotDebugDump()));
+
     createAction("manual", SLOT(slotHelp()));
     createAction("tutorial", SLOT(slotTutorial()));
     createAction("guidelines", SLOT(slotBugGuidelines()));
@@ -3244,33 +3247,32 @@ NotationView::slotRegenerateScene()
     std::vector<Segment *> * segmentDeleted =
         m_notationWidget->getScene()->getSegmentsDeleted();
 
-    if (segmentDeleted->size() == 0) {
-        // No deleted segment: regenerate then notation widget directly
-        m_notationWidget->setSegments(m_document, m_segments);
-        return;
-    }
+    // If there is no such segment regenerate the notation widget directly
+    if (segmentDeleted->size() != 0) {
+        
+        // else look if there is something to display still
+        if (m_notationWidget->getScene()->isSceneEmpty()) {
+            // All segments have been removed : don't regenerate anything
+            // but close the editor.
+            NOTATION_DEBUG << "NotationView::slotSceneDeleted" << endl;
 
-    if (m_notationWidget->getScene()->isSceneEmpty()) {
-        // All segments have been removed : don't regenerate anything
-        // but close the editor.
-        NOTATION_DEBUG << "NotationView::slotSceneDeleted" << endl;
+            close();
+            return;
+        }
 
-        close();
-        return;
-    }
-
-    // Remove the deleted segments
-    for (std::vector<Segment *>::iterator isd = segmentDeleted->begin();
-         isd != segmentDeleted->end(); ++isd) {
-        for (std::vector<Segment *>::iterator i = m_segments.begin();
-             i != m_segments.end(); ++i) {
-            if (*isd == *i) {
-                m_segments.erase(i);
-                NOTATION_DEBUG << "NotationView::slotRegenerateScene:"
-                                  " Erased segment from vector, have "
-                              << m_segments.size() << " segment(s) remaining"
-                              << endl;
-                break;
+        // then remove the deleted segments
+        for (std::vector<Segment *>::iterator isd = segmentDeleted->begin();
+            isd != segmentDeleted->end(); ++isd) {
+            for (std::vector<Segment *>::iterator i = m_segments.begin();
+                i != m_segments.end(); ++i) {
+                if (*isd == *i) {
+                    m_segments.erase(i);
+                    NOTATION_DEBUG << "NotationView::slotRegenerateScene:"
+                                    " Erased segment from vector, have "
+                                << m_segments.size() << " segment(s) remaining"
+                                << endl;
+                    break;
+                }
             }
         }
     }
@@ -3278,10 +3280,34 @@ NotationView::slotRegenerateScene()
     // Fix bug #2960243:
     // When a segment is deleted : remove the selection rect 
     NotationTool * tool =  m_notationWidget->getCurrentTool();
-    if (tool) tool->stow();
-
-    // and regenerate the whole notation widget .
+    QString toolName;
+    if (tool) {
+        toolName = tool->getToolName();
+        tool->stow();
+    }
+    
+    // remember zoom factors
+    double hZoomFactor = m_notationWidget->getHorizontalZoomFactor();
+    double vZoomFactor = m_notationWidget->getVerticalZoomFactor();
+    
+    // TODO: remember scene position
+    
+    // regenerate the whole notation widget .
     m_notationWidget->setSegments(m_document, m_segments);
+    
+    // restore size and spacing of notation police
+    m_notationWidget->slotSetFontName(m_fontName);
+    m_notationWidget->slotSetFontSize(m_fontSize);
+    m_notationWidget->getScene()->setHSpacing(m_spacing);
+
+    // restore zoom factors
+    m_notationWidget->setVerticalZoomFactor(vZoomFactor);
+    m_notationWidget->setHorizontalZoomFactor(hZoomFactor);
+    
+    // TODO: restore scene position
+    
+    // and restore the current tool if any
+    if (tool) m_notationWidget->slotSetTool(toolName);
 }
 
 void
@@ -4656,6 +4682,15 @@ void
 NotationView::slotCheckShowHeadersMenu(bool checked)
 {
     findAction("show_track_headers")->setChecked(checked);
+}
+
+/// YG: Only for debug
+void
+NotationView::slotDebugDump()
+{
+    std::cout << "NotationView::slotDebugDump\n";
+    m_notationWidget->getScene()->dumpVectors();
+    std::cout.flush();
 }
 
 } // end namespace Rosegarden

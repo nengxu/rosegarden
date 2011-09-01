@@ -181,8 +181,15 @@ NotationHLayout::scanViewSegment(ViewSegment &staff, timeT startTime,
         startTime = segment.getStartTime();
         endTime = segment.getEndMarkerTime();
     } else {
+        // Time must be limited to values inside segment to avoid the extension
+        // of the staff (experienced with linked segments) with various effects
+        // as the display of an unnecessary time signature at a wrong place.
+        timeT segStartTime = segment.getStartTime();
+        timeT segEndTime = segment.getEndMarkerTime();
         startTime = getComposition()->getBarStartForTime(startTime);
         endTime = getComposition()->getBarEndForTime(endTime);
+        if (segStartTime > startTime) startTime = segStartTime;
+        if (segEndTime < endTime) endTime = segEndTime;
     }
 
     NotationElementList *notes = staff.getViewElementList();
@@ -1939,7 +1946,6 @@ NotationHLayout::getFirstVisibleBarOnViewSegment(ViewSegment &staff) const
     if (bdl.begin() != bdl.end()) bar = bdl.begin()->first;
 
     //    NOTATION_DEBUG << "NotationHLayout::getFirstVisibleBarOnViewSegment: returning " << bar << endl;
-
     return bar;
 }
 
