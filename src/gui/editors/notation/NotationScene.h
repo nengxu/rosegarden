@@ -213,6 +213,7 @@ public:
 
     /// YG: Only for debug
     void dumpVectors();
+    void dumpBarDataMap();
 
 signals:
     void mousePressed(const NotationMouseEvent *e);

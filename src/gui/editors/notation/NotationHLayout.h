@@ -228,6 +228,9 @@ public:
         m_staffCount = staffCount;
     }
 
+    /// YG: Only for debug
+    void dumpBarDataMap();
+
 protected:
 
     struct Chunk {
@@ -258,6 +261,7 @@ protected:
             bool correct; // bar preceding barline has correct duration
             TimeSignature timeSignature;
             bool newTimeSig;
+            timeT delayInBar;   // Time from start of bar to start of segment
 
         } basicData;
 
@@ -286,6 +290,7 @@ protected:
             basicData.correct = correct;
             basicData.timeSignature = timeSig;
             basicData.newTimeSig = newTimeSig;
+            basicData.delayInBar = 0;
             sizeData.idealWidth = 0;
             sizeData.reconciledWidth = 0;
             sizeData.fixedWidth = 0;
@@ -295,6 +300,9 @@ protected:
             layoutData.x = -1;
             layoutData.timeSigX = -1;
         }
+
+        /// YG: Only for debug
+        void dump(std::string indent);
     };
 
     typedef std::map<int, BarData> BarDataList;

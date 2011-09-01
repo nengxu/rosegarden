@@ -32,6 +32,7 @@
 #include "base/SegmentNotationHelper.h"
 #include "base/ViewSegment.h"
 #include "base/ViewElement.h"
+#include "document/RosegardenDocument.h"
 #include "gui/editors/guitar/Chord.h"
 #include "gui/general/ProgressReporter.h"
 #include "gui/widgets/ProgressDialog.h"
@@ -182,8 +183,9 @@ NotationHLayout::scanViewSegment(ViewSegment &staff, timeT startTime,
         endTime = segment.getEndMarkerTime();
     } else {
         // Time must be limited to values inside segment to avoid the extension
-        // of the staff (experienced with linked segments) with various effects
-        // as the display of an unnecessary time signature at a wrong place.
+        // of the staff toward the start of the composition (experienced with
+        // linked segments) with various effects as the display of an
+        // unnecessary time signature at a wrong place.
         timeT segStartTime = segment.getStartTime();
         timeT segEndTime = segment.getEndMarkerTime();
         startTime = getComposition()->getBarStartForTime(startTime);
@@ -525,10 +527,19 @@ NotationHLayout::setBarBasicData(ViewSegment &staff,
         i = bdl.find(barNo);
     }
 
+    // When bar is the first one in a segment, the delay computed here is the
+    // difference between event position in bar and event position in segment.
+    Segment & seg = staff.getSegment();
+    Composition & comp = m_scene->getDocument()->getComposition();
+    int firstBarOfSegment = comp.getBarNumber(seg.getStartTime() + 1);
+    timeT segDelay = (barNo == firstBarOfSegment) ?
+        seg.getStartTime() - comp.getBarStart(barNo) : 0;
+
     i->second.basicData.start = start;
     i->second.basicData.correct = correct;
     i->second.basicData.timeSignature = timeSig;
     i->second.basicData.newTimeSig = newTimeSig;
+    i->second.basicData.delayInBar = segDelay;
 }
 
 void
@@ -758,8 +769,13 @@ NotationHLayout::preSquishBar(int barNo)
 
             haveSomething = true;
             ChunkList &cl(bdli->second.chunks);
-            timeT aggregateTime = 0;
 
+            // Delay between start of bar and start of segment have to be
+            // added to event durations to avoid wrong position of notes
+            // when a segment is not precisely beginning at a start of a bar.
+            // This fixes the "anacrusis problem".
+
+            timeT aggregateTime = bdli->second.basicData.delayInBar;
             for (ChunkList::iterator cli = cl.begin(); cli != cl.end(); ++cli) {
 
                 // Subordering is typically zero for notes, positive
@@ -2120,5 +2136,62 @@ NotationHLayout::getXForTimeByEvent(timeT time) const
 
 std::vector<int> NotationHLayout::m_availableSpacings;
 std::vector<int> NotationHLayout::m_availableProportions;
+
+/// YG: Only for debug
+void
+NotationHLayout::BarData::dump(std::string indent)
+{
+    std::cout << indent
+              << "basic(start=<x>"
+              << " correct=" << basicData.correct
+              << " timeSig=<x>"
+              << " newTimeSig=" << basicData.newTimeSig
+              << " delayInBar=" << basicData.delayInBar << ")";
+    std::cout << "\n";
+    std::cout << indent
+              << "size(ideal=" << sizeData.idealWidth
+              << " reconcile=" << sizeData.reconciledWidth
+              << " fixed=" << sizeData.fixedWidth
+              << " clefKey=" << sizeData.clefKeyWidth
+              << " duration=" << sizeData.actualDuration << ")";
+    std::cout << "\n";
+    std::cout << indent;
+    std::cout << "layout(needs=" << layoutData.needsLayout
+              << " x=" << layoutData.x
+              << " timeSigX=" << layoutData.timeSigX << ")";
+    std::cout << "\n";
+
+    ChunkList::iterator i;
+    for (i=chunks.begin(); i!=chunks.end(); ++i) {
+        std::cout << indent
+                  << "   Chunk duration=" << (*i).duration
+                  << " subord=" << (*i).subordering
+                  << " fixed=" << (*i).fixed
+                  << " stretchy=" << (*i).stretchy
+                  << " x=" << (*i).x << "\n";
+    }
+
+    std::cout << "\n";
+    std::cout.flush();
+}
+
+/// YG: Only for debug
+void
+NotationHLayout::dumpBarDataMap()
+{
+    BarDataMap::iterator i;
+    for (i=m_barData.begin(); i!=m_barData.end(); ++i) {
+        ViewSegment *vs = (*i).first;
+        BarDataList bdl = (*i).second;
+
+        std::cout << "------- ViewSegment=" << vs
+                  << " seg=" << &vs->getSegment() << "\n";
+        BarDataList::iterator j;
+        for (j=bdl.begin(); j!=bdl.end(); ++j) {
+            std::cout << "       ------- BarData (" << (*j).first << ")\n";
+            (*j).second.dump("       ");
+        }
+    }
+}
 
 }

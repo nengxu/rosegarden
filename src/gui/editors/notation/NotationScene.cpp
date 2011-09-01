@@ -1962,7 +1962,6 @@ NotationScene::isAnotherStaffNearTime(NotationStaff *currentStaff, timeT t)
     return false;
 }
 
-
 void
 NotationScene::updateRefreshStatuses(TrackId track, timeT time)
 {
@@ -1972,6 +1971,13 @@ NotationScene::updateRefreshStatuses(TrackId track, timeT time)
         timeT segEndTime = (*it)->getEndMarkerTime();
         if (time < segEndTime) (*it)->updateRefreshStatuses(time, segEndTime);
     }
+}
+
+///YG: Only for debug
+void
+NotationScene::dumpBarDataMap()
+{
+    m_hlayout->dumpBarDataMap();
 }
 
 

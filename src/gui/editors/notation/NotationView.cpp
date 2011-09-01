@@ -729,7 +729,8 @@ NotationView::setupActions()
     createAction("toggle_step_by_step", SLOT(slotToggleStepByStep()));
 
     /// YG: Only for debug
-    createAction("dump_staves", SLOT(slotDebugDump()));
+     createAction("dump_staves", SLOT(slotDebugDump()));
+     createAction("dump_bardata", SLOT(slotBarDataDump()));
 
     createAction("manual", SLOT(slotHelp()));
     createAction("tutorial", SLOT(slotTutorial()));
@@ -4688,9 +4689,14 @@ NotationView::slotCheckShowHeadersMenu(bool checked)
 void
 NotationView::slotDebugDump()
 {
-    std::cout << "NotationView::slotDebugDump\n";
     m_notationWidget->getScene()->dumpVectors();
-    std::cout.flush();
+}
+
+/// YG: Only for debug
+void
+NotationView::slotBarDataDump()
+{
+    m_notationWidget->getScene()->dumpBarDataMap();
 }
 
 } // end namespace Rosegarden

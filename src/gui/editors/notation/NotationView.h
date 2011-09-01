@@ -283,8 +283,9 @@ protected slots:
     void slotToggleStepByStep();
     void slotStepByStepTargetRequested(QObject *);
 
-    ///YG: Only for debug
+    /// YG: Only for debug
     void slotDebugDump();
+    void slotBarDataDump();
 
     /**
      * Insert a Symbol

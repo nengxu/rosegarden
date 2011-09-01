@@ -541,9 +541,9 @@ public:
     
     /**
      * Revert lockResizeNotifications() effect. If segment has been move
-     * or resized, send one notification to the observers.
+     * or resized, send one, and only one, notification to the observers.
      * Should only be called after lockResizeNotifications() has been called.
-     * Currently nested calls are not allowed.
+     * Nested lock/unlock calls are not allowed currently.
      */ 
     void unlockResizeNotifications();    
 
