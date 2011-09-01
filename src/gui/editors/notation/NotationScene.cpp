@@ -1141,7 +1141,7 @@ NotationScene::segmentStartChanged(const Composition *c, Segment *s, timeT)
 {
     if (!m_document || !c || (c != &m_document->getComposition())) return;
 
-    // Signal must be emitted only once (or the same scene will be recreated
+    // Signal must be emitted only once (else the same scene will be recreated
     // several time which may be very time consuming).
     if (m_finished) return;
 

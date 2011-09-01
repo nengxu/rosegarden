@@ -61,6 +61,9 @@ Segment::Segment(SegmentType segmentType, timeT startTime) :
     m_highestPlayable(127),
     m_lowestPlayable(0),
     m_clefKeyList(0),
+    m_notifyResizeLocked(false),
+    m_memoStart(0),
+    m_memoEndMarkerTime(0),
     m_runtimeSegmentId(_runtimeSegmentId++),
     m_snapGridSize(-1),
     m_viewFeatures(0),
@@ -99,6 +102,9 @@ Segment::Segment(const Segment &segment):
     m_highestPlayable(127),
     m_lowestPlayable(0),
     m_clefKeyList(0),
+    m_notifyResizeLocked(false),  // To copy a segment while notifications
+    m_memoStart(0),               // are locked doesn't sound as a good
+    m_memoEndMarkerTime(0),       // idea.
     m_runtimeSegmentId(_runtimeSegmentId++),
     m_snapGridSize(-1),
     m_viewFeatures(0),
@@ -464,6 +470,7 @@ Segment::erase(iterator pos)
     Event *e = *pos;
 
     assert(e);
+    
 
     timeT t0 = e->getAbsoluteTime();
     timeT t1 = t0 + e->getDuration();
@@ -475,9 +482,13 @@ Segment::erase(iterator pos)
 
     if (t0 == m_startTime && begin() != end()) {
 	timeT startTime = (*begin())->getAbsoluteTime();
-        if (m_composition) m_composition->setSegmentStartTime(this, startTime);
-	else m_startTime = startTime;
-	notifyStartChanged(m_startTime);
+        
+        // Don't send any notification if startTime doesn't change.
+        if (startTime != m_startTime) {
+            if (m_composition) m_composition->setSegmentStartTime(this, startTime);
+            else m_startTime = startTime;
+            notifyStartChanged(m_startTime);
+        }
     }
     if (t1 == m_endTime) {
 	updateEndTime();
@@ -1327,6 +1338,8 @@ Segment::notifyAppearanceChange() const
 void
 Segment::notifyStartChanged(timeT newTime)
 {
+    if (m_notifyResizeLocked) return;
+
     for (ObserverSet::const_iterator i = m_observers.begin();
 	 i != m_observers.end(); ++i) {
 	(*i)->startChanged(this, newTime);
@@ -1340,6 +1353,8 @@ Segment::notifyStartChanged(timeT newTime)
 void
 Segment::notifyEndMarkerChange(bool shorten)
 {
+    if (m_notifyResizeLocked) return;
+
     for (ObserverSet::const_iterator i = m_observers.begin();
      i != m_observers.end(); ++i) {
     (*i)->endMarkerTimeChanged(this, shorten);
@@ -1369,6 +1384,33 @@ Segment::notifySourceDeletion() const
     }
 }
 
+void
+Segment::lockResizeNotifications()
+{
+    m_notifyResizeLocked = true;
+    m_memoStart = m_startTime;
+    m_memoEndMarkerTime = m_endMarkerTime ? new timeT(*m_endMarkerTime) : 0;
+}
+
+void
+Segment::unlockResizeNotifications()
+{
+    m_notifyResizeLocked = false;
+    if (m_startTime != m_memoStart) notifyStartChanged(m_startTime);
+    if (!m_memoEndMarkerTime && !m_endMarkerTime) return;  // ???
+    bool shorten = false;
+    if (m_memoEndMarkerTime && m_endMarkerTime) {
+        if (*m_memoEndMarkerTime > *m_endMarkerTime) shorten = true;
+        else if (*m_memoEndMarkerTime == *m_endMarkerTime) return;
+    }
+    
+    // What if m_memoEndMarkerTime=0 and m_endMarkerTime!=0 (or the
+    // opposite) ?   Is such a case possible ?
+    
+    if (m_memoEndMarkerTime) delete m_memoEndMarkerTime;
+    m_memoEndMarkerTime = 0;
+    notifyEndMarkerChange(shorten);
+}
 
 void
 Segment::setColourIndex(const unsigned int input)

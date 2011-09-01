@@ -529,6 +529,23 @@ public:
     * default clef and/or key signature as needed.
     */
     void enforceBeginWithClefAndKey();
+    
+    /**
+     * Stop sending move or resize notifications to the observers.
+     * (May be useful to avoid sending lot of unnecessary resize notifications
+     * when a segment is deleted then rebuild event by event while a linked
+     * segment is processed).
+     * Should be used with caution!
+     */
+    void lockResizeNotifications();
+    
+    /**
+     * Revert lockResizeNotifications() effect. If segment has been move
+     * or resized, send one notification to the observers.
+     * Should only be called after lockResizeNotifications() has been called.
+     * Nested calls are not allowed currently.
+     */ 
+    void unlockResizeNotifications();    
 
     //////
     //
@@ -732,6 +749,7 @@ public:
      * May return 0 if segment is linked but no reference is defined.
      */
     const Segment * getRealSegment() const;
+    
 
 
 private:
@@ -793,6 +811,10 @@ private: // stuff to support SegmentObservers
     void notifyEndMarkerChange(bool shorten);
     void notifyTransposeChange();
     void notifySourceDeletion() const;
+    
+    bool m_notifyResizeLocked;
+    timeT m_memoStart;
+    timeT *m_memoEndMarkerTime;
 
 private:
 

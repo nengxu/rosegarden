@@ -353,6 +353,20 @@ NotationHLayout::scanViewSegment(ViewSegment &staff, timeT startTime,
                     ottavaShift = 0;
                 }
             }
+            
+            // Clefs and key signatures must always be memorized here (even
+            // when they are invisible) as the way other elements are displayed
+            // may depend from them.
+            Key oldKey;
+            if (el->event()->isa(Clef::EventType)) {
+                clef = Clef(*el->event());
+                accTable.newClef(clef);
+            } else if (el->event()->isa(::Rosegarden::Key::EventType)) {
+	        oldKey = key;
+                key = ::Rosegarden::Key(*el->event());
+                accTable = AccidentalTable
+                           (key, clef, octaveType, barResetType);
+            }
 
             bool invisible = false;
             if (el->event()->get<Bool>(INVISIBLE, invisible) && invisible) {
@@ -384,19 +398,11 @@ NotationHLayout::scanViewSegment(ViewSegment &staff, timeT startTime,
                 chunks.push_back(Chunk(el->event()->getSubOrdering(),
                                        getLayoutWidth(*el, npf, key)));
 
-                clef = Clef(*el->event());
-                accTable.newClef(clef);
-
             } else if (el->event()->isa(::Rosegarden::Key::EventType)) {
 
                 //		NOTATION_DEBUG << "Found key" << endl;
                 chunks.push_back(Chunk(el->event()->getSubOrdering(),
-                                       getLayoutWidth(*el, npf, key)));
-
-                key = ::Rosegarden::Key(*el->event());
-
-                accTable = AccidentalTable
-                           (key, clef, octaveType, barResetType);
+                                       getLayoutWidth(*el, npf, oldKey)));
 
             } else if (el->event()->isa(Text::EventType)) {
 

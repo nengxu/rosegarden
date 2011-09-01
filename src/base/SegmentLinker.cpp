@@ -210,7 +210,10 @@ SegmentLinker::linkedSegmentChanged(Segment *s, const timeT from,
         if(s == linkedSegToUpdate) {
             continue;
         }
-         
+        
+        // Don't send unnecessary resize notifications to observers
+        linkedSegToUpdate->lockResizeNotifications();
+        
         timeT segStartTime = linkedSegToUpdate->getStartTime();
         timeT segFrom = segStartTime + refFrom;
         timeT segTo = segStartTime + refTo;
@@ -236,6 +239,9 @@ SegmentLinker::linkedSegmentChanged(Segment *s, const timeT from,
             insertMappedEvent(linkedSegToUpdate,e,eventT,semitones,steps);
         }
         
+        // Now only send one resize notification to observers if needed.
+        linkedSegToUpdate->unlockResizeNotifications();
+
         rs.setNeedsRefresh(false);
     }
 }
