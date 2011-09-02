@@ -269,7 +269,7 @@ private :
     struct SegmentCmp {
         bool operator()(const Segment *s1, const Segment *s2) const;
     };
-    typedef std::multiset<Segment *, SegmentCmp> SortedSegments;
+    typedef std::set<Segment *, SegmentCmp> SortedSegments;
     
     SortedSegments m_segments;
 

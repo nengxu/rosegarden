@@ -1977,8 +1977,6 @@ Composition::getNewTrackId() const
 void
 Composition::notifySegmentAdded(Segment *s) const
 {
-    std::cerr << "Composition::notifySegmentAdded" << std::endl;
-
     // If there is an earlier repeating segment on the same track, we
     // need to notify the change of its repeat end time
 

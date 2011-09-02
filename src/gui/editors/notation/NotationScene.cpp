@@ -1043,13 +1043,15 @@ NotationScene::dumpVectors()
         std::cerr << "extern " << i << " : " << m_externalSegments[i];
         if (m_externalSegments[i]->isTmp()) std::cerr << " TMP";
         if (m_externalSegments[i]->isLinked()) std::cerr << " LINKED";
-        std::cerr << "start=" << m_externalSegments[i]->getStartTime()
+        std::cerr << " start=" << m_externalSegments[i]->getStartTime()
                   << " endMrkr=" << m_externalSegments[i]->getEndMarkerTime();
         std::cerr << "\n";
     }
     for (unsigned int i=0; i<m_clones.size(); ++i) {
         std::cerr << "clones " << i << " : " << m_clones[i];
         if (m_clones[i]->isTmp()) std::cerr << " TMP";
+        std::cerr << " start=" << m_clones[i]->getStartTime()
+                  << " endMrkr=" << m_clones[i]->getEndMarkerTime();
         std::cerr << "\n";
     }
     for (unsigned int i=0; i<m_segments.size(); ++i) {

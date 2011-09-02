@@ -824,11 +824,15 @@ StaffHeader::updateHeader(int width)
 bool
 StaffHeader::SegmentCmp::operator()(const Segment * s1, const Segment * s2) const
 {
-    // Sort segments by start time, then by end time
+    // Sort segments by start time, then by end time, then by address.
+    // The last comparison garantees two segments will never be equals and
+    // allows to remove easily one of them from the m_segments multiset.
+    // (Now, a set may replace the multiset.) 
     if (s1->getStartTime() < s2->getStartTime()) return true;
     if (s1->getStartTime() > s2->getStartTime()) return false;
     if (s1->getEndMarkerTime() < s2->getEndMarkerTime()) return true;
-    return false;
+    if (s1->getEndMarkerTime() > s2->getEndMarkerTime()) return false;
+    return s1 < s2;
 }
 
 
@@ -994,13 +998,10 @@ void
 StaffHeader::segmentDeleted(const Segment *seg)
 {
     Segment *s = const_cast<Segment *>(seg);
-    
-    // m_segments.erase(s);
-    // Sometimes removes more than one element from m_segments, which usually
-    // leads to some future crash. Following line is better. 
-    m_segments.erase(m_segments.find(s));
-      
-    emit(staffModified());
+
+     m_segments.erase(s);
+
+     emit(staffModified());
 }
 
 
