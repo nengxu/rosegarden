@@ -27,6 +27,9 @@
 #include <cstdio>
 #include <typeinfo>
 
+/// YG: Only for debug (dumpObservers)
+#include "gui/editors/notation/StaffHeader.h"
+
 namespace Rosegarden
 {
 using std::cerr;
@@ -1485,6 +1488,27 @@ SegmentRefreshStatus::push(timeT from, timeT to)
     if (m_to < m_from) std::swap(m_from, m_to);
 
     setNeedsRefresh(true);
+}
+
+/// YG: Only for debug
+void
+Segment::dumpObservers()
+{
+    std::cerr << "Observers of segment " << this << " are:\n";
+     for (ObserverSet::const_iterator i = m_observers.begin();
+          i != m_observers.end(); ++i) {
+        std::cerr << " " << (*i);
+    }
+    std::cerr << "\n";
+    for (ObserverSet::const_iterator i = m_observers.begin();
+          i != m_observers.end(); ++i) {
+              Segment * seg = dynamic_cast<Segment *>(*i);
+              StaffHeader * sh = dynamic_cast<StaffHeader *>(*i);
+        std::cerr << "        " << (*i);
+        if (seg) std::cerr << " ==> Segment " << seg;
+        if (sh) std::cerr << " ==> StaffHeader " << sh;
+        std::cerr << "\n";
+    }
 }
 
 

@@ -832,7 +832,7 @@ StaffHeader::SegmentCmp::operator()(const Segment * s1, const Segment * s2) cons
     if (s1->getStartTime() > s2->getStartTime()) return false;
     if (s1->getEndMarkerTime() < s2->getEndMarkerTime()) return true;
     if (s1->getEndMarkerTime() > s2->getEndMarkerTime()) return false;
-    return s1 < s2;
+    return (long) s1 < (long) s2;
 }
 
 
@@ -999,9 +999,20 @@ StaffHeader::segmentDeleted(const Segment *seg)
 {
     Segment *s = const_cast<Segment *>(seg);
 
-     m_segments.erase(s);
+    // Remove one segment from m_segments, the right segment and only one
+    // segment, even if the comparison operator used in SortedSegments is
+    // not as good as it would be wished.
+    std::pair<SortedSegments::iterator, SortedSegments::iterator> range;
+    range = m_segments.equal_range(s);
+    for (SortedSegments::iterator i=m_segments.begin();
+                                      i!=m_segments.end(); ++i) {
+        if (*i == s) {
+            m_segments.erase(i);
+            break;
+        }
+    }
 
-     emit(staffModified());
+    emit(staffModified());
 }
 
 

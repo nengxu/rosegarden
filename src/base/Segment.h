@@ -546,6 +546,12 @@ public:
      * Nested lock/unlock calls are not allowed currently.
      */ 
     void unlockResizeNotifications();    
+    
+    /**
+     * YG: This one is only for debug
+     */
+    void dumpObservers();
+
 
     //////
     //

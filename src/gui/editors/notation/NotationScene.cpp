@@ -1052,11 +1052,13 @@ NotationScene::dumpVectors()
         if (m_clones[i]->isTmp()) std::cerr << " TMP";
         std::cerr << " start=" << m_clones[i]->getStartTime()
                   << " endMrkr=" << m_clones[i]->getEndMarkerTime();
-        std::cerr << "\n";
+        std::cerr << "\n\n";
     }
     for (unsigned int i=0; i<m_segments.size(); ++i) {
         std::cerr << "segmen " << i << " : " << m_segments[i];
         if (m_segments[i]->isTmp()) std::cerr << " TMP";
+        std::cerr << "\n";
+        m_segments[i]->dumpObservers();
         std::cerr << "\n";
     }
     for (unsigned int i=0; i<m_staffs.size(); ++i) {
