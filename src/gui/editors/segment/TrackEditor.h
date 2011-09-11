@@ -151,6 +151,7 @@ public slots:
 
     void slotDeleteSelectedSegments();
     void slotTurnRepeatingSegmentToRealCopies();
+    void slotTurnLinkedSegmentsToRealCopies();
 
     void slotToggleTracking();
 

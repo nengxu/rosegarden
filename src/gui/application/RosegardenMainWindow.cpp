@@ -777,6 +777,7 @@ RosegardenMainWindow::setupActions()
     createAction("set_segment_duration", SLOT(slotSetSegmentDurations()));
     createAction("join_segments", SLOT(slotJoinSegments()));
     createAction("repeats_to_real_copies", SLOT(slotRepeatingSegments()));
+    createAction("links_to_real_copies", SLOT(slotLinksToCopies()));
     createAction("manage_trigger_segments", SLOT(slotManageTriggerSegments()));
     createAction("groove_quantize", SLOT(slotGrooveQuantize()));
     createAction("set_tempo_to_segment_length", SLOT(slotTempoToSegmentLength()));
@@ -6410,6 +6411,12 @@ void
 RosegardenMainWindow::slotRepeatingSegments()
 {
     m_view->getTrackEditor()->slotTurnRepeatingSegmentToRealCopies();
+}
+
+void
+RosegardenMainWindow::slotLinksToCopies()
+{
+    m_view->getTrackEditor()->slotTurnLinkedSegmentsToRealCopies();
 }
 
 void

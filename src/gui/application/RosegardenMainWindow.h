@@ -1393,6 +1393,7 @@ public slots:
     void slotDeleteSegments(const SegmentSelection&);
 
     void slotRepeatingSegments();
+    void slotLinksToCopies();
     void slotRelabelSegments();
     void slotTransposeSegments();
     void slotSwitchPreset();
